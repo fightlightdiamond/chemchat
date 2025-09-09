@@ -130,6 +130,40 @@ export class User {
     );
   }
 
+  public updateEmail(newEmail: string): User {
+    if (!newEmail || !this.isValidEmail(newEmail)) {
+      throw new Error('Valid email is required');
+    }
+
+    return new User(
+      this.id,
+      this.username,
+      this.displayName,
+      newEmail,
+      this.passwordHash,
+      this.mfaEnabled,
+      this.mfaSecret,
+      this.createdAt,
+      new Date(),
+    );
+  }
+
+  public isPasswordValid(hashedPassword: string): boolean {
+    return this.passwordHash === hashedPassword;
+  }
+
+  public getAge(): number {
+    return Date.now() - this.createdAt.getTime();
+  }
+
+  public isRecentlyCreated(thresholdMs: number = 24 * 60 * 60 * 1000): boolean {
+    return this.getAge() < thresholdMs;
+  }
+
+  public getSecurityLevel(): 'basic' | 'enhanced' {
+    return this.mfaEnabled ? 'enhanced' : 'basic';
+  }
+
   public toJSON() {
     return {
       id: this.id,
@@ -139,6 +173,8 @@ export class User {
       mfaEnabled: this.mfaEnabled,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      securityLevel: this.getSecurityLevel(),
+      isRecentlyCreated: this.isRecentlyCreated(),
     };
   }
 }

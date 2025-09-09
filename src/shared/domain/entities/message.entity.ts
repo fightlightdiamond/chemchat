@@ -137,6 +137,44 @@ export class Message {
     return this.content;
   }
 
+  public getAge(): number {
+    return Date.now() - this.createdAt.getTime();
+  }
+
+  public isRecentlyCreated(thresholdMs: number = 5 * 60 * 1000): boolean {
+    return this.getAge() < thresholdMs;
+  }
+
+  public canBeEdited(
+    userId: string,
+    timeLimit: number = 15 * 60 * 1000,
+  ): boolean {
+    if (this.isDeleted() || this.isSystemMessage()) {
+      return false;
+    }
+
+    if (this.senderId !== userId) {
+      return false;
+    }
+
+    return this.getAge() <= timeLimit;
+  }
+
+  public canBeDeleted(userId: string): boolean {
+    if (this.isDeleted()) {
+      return false;
+    }
+
+    return this.senderId === userId;
+  }
+
+  public getTimeSinceEdit(): number | null {
+    if (!this.editedAt) {
+      return null;
+    }
+    return Date.now() - this.editedAt.getTime();
+  }
+
   public toJSON() {
     return {
       id: this.id,
@@ -151,6 +189,8 @@ export class Message {
       createdAt: this.createdAt,
       isEdited: this.isEdited(),
       isDeleted: this.isDeleted(),
+      isRecentlyCreated: this.isRecentlyCreated(),
+      age: this.getAge(),
     };
   }
 }

@@ -102,6 +102,33 @@ export class Conversation {
     return this.type === ConversationType.GROUP;
   }
 
+  public getAge(): number {
+    return Date.now() - this.createdAt.getTime();
+  }
+
+  public isRecentlyCreated(thresholdMs: number = 24 * 60 * 60 * 1000): boolean {
+    return this.getAge() < thresholdMs;
+  }
+
+  public isOwnedBy(userId: string): boolean {
+    return this.ownerId === userId;
+  }
+
+  public getDisplayName(): string {
+    if (this.isDirectMessage()) {
+      return 'Direct Message';
+    }
+    return this.name || 'Unnamed Conversation';
+  }
+
+  public canBeRenamed(): boolean {
+    return this.isGroupConversation();
+  }
+
+  public canTransferOwnership(): boolean {
+    return this.isGroupConversation();
+  }
+
   public toJSON() {
     return {
       id: this.id,
@@ -110,6 +137,9 @@ export class Conversation {
       ownerId: this.ownerId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      displayName: this.getDisplayName(),
+      isRecentlyCreated: this.isRecentlyCreated(),
+      canBeRenamed: this.canBeRenamed(),
     };
   }
 }
