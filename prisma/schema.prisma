@@ -10,17 +10,189 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Basic user model for foundation
+// Users table with authentication and MFA support
 model User {
-  id          String   @id @default(uuid())
-  username    String   @unique
-  displayName String   @map("display_name")
-  email       String   @unique
-  passwordHash String  @map("password_hash")
-  mfaEnabled  Boolean  @default(false) @map("mfa_enabled")
-  mfaSecret   String?  @map("mfa_secret")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  username     String   @unique @db.VarChar(50)
+  displayName  String   @map("display_name") @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  mfaEnabled   Boolean  @default(false) @map("mfa_enabled")
+  mfaSecret    String?  @map("mfa_secret") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  ownedConversations   Conversation[]      @relation("ConversationOwner")
+  conversationMembers  ConversationMember[]
+  sentMessages         Message[]           @relation("MessageSender")
+  messageReactions     MessageReaction[]
+  auditLogs            AuditLog[]          @relation("AuditActor")
 
   @@map("users")
+}
+
+// Conversations table supporting both DM and group chats
+model Conversation {
+  id        String            @id @default(uuid())
+  type      ConversationType
+  name      String?           @db.VarChar(100)
+  ownerId   String?           @map("owner_id")
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  owner               User?                 @relation("ConversationOwner", fields: [ownerId], references: [id])
+  members             ConversationMember[]
+  messages            Message[]
+  conversationState   ConversationState?
+
+  @@map("conversations")
+}
+
+// Conversation members with roles and read tracking
+model ConversationMember {
+  conversationId      String   @map("conversation_id")
+  userId              String   @map("user_id")
+  role                MemberRole @default(MEMBER)
+  lastReadMessageId   String?  @map("last_read_message_id")
+  lastReadSequence    BigInt   @default(0) @map("last_read_sequence")
+  joinedAt            DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
+
+  // Relationships
+  conversation        Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessage     Message?     @relation("LastReadMessage", fields: [lastReadMessageId], references: [id])
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+// Messages with sequence ordering and content support
+model Message {
+  id                String      @id @default(uuid())
+  conversationId    String      @map("conversation_id")
+  senderId          String?     @map("sender_id")
+  clientMessageId   String?     @map("client_message_id") @db.VarChar(100)
+  sequenceNumber    BigInt      @map("sequence_number")
+  messageType       MessageType @default(TEXT) @map("message_type")
+  content           Json
+  editedAt          DateTime?   @map("edited_at") @db.Timestamptz(6)
+  deletedAt         DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relationships
+  conversation      Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender            User?               @relation("MessageSender", fields: [senderId], references: [id])
+  reactions         MessageReaction[]
+  attachments       Attachment[]
+  lastReadBy        ConversationMember[] @relation("LastReadMessage")
+
+  @@unique([conversationId, sequenceNumber])
+  @@unique([conversationId, clientMessageId, senderId])
+  @@index([conversationId, sequenceNumber(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("messages")
+}
+
+// Message reactions
+model MessageReaction {
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  emoji     String   @db.VarChar(10)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relationships
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+// Conversation state for sequence number fallback
+model ConversationState {
+  conversationId String   @id @map("conversation_id")
+  lastSeq        BigInt   @default(0) @map("last_seq")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_state")
+}
+
+// Media attachments
+model Attachment {
+  id           String   @id @default(uuid())
+  messageId    String   @map("message_id")
+  filename     String   @db.VarChar(255)
+  mimeType     String   @map("mime_type") @db.VarChar(100)
+  fileSize     BigInt   @map("file_size")
+  fileHash     String   @map("file_hash") @db.VarChar(64)
+  storageUrl   String   @map("storage_url")
+  thumbnailUrl String?  @map("thumbnail_url")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relationships
+  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("attachments")
+}
+
+// Audit logs for compliance and moderation
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String?  @map("tenant_id")
+  actorId    String?  @map("actor_id")
+  action     String   @db.VarChar(50)
+  targetType String   @map("target_type") @db.VarChar(50)
+  targetId   String   @map("target_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relationships
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+// Outbox pattern for reliable event publishing
+model OutboxEvent {
+  id            String    @id @default(uuid())
+  tenantId      String?   @map("tenant_id")
+  aggregateType String    @map("aggregate_type") @db.VarChar(50)
+  aggregateId   String    @map("aggregate_id")
+  eventType     String    @map("event_type") @db.VarChar(100)
+  eventData     Json      @map("event_data")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(6)
+  retryCount    Int       @default(0) @map("retry_count")
+
+  @@index([createdAt])
+  @@map("outbox_events")
+}
+
+// Enums
+enum ConversationType {
+  DM    @map("dm")
+  GROUP @map("group")
+}
+
+enum MemberRole {
+  OWNER  @map("owner")
+  ADMIN  @map("admin")
+  MEMBER @map("member")
+}
+
+enum MessageType {
+  TEXT   @map("text")
+  IMAGE  @map("image")
+  FILE   @map("file")
+  SYSTEM @map("system")
 }
