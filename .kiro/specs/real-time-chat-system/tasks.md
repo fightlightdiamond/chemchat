@@ -20,7 +20,7 @@ This implementation plan converts the chat system design into discrete, manageab
     - Configure database connection with connection pooling and retry logic
     - _Requirements: 2.1, 2.2, 12.1, 13.1_
 
-  - [ ] 2.2 Implement domain entities and value objects
+  - [x] 2.2 Implement domain entities and value objects
     - Create User, Conversation, Message, and ConversationMember entities with validation
     - Implement value objects for MessageContent, PresenceStatus, and ConversationRole
     - Add domain validation rules and business logic to entities
