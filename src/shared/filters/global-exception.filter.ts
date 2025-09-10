@@ -44,7 +44,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     // Ensure correlation ID exists
-    const correlationId = (request as any).correlationId || uuidv4();
+    const correlationId =
+      (request as Request & { correlationId?: string }).correlationId ||
+      uuidv4();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
@@ -61,7 +63,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // Structured logging with correlation ID
-    this.logger.error({
+    const errorInfo = {
       correlationId,
       error: {
         name: exception instanceof Error ? exception.name : 'Unknown',
@@ -76,7 +78,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ip: request.ip,
       },
       timestamp: new Date().toISOString(),
-    });
+    };
+    this.logger.error(errorInfo);
 
     const errorResponse = {
       code,
