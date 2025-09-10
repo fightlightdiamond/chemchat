@@ -19,6 +19,7 @@ model User {
   passwordHash String   @map("password_hash") @db.VarChar(255)
   mfaEnabled   Boolean  @default(false) @map("mfa_enabled")
   mfaSecret    String?  @map("mfa_secret") @db.VarChar(255)
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz(6)
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
