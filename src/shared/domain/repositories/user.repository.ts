@@ -63,6 +63,21 @@ export interface UserRepository extends BaseRepository<User> {
    * Find users by multiple emails
    */
   findByEmails(emails: string[]): Promise<User[]>;
+
+  /**
+   * Update user's password
+   */
+  updatePassword(userId: string, newPasswordHash: string): Promise<void>;
+
+  /**
+   * Enable MFA for user
+   */
+  enableMfa(userId: string, secret: string): Promise<void>;
+
+  /**
+   * Disable MFA for user
+   */
+  disableMfa(userId: string): Promise<void>;
 }
 
 export interface UserStats {

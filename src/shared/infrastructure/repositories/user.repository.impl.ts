@@ -411,6 +411,45 @@ export class UserRepositoryImpl
     }
   }
 
+  async updatePassword(userId: string, newPasswordHash: string): Promise<void> {
+    try {
+      await this.db.user.update({
+        where: { id: userId },
+        data: { passwordHash: newPasswordHash },
+      });
+    } catch (error) {
+      this.handleError(error, 'updatePassword');
+    }
+  }
+
+  async enableMfa(userId: string, secret: string): Promise<void> {
+    try {
+      await this.db.user.update({
+        where: { id: userId },
+        data: {
+          mfaEnabled: true,
+          mfaSecret: secret,
+        },
+      });
+    } catch (error) {
+      this.handleError(error, 'enableMfa');
+    }
+  }
+
+  async disableMfa(userId: string): Promise<void> {
+    try {
+      await this.db.user.update({
+        where: { id: userId },
+        data: {
+          mfaEnabled: false,
+          mfaSecret: null,
+        },
+      });
+    } catch (error) {
+      this.handleError(error, 'disableMfa');
+    }
+  }
+
   private mapToEntity(prismaUser: PrismaUser): User {
     return new User(
       prismaUser.id,
@@ -418,8 +457,11 @@ export class UserRepositoryImpl
       prismaUser.displayName,
       prismaUser.email,
       prismaUser.passwordHash,
+      'default', // tenantId - assuming default tenant for now
+      true, // isActive
       prismaUser.mfaEnabled,
       prismaUser.mfaSecret || undefined,
+      prismaUser.lastLoginAt || undefined,
       prismaUser.createdAt,
       prismaUser.updatedAt,
     );

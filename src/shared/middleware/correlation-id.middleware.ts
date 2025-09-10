@@ -12,7 +12,7 @@ export class CorrelationIdMiddleware implements NestMiddleware {
       uuidv4();
 
     // Attach to request object
-    (req as any).correlationId = correlationId;
+    (req as Request & { correlationId: string }).correlationId = correlationId;
 
     // Add to response headers
     res.setHeader('x-correlation-id', correlationId);
