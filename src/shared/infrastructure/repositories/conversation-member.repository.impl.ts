@@ -152,7 +152,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.mapToEntity(member);
     } catch (error: unknown) {
-      this.handleError(error, 'findById');
+      return this.handleError(error, 'findById');
     }
   }
 
@@ -172,7 +172,7 @@ export class ConversationMemberRepositoryImpl
 
       return member ? this.mapToEntity(member) : null;
     } catch (error: unknown) {
-      this.handleError(error, 'findByConversationAndUser');
+      return this.handleError(error, 'findByConversationAndUser');
     }
   }
 
@@ -197,7 +197,7 @@ export class ConversationMemberRepositoryImpl
       const entities = members.map((member) => this.mapToEntity(member));
       return this.createPaginatedResult(entities, total, page, limit);
     } catch (error: unknown) {
-      this.handleError(error, 'findAll');
+      return this.handleError(error, 'findAll');
     }
   }
 
@@ -216,7 +216,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.mapToEntity(created);
     } catch (error: unknown) {
-      this.handleError(error, 'create');
+      return this.handleError(error, 'create');
     }
   }
 
@@ -250,7 +250,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.mapToEntity(updated);
     } catch (error: unknown) {
-      this.handleError(error, 'update');
+      return this.handleError(error, 'update');
     }
   }
 
@@ -270,7 +270,7 @@ export class ConversationMemberRepositoryImpl
         },
       });
     } catch (error: unknown) {
-      this.handleError(error, 'delete');
+      return this.handleError(error, 'delete');
     }
   }
 
@@ -289,17 +289,17 @@ export class ConversationMemberRepositoryImpl
       });
       return count > 0;
     } catch (error: unknown) {
-      this.handleError(error, 'exists');
+      return this.handleError(error, 'exists');
     }
   }
 
-  async count(filter?: Record<string, any>): Promise<number> {
+  async count(filter?: Record<string, unknown>): Promise<number> {
     try {
       return await this.db.conversationMember.count({
         where: filter,
       });
     } catch (error: unknown) {
-      this.handleError(error, 'count');
+      return this.handleError(error, 'count');
     }
   }
 
@@ -334,7 +334,7 @@ export class ConversationMemberRepositoryImpl
 
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findByIds');
+      return this.handleError(error, 'findByIds');
     }
   }
 
@@ -367,7 +367,7 @@ export class ConversationMemberRepositoryImpl
 
       return created.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'createMany');
+      return this.handleError(error, 'createMany');
     }
   }
 
@@ -500,7 +500,7 @@ export class ConversationMemberRepositoryImpl
       const entities = members.map((member) => this.mapToEntity(member));
       return this.createPaginatedResult(entities, total, page, limit);
     } catch (error: unknown) {
-      this.handleError(error, 'findByConversationId');
+      return this.handleError(error, 'findByConversationId');
     }
   }
 
@@ -527,7 +527,7 @@ export class ConversationMemberRepositoryImpl
       const entities = members.map((member) => this.mapToEntity(member));
       return this.createPaginatedResult(entities, total, page, limit);
     } catch (error: unknown) {
-      this.handleError(error, 'findByUserId');
+      return this.handleError(error, 'findByUserId');
     }
   }
 
@@ -562,7 +562,7 @@ export class ConversationMemberRepositoryImpl
       const entities = members.map((member) => this.mapToEntity(member));
       return this.createPaginatedResult(entities, total, page, limit);
     } catch (error: unknown) {
-      this.handleError(error, 'findByRole');
+      return this.handleError(error, 'findByRole');
     }
   }
 
@@ -578,7 +578,7 @@ export class ConversationMemberRepositoryImpl
 
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findOwners');
+      return this.handleError(error, 'findOwners');
     }
   }
 
@@ -594,7 +594,7 @@ export class ConversationMemberRepositoryImpl
 
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findAdmins');
+      return this.handleError(error, 'findAdmins');
     }
   }
 
@@ -604,7 +604,7 @@ export class ConversationMemberRepositoryImpl
         where: { conversationId },
       });
     } catch (error: unknown) {
-      this.handleError(error, 'getMemberCount');
+      return this.handleError(error, 'getMemberCount');
     }
   }
 
@@ -621,7 +621,7 @@ export class ConversationMemberRepositoryImpl
       });
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findByConversationAndRole');
+      return this.handleError(error, 'findByConversationAndRole');
     }
   }
 
@@ -637,7 +637,7 @@ export class ConversationMemberRepositoryImpl
         },
       });
     } catch (error: unknown) {
-      this.handleError(error, 'getMemberCountByRole');
+      return this.handleError(error, 'getMemberCountByRole');
     }
   }
 
@@ -648,7 +648,7 @@ export class ConversationMemberRepositoryImpl
       });
       return count > 0;
     } catch (error: unknown) {
-      this.handleError(error, 'isMember');
+      return this.handleError(error, 'isMember');
     }
   }
 
@@ -667,7 +667,7 @@ export class ConversationMemberRepositoryImpl
       });
       return count > 0;
     } catch (error: unknown) {
-      this.handleError(error, 'hasRole');
+      return this.handleError(error, 'hasRole');
     }
   }
 
@@ -692,7 +692,7 @@ export class ConversationMemberRepositoryImpl
           action !== 'DELETE_CONVERSATION')
       );
     } catch (error: unknown) {
-      this.handleError(error, 'canPerformAction');
+      return this.handleError(error, 'canPerformAction');
     }
   }
 
@@ -713,7 +713,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.create(member);
     } catch (error: unknown) {
-      this.handleError(error, 'addMember');
+      return this.handleError(error, 'addMember');
     }
   }
 
@@ -728,7 +728,7 @@ export class ConversationMemberRepositoryImpl
         },
       });
     } catch (error: unknown) {
-      this.handleError(error, 'removeMember');
+      return this.handleError(error, 'removeMember');
     }
   }
 
@@ -750,7 +750,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.mapToEntity(updated);
     } catch (error: unknown) {
-      this.handleError(error, 'updateMemberRole');
+      return this.handleError(error, 'updateMemberRole');
     }
   }
 
@@ -776,7 +776,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.mapToEntity(updated);
     } catch (error: unknown) {
-      this.handleError(error, 'updateLastRead');
+      return this.handleError(error, 'updateLastRead');
     }
   }
 
@@ -794,7 +794,7 @@ export class ConversationMemberRepositoryImpl
 
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findMembersWithUnreadMessages');
+      return this.handleError(error, 'findMembersWithUnreadMessages');
     }
   }
 
@@ -817,7 +817,7 @@ export class ConversationMemberRepositoryImpl
         return Object.assign(memberEntity, { unreadCount });
       });
     } catch (error: unknown) {
-      this.handleError(error, 'findMembersWithUnreadCounts');
+      return this.handleError(error, 'findMembersWithUnreadCounts');
     }
   }
 
@@ -836,7 +836,7 @@ export class ConversationMemberRepositoryImpl
 
       return members.map((member) => this.mapToEntity(member));
     } catch (error: unknown) {
-      this.handleError(error, 'findRecentMembers');
+      return this.handleError(error, 'findRecentMembers');
     }
   }
 
@@ -859,7 +859,7 @@ export class ConversationMemberRepositoryImpl
 
       return this.createMany(memberEntities);
     } catch (error: unknown) {
-      this.handleError(error, 'addMembers');
+      return this.handleError(error, 'addMembers');
     }
   }
 
@@ -875,7 +875,7 @@ export class ConversationMemberRepositoryImpl
         },
       });
     } catch (error: unknown) {
-      this.handleError(error, 'removeMembers');
+      return this.handleError(error, 'removeMembers');
     }
   }
 
@@ -913,7 +913,7 @@ export class ConversationMemberRepositoryImpl
         }),
       ]);
     } catch (error: unknown) {
-      this.handleError(error, 'transferOwnership');
+      return this.handleError(error, 'transferOwnership');
     }
   }
 
