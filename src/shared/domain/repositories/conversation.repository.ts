@@ -32,6 +32,15 @@ export interface ConversationRepository extends BaseRepository<Conversation> {
   ): Promise<PaginatedResult<Conversation>>;
 
   /**
+   * Find conversations by user ID (alias for findByMemberId)
+   */
+  findByUserId(
+    userId: string,
+    options?: PaginationOptions,
+    includeArchived?: boolean,
+  ): Promise<PaginatedResult<Conversation>>;
+
+  /**
    * Find direct message conversation between two users
    */
   findDirectMessage(

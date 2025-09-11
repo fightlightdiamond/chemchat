@@ -8,6 +8,10 @@ import {
 
 export interface MessageRepository extends BaseRepository<Message> {
   /**
+   * Save a message (alias for create)
+   */
+  save(message: Message): Promise<Message>;
+  /**
    * Find messages by conversation ID with pagination
    */
   findByConversationId(
@@ -145,6 +149,10 @@ export interface MessageRepository extends BaseRepository<Message> {
 }
 
 export interface MessagePaginationOptions extends PaginationOptions {
+  /**
+   * Cursor for pagination
+   */
+  cursor?: string;
   /**
    * Load messages before this sequence number (for loading older messages)
    */

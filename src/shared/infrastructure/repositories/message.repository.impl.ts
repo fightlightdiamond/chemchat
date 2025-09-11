@@ -38,8 +38,8 @@ export class MessageRepositoryImpl
       });
 
       return message ? this.mapToEntity(message) : null;
-    } catch (error) {
-      this.handleError(error, 'findById');
+    } catch (error: unknown) {
+      return this.handleError(error, 'findById');
     }
   }
 
@@ -63,8 +63,8 @@ export class MessageRepositoryImpl
 
       const entities = messages.map((msg) => this.mapToEntity(msg));
       return this.createPaginatedResult(entities, total, page, limit);
-    } catch (error) {
-      this.handleError(error, 'findAll');
+    } catch (error: unknown) {
+      return this.handleError(error, 'findAll');
     }
   }
 
@@ -86,8 +86,8 @@ export class MessageRepositoryImpl
       });
 
       return this.mapToEntity(created);
-    } catch (error) {
-      this.handleError(error, 'create');
+    } catch (error: unknown) {
+      return this.handleError(error, 'create');
     }
   }
 
@@ -135,7 +135,7 @@ export class MessageRepositoryImpl
     }
   }
 
-  async count(filter?: Record<string, any>): Promise<number> {
+  async count(filter?: Record<string, unknown>): Promise<number> {
     try {
       return await this.db.message.count({
         where: filter,
@@ -754,7 +754,11 @@ export class MessageRepositoryImpl
    * Maps a Prisma message to a domain entity
    */
   private mapToEntity(prismaMessage: PrismaMessage): Message {
-    // Safely convert Prisma JSON to MessageContentData
+    // Type-safe conversion of Prisma JSON to MessageContentData
+    if (!prismaMessage.content || typeof prismaMessage.content !== 'object') {
+      throw new Error('Invalid message content format');
+    }
+
     const contentData = prismaMessage.content as MessageContentData;
     const content = new MessageContent(contentData);
 
@@ -763,12 +767,19 @@ export class MessageRepositoryImpl
       prismaMessage.conversationId,
       prismaMessage.senderId,
       prismaMessage.clientMessageId,
-      prismaMessage.sequenceNumber,
-      this.convertPrismaMessageTypeToEnum(prismaMessage.messageType),
+      BigInt(prismaMessage.sequenceNumber), // Ensure bigint type
+      this.convertPrismaMessageTypeToEnum(
+        prismaMessage.messageType as 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM',
+      ),
       content,
-      prismaMessage.editedAt,
-      prismaMessage.deletedAt,
-      prismaMessage.createdAt,
+      prismaMessage.editedAt ? new Date(prismaMessage.editedAt) : null,
+      prismaMessage.deletedAt ? new Date(prismaMessage.deletedAt) : null,
+      new Date(prismaMessage.createdAt),
     );
+  }
+
+  async save(message: Message): Promise<Message> {
+    // Alias for create method
+    return this.create(message);
   }
 }

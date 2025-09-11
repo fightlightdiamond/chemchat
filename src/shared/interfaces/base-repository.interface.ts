@@ -2,7 +2,7 @@ export interface BaseRepository<T, ID> {
   findById(id: ID): Promise<T | null>;
   save(entity: T): Promise<T>;
   delete(id: ID): Promise<void>;
-  findAll(criteria?: any): Promise<T[]>;
+  findAll(criteria?: Record<string, unknown>): Promise<T[]>;
 }
 
 export interface QueryCriteria {

@@ -32,7 +32,7 @@ export interface BaseRepository<T, ID = string> {
   /**
    * Count total entities with optional filter
    */
-  count(filter?: Record<string, any>): Promise<number>;
+  count(filter?: Record<string, unknown>): Promise<number>;
 
   /**
    * Find entities by multiple IDs
@@ -73,8 +73,8 @@ export interface PaginatedResult<T> {
 }
 
 export interface FilterOptions {
-  where?: Record<string, any>;
-  include?: Record<string, any>;
+  where?: Record<string, unknown>;
+  include?: Record<string, unknown>;
   orderBy?: Record<string, 'asc' | 'desc'>;
 }
 
@@ -89,7 +89,7 @@ export abstract class BaseRepositoryImpl<T, ID = string>
   abstract update(id: ID, entity: Partial<T>): Promise<T>;
   abstract delete(id: ID): Promise<void>;
   abstract exists(id: ID): Promise<boolean>;
-  abstract count(filter?: Record<string, any>): Promise<number>;
+  abstract count(filter?: Record<string, unknown>): Promise<number>;
   abstract findByIds(ids: ID[]): Promise<T[]>;
   abstract createMany(entities: T[]): Promise<T[]>;
   abstract updateMany(
@@ -142,7 +142,7 @@ export abstract class BaseRepositoryImpl<T, ID = string>
   /**
    * Handle repository errors
    */
-  protected handleError(error: any, operation: string): never {
+  protected handleError(error: unknown, operation: string): never {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const message = `${this.entityName} repository ${operation} failed: ${errorMessage}`;
     throw new Error(message);

@@ -150,7 +150,7 @@ export class UserRepositoryImpl
     }
   }
 
-  async count(filter?: Record<string, any>): Promise<number> {
+  async count(filter?: Record<string, unknown>): Promise<number> {
     try {
       return await this.db.user.count({
         where: filter,
