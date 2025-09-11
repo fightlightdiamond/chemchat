@@ -10,11 +10,27 @@ import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { CorrelationIdMiddleware } from './shared/middleware/correlation-id.middleware';
+import { RedisModule } from './shared/redis/redis.module';
 
 @Module({
   imports: [
     // Global modules
     SharedModule,
+    RedisModule.forRoot({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      db: parseInt(process.env.REDIS_DB || '0', 10),
+      password: process.env.REDIS_PASSWORD,
+      keyPrefix: 'ws:',
+      enableAutoPipelining: true,
+      maxRetriesPerRequest: 3,
+      pool: { min: 0, max: 10, idleTimeoutMillis: 30000 },
+      circuitBreaker: {
+        timeout: 1500,
+        errorThresholdPercentage: 50,
+        resetTimeout: 10000,
+      },
+    }),
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute

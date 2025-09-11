@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '../shared/cqrs/cqrs.module';
+import { AuthModule } from '../auth/auth.module';
 
 // Command Handlers
 import { SendMessageCommandHandler } from './handlers/send-message.handler';
@@ -19,6 +20,12 @@ import { ConversationCreatedEventHandler } from './handlers/conversation-created
 // Read Model Services
 import { ConversationSummaryService } from './read-models/conversation-summary.service';
 
+// WebSocket Gateway and Services
+import { ChatGateway } from './gateways/chat.gateway';
+import { ConnectionManagerService } from './services/connection-manager.service';
+import { RoomManagerService } from './services/room-manager.service';
+import { MessageBroadcastService } from './services/message-broadcast.service';
+
 const CommandHandlers = [
   SendMessageCommandHandler,
   EditMessageCommandHandler,
@@ -37,15 +44,23 @@ const EventHandlers = [
   ConversationCreatedEventHandler,
 ];
 
+const WebSocketServices = [
+  ConnectionManagerService,
+  RoomManagerService,
+  MessageBroadcastService,
+];
+
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, AuthModule],
   providers: [
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,
+    ...WebSocketServices,
     ConversationSummaryService,
+    ChatGateway,
   ],
   controllers: [],
-  exports: [ConversationSummaryService],
+  exports: [ConversationSummaryService, ...WebSocketServices],
 })
 export class ChatModule {}
