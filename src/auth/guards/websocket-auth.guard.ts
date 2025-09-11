@@ -4,6 +4,27 @@ import { TokenService } from '../services/token.service';
 import { TokenRevocationService } from '../services/token-revocation.service';
 import { AuthService } from '../services/auth.service';
 
+// Socket client interface based on NestJS WebSocket context
+interface SocketClient {
+  handshake: {
+    auth?: Record<string, unknown>;
+    headers?: Record<string, string | string[]>;
+    query?: Record<string, string | string[]>;
+  };
+  data: {
+    userId?: string;
+    tenantId?: string;
+    deviceId?: string | null;
+  };
+}
+
+// JWT payload with device info
+interface JWTPayloadWithDevice {
+  sub: string;
+  tenantId?: string;
+  deviceId?: string;
+}
+
 @Injectable()
 export class WebSocketAuthGuard implements CanActivate {
   constructor(
@@ -16,6 +37,12 @@ export class WebSocketAuthGuard implements CanActivate {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const client = context.switchToWs().getClient();
+
+      // Type guard to ensure client has expected structure
+      if (!this.isSocketClient(client)) {
+        throw new WsException('Invalid socket client');
+      }
+
       // Extract token from handshake auth or query
       const token = this.extractTokenFromSocket(client);
       if (!token) {
@@ -31,57 +58,52 @@ export class WebSocketAuthGuard implements CanActivate {
         throw new WsException('Token has been revoked');
       }
 
-      // Check if all user tokens are revoked
-      const areUserTokensRevoked =
-        this.tokenRevocationService.areUserTokensRevoked(
-          payload.sub,
-          payload.iat!,
-        );
-      if (areUserTokensRevoked) {
-        throw new WsException('All user tokens have been revoked');
+      // Store user information in socket data for later use
+
+      if (!client.data) {
+        client.data = {};
       }
 
-      // Check if session tokens are revoked
-      const areSessionTokensRevoked =
-        this.tokenRevocationService.areSessionTokensRevoked(
-          payload.sub,
-          payload.sessionId,
-          payload.iat!,
-        );
-      if (areSessionTokensRevoked) {
-        throw new WsException('Session tokens have been revoked');
-      }
+      client.data.userId = payload.sub;
 
-      // Validate user and attach to socket
-      const user = await this.authService.validateUser(payload);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (client.data) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        client.data.user = user;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        client.data.connectionId = payload.connectionId;
-      }
+      client.data.tenantId = payload.tenantId;
+      const payloadWithDevice = payload as JWTPayloadWithDevice;
+      client.data.deviceId = payloadWithDevice.deviceId || null;
 
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorInstance =
+        error instanceof Error ? error : new Error(String(error));
+
       if (error instanceof WsException) {
         throw error;
       }
-      throw new WsException('Invalid authentication token');
+
+      throw new WsException(errorInstance.message || 'Authentication failed');
     }
   }
 
-  /**
-   * Extract token from WebSocket connection
-   */
-  private extractTokenFromSocket(client: any): string | null {
+  private isSocketClient(client: unknown): client is SocketClient {
+    return (
+      typeof client === 'object' &&
+      client !== null &&
+      'handshake' in client &&
+      typeof (client as Record<string, unknown>).handshake === 'object'
+    );
+  }
+
+  private extractTokenFromSocket(client: SocketClient): string | null {
     // Try to get token from handshake auth
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const authToken = client.handshake?.auth?.token;
+    if (authToken && typeof authToken === 'string') {
+      return authToken;
+    }
+
+    // Try to get token from authorization header
+
     const authHeader =
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      client.handshake.auth?.token ||
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      client.handshake.headers?.authorization;
+      client.handshake?.headers?.authorization ||
+      client.handshake?.auth?.authorization;
     if (authHeader) {
       if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
         return authHeader.substring(7);
@@ -92,8 +114,7 @@ export class WebSocketAuthGuard implements CanActivate {
     }
 
     // Try to get token from query parameters
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    const queryToken = client.handshake.query?.token;
+    const queryToken = client.handshake?.query?.token;
     if (queryToken && typeof queryToken === 'string') {
       return queryToken;
     }

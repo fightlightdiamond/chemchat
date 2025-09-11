@@ -124,7 +124,7 @@ export class ConversationRepositoryImpl
     }
   }
 
-  async count(filter?: Record<string, any>): Promise<number> {
+  async count(filter?: Record<string, unknown>): Promise<number> {
     try {
       return await this.db.conversation.count({
         where: filter,
@@ -312,6 +312,23 @@ export class ConversationRepositoryImpl
     } catch (error) {
       this.handleError(error, 'findByMemberId');
     }
+  }
+
+  async findByUserId(
+    userId: string,
+    options?: PaginationOptions,
+    includeArchived: boolean = false,
+  ): Promise<PaginatedResult<Conversation>> {
+    // Alias for findByMemberId with additional archived filter support
+    // TODO: Implement archived filtering when needed
+    const result = await this.findByMemberId(userId, options);
+
+    if (!includeArchived) {
+      // Filter out archived conversations when implemented
+      // For now, return all results as no archived field exists yet
+    }
+
+    return result;
   }
 
   async findDirectMessage(

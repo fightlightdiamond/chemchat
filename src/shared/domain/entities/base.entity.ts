@@ -46,7 +46,7 @@ export abstract class BaseEntity {
    * Abstract method that must be implemented by concrete entities
    * to provide JSON serialization
    */
-  public abstract toJSON(): Record<string, any>;
+  public abstract toJSON(): Record<string, unknown>;
 
   /**
    * Abstract method for entity validation
