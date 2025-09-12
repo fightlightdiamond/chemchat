@@ -5,6 +5,8 @@ import { SequenceModule } from '../shared/sequence/sequence.module';
 import { IdempotencyModule } from '../shared/middleware/idempotency.module';
 import { MessageIdModule } from './message-id.module';
 import { PresenceModule } from '../presence/presence.module';
+import { OutboxModule } from '../shared/outbox/outbox.module';
+import { KafkaModule } from '../shared/kafka/kafka.module';
 
 // Command Handlers
 import { SendMessageCommandHandler } from './handlers/send-message.handler';
@@ -67,6 +69,8 @@ const Services = [
     IdempotencyModule,
     MessageIdModule,
     PresenceModule,
+    OutboxModule,
+    KafkaModule.forRoot(),
   ],
   providers: [
     ...CommandHandlers,
