@@ -14,6 +14,7 @@ import { MessageType } from '../../shared/domain/value-objects/message-type.vo';
 import { MessageRepository } from '../../shared/domain/repositories/message.repository';
 import { ConversationRepository } from '../../shared/domain/repositories/conversation.repository';
 import { MessageCreatedEvent } from '../events/message-created.event';
+import { OutboxEventPublisherService } from '../../shared/outbox/services/outbox-event-publisher.service';
 
 // ------------------------------------------------------------
 // Nếu import Event bị "trôi type" (JS / barrel sai) -> ESLint báo no-unsafe-call.
@@ -57,6 +58,7 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
     private readonly messageRepository: MessageRepository,
     private readonly conversationRepository: ConversationRepository,
     private readonly eventBus: EventBus,
+    private readonly outboxPublisher: OutboxEventPublisherService,
   ) {
     super();
   }
@@ -152,7 +154,7 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
       // --------- Lưu DB (interface trả Promise<Message>) ----------
       const savedMessage: Message = await this.messageRepository.save(message);
 
-      // --------- Publish domain event (không await) ----------
+      // --------- Publish domain event through outbox pattern ----------
       // Dùng ctor đã ép kiểu -> không "no-unsafe-call"
       const evt = new MessageCreatedEventSafe(
         savedMessage.id,
@@ -167,7 +169,13 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
         command.tenantId,
       );
 
-      this.eventBus.publish(evt);
+      // Publish through outbox for reliable delivery
+      await this.outboxPublisher.publishEvent(
+        evt,
+        'Message',
+        savedMessage.id,
+        command.tenantId,
+      );
 
       this.logCommandSuccess(command, savedMessage);
       return savedMessage;
