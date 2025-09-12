@@ -28,13 +28,8 @@ export class MessageIdService {
 
     try {
       // Use SET with NX to atomically check and set the key
-      const result = await this.redis.exec<string>(
-        'SET',
-        key,
-        '1',
-        'PX',
-        this.TTL_MS,
-        'NX',
+      const result = await this.redis.exec((client) =>
+        client.set(key, '1', 'PX', this.TTL_MS, 'NX'),
       );
 
       // If result is null, the key already exists (duplicate)
@@ -67,7 +62,7 @@ export class MessageIdService {
     const key = this.getMessageIdKey(conversationId, clientMessageId);
 
     try {
-      await this.redis.exec('SET', key, '1', 'PX', ttlMs);
+      await this.redis.exec((client) => client.set(key, '1', 'PX', ttlMs));
     } catch (error: unknown) {
       const safeError = error as SafeError;
       this.logger.error(
@@ -95,7 +90,7 @@ export class MessageIdService {
 
     try {
       // Use PEXPIRE to extend the TTL of an existing key
-      await this.redis.exec('PEXPIRE', key, ttlMs);
+      await this.redis.exec((client) => client.pexpire(key, ttlMs));
     } catch (error: unknown) {
       const safeError = error as SafeError;
       this.logger.error(
@@ -119,7 +114,7 @@ export class MessageIdService {
     const key = this.getMessageIdKey(conversationId, clientMessageId);
 
     try {
-      await this.redis.exec('DEL', key);
+      await this.redis.exec((client) => client.del(key));
     } catch (error: unknown) {
       const safeError = error as SafeError;
       this.logger.error(
