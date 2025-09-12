@@ -70,14 +70,14 @@ This implementation plan converts the chat system design into discrete, manageab
     - Add event serialization and deserialization with versioning support
     - _Requirements: 6.2, 7.2, 12.3, 17.1_
 
-- [ ] 5. Message Ordering and Sequence Management
-  - [ ] 5.1 Implement sequence number service
+- [x] 5. Message Ordering and Sequence Management
+  - [x] 5.1 Implement sequence number service
     - Create SequenceService using Redis INCR with database fallback
     - Add conversation state table management for sequence tracking
     - Implement atomic sequence generation with proper error handling
     - _Requirements: 12.1, 12.5, 3.6_
 
-  - [ ] 5.2 Build idempotency handling
+  - [x] 5.2 Build idempotency handling
     - Implement client message ID deduplication in message creation
     - Create idempotency middleware for REST endpoints using request headers
     - Add conflict detection and resolution for message edits
