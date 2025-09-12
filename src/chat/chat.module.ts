@@ -1,6 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { CqrsModule } from '../shared/cqrs/cqrs.module';
 import { AuthModule } from '../auth/auth.module';
+import { SequenceModule } from '../shared/sequence/sequence.module';
+import { IdempotencyModule } from '../shared/middleware/idempotency.module';
+import { MessageIdModule } from './message-id.module';
+import { PresenceModule } from '../presence/presence.module';
 
 // Command Handlers
 import { SendMessageCommandHandler } from './handlers/send-message.handler';
@@ -26,6 +30,9 @@ import { ConnectionManagerService } from './services/connection-manager.service'
 import { RoomManagerService } from './services/room-manager.service';
 import { MessageBroadcastService } from './services/message-broadcast.service';
 
+// Services
+import { MessageIdService } from './services/message-id.service';
+
 const CommandHandlers = [
   SendMessageCommandHandler,
   EditMessageCommandHandler,
@@ -44,23 +51,31 @@ const EventHandlers = [
   ConversationCreatedEventHandler,
 ];
 
-const WebSocketServices = [
+const Services = [
   ConnectionManagerService,
   RoomManagerService,
   MessageBroadcastService,
+  MessageIdService,
 ];
 
+@Global()
 @Module({
-  imports: [CqrsModule, AuthModule],
+  imports: [
+    CqrsModule,
+    AuthModule,
+    SequenceModule,
+    IdempotencyModule,
+    MessageIdModule,
+    PresenceModule,
+  ],
   providers: [
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,
-    ...WebSocketServices,
+    ...Services,
     ConversationSummaryService,
     ChatGateway,
   ],
-  controllers: [],
-  exports: [ConversationSummaryService, ...WebSocketServices],
+  exports: [ChatGateway, SequenceModule, IdempotencyModule, MessageIdModule],
 })
 export class ChatModule {}

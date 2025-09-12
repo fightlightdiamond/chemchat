@@ -83,20 +83,20 @@ This implementation plan converts the chat system design into discrete, manageab
     - Add conflict detection and resolution for message edits
     - _Requirements: 12.2, 12.4, 3.6_
 
-- [ ] 6. WebSocket Gateway and Real-time Communication
-  - [ ] 6.1 Create WebSocket gateway with authentication
+- [x] 6. WebSocket Gateway and Real-time Communication
+  - [x] 6.1 Create WebSocket gateway with authentication
     - Implement ChatGateway with WebSocket authentication using JWT tokens
     - Add connection management with user-to-socket mapping in Redis
     - Create room joining/leaving logic with proper authorization checks
     - _Requirements: 1.3, 2.2, 2.3, 4.1_
 
-  - [ ] 6.2 Implement real-time message broadcasting
+  - [x] 6.2 Implement real-time message broadcasting
     - Create message broadcasting service using Redis pub/sub for cross-instance communication
     - Implement room-based message delivery with proper filtering
     - Add WebSocket event handling for sendMessage, editMessage, deleteMessage
     - _Requirements: 3.1, 3.3, 3.4, 7.1_
 
-  - [ ] 6.3 Build presence and typing indicators
+  - [x] 6.3 Build presence and typing indicators
     - Implement presence tracking with heartbeat mechanism and timeout handling
     - Create typing indicator service with TTL-based cleanup and batched broadcasting
     - Add multi-device presence management with device registration
