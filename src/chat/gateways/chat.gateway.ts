@@ -16,6 +16,9 @@ import { WebSocketAuthGuard } from '../../auth/guards/websocket-auth.guard';
 import { ConnectionManagerService } from '../services/connection-manager.service';
 import { RoomManagerService } from '../services/room-manager.service';
 import { MessageBroadcastService } from '../services/message-broadcast.service';
+import { PresenceService } from '../../presence/services/presence.service';
+import { TypingIndicatorService } from '../../presence/services/typing-indicator.service';
+import { PresenceStatusType } from '../../shared/domain/value-objects/presence-status.vo';
 
 import { SendMessageCommand } from '../commands/send-message.command';
 import { EditMessageCommand } from '../commands/edit-message.command';
@@ -123,6 +126,8 @@ export class ChatGateway
     private readonly connectionManager: ConnectionManagerService,
     private readonly roomManager: RoomManagerService,
     private readonly messageBroadcast: MessageBroadcastService,
+    private readonly presenceService: PresenceService,
+    private readonly typingService: TypingIndicatorService,
   ) {
     // Ensure proper initialization order
     this.validateDependencies();
@@ -146,15 +151,18 @@ export class ChatGateway
 
   async handleConnection(client: AuthenticatedSocket) {
     try {
-      const { userId, tenantId } = client.data;
+      const { userId, tenantId, deviceId } = client.data;
 
       this.logger.log(`Client connected: ${client.id} (User: ${userId})`);
 
       // Register connection
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      await (this.connectionManager as any).addConnection(
+      await this.connectionManager.addConnection(userId, client.id, tenantId);
+
+      // Set user presence as online
+      await this.presenceService.setPresence(
         userId,
-        client.id,
+        PresenceStatusType.ONLINE,
+        deviceId,
         tenantId,
       );
 
@@ -176,13 +184,17 @@ export class ChatGateway
 
       this.logger.log(`Client disconnected: ${client.id} (User: ${userId})`);
 
+      // Stop all typing indicators for this user
+      await this.typingService.stopAllTyping(userId);
+
       // Leave all rooms
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      await (this.roomManager as any).leaveAllRooms(client.id, userId);
+      await this.roomManager.leaveAllRooms(client.id, userId);
 
       // Remove connection
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      await (this.connectionManager as any).removeConnection(userId, client.id);
+      await this.connectionManager.removeConnection(userId, client.id);
+
+      // Set user as offline
+      await this.presenceService.setOffline(userId);
     } catch (error) {
       this.logger.error('Error handling disconnect:', error);
     }
@@ -199,8 +211,7 @@ export class ChatGateway
       const { conversationId } = data;
 
       // Check if user has access to the conversation
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-      const canJoin = await (this.roomManager as any).canUserJoinRoom(
+      const canJoin = await this.roomManager.canUserJoinRoom(
         userId,
         conversationId,
         tenantId,
@@ -211,20 +222,11 @@ export class ChatGateway
       }
 
       // Join the room
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      await (this.roomManager as any).joinRoom(
-        client.id,
-        userId,
-        conversationId,
-      );
+      await this.roomManager.joinRoom(client.id, userId, conversationId);
       void client.join(conversationId);
 
       // Notify room members
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      void (this.messageBroadcast as any).broadcastUserJoined(
-        conversationId,
-        userId,
-      );
+      void this.messageBroadcast.broadcastUserJoined(conversationId, userId);
       client.to(conversationId).emit('user_joined', {
         userId,
         conversationId,
@@ -259,12 +261,7 @@ export class ChatGateway
       const { conversationId } = data;
 
       // Leave the room
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      await (this.roomManager as any).leaveRoom(
-        client.id,
-        userId,
-        conversationId,
-      );
+      await this.roomManager.leaveRoom(client.id, userId, conversationId);
       void client.leave(conversationId);
 
       // Notify room members
@@ -310,25 +307,26 @@ export class ChatGateway
         tenantId,
       });
 
+      // Execute command - CommandBus returns any by design
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.commandBus.execute(command);
 
+      // Type guard to ensure result is a Message
       if (!isMessage(result)) {
-        throw new WsException('Invalid message result from command bus');
+        throw new WsException('Invalid message result from command');
       }
 
+      // Result is now properly typed as Message after type guard
+      const message = result;
+
       // Broadcast message to room members
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      void (this.messageBroadcast as any).broadcastMessage(
-        result,
-        data.conversationId,
-      );
+      void this.messageBroadcast.broadcastMessage(data.conversationId, message);
 
       // Send confirmation to sender
       client.emit('message_sent', {
-        messageId: result.id,
+        messageId: message.id,
         clientMessageId: data.clientMessageId,
-        timestamp: result.createdAt,
+        timestamp: message.createdAt,
       });
     } catch (error) {
       this.logger.error('Error sending message:', error);
