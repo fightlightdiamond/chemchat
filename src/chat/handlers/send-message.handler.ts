@@ -7,6 +7,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { BaseCommandHandler } from '../../shared/cqrs/base-command-handler';
 import { ValidateCommand } from '../../shared/cqrs/command-validation.decorator';
+import { Idempotent } from '../../shared/decorators/idempotent.decorator';
 import { SendMessageCommand } from '../commands/send-message.command';
 import { Message } from '../../shared/domain/entities/message.entity';
 import { MessageContent } from '../../shared/domain/value-objects/message-content.vo';
@@ -15,6 +16,7 @@ import { MessageRepository } from '../../shared/domain/repositories/message.repo
 import { ConversationRepository } from '../../shared/domain/repositories/conversation.repository';
 import { MessageCreatedEvent } from '../events/message-created.event';
 import { OutboxEventPublisherService } from '../../shared/outbox/services/outbox-event-publisher.service';
+import { SequenceService } from '../../shared/sequence/sequence.service';
 
 // ------------------------------------------------------------
 // Nếu import Event bị "trôi type" (JS / barrel sai) -> ESLint báo no-unsafe-call.
@@ -50,6 +52,7 @@ const MessageCreatedEventSafe =
 
 @Injectable()
 @CommandHandler(SendMessageCommand)
+@Idempotent()
 export class SendMessageCommandHandler extends BaseCommandHandler<
   SendMessageCommand,
   Message
@@ -59,6 +62,7 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
     private readonly conversationRepository: ConversationRepository,
     private readonly eventBus: EventBus,
     private readonly outboxPublisher: OutboxEventPublisherService,
+    private readonly sequenceService: SequenceService,
   ) {
     super();
   }
@@ -102,16 +106,11 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
         }
       }
 
-      // --------- Lấy sequenceNumber ----------
-      // Khuyến nghị: repository trả bigint luôn cho nhất quán.
-      let sequenceNumber: bigint =
-        (await this.messageRepository.getNextSequenceNumber(
-          command.conversationId,
-        )) as unknown as bigint; // nếu interface đã là bigint thì bỏ "as unknown as bigint"
-      if (typeof sequenceNumber !== 'bigint') {
-        // fallback an toàn nếu repo trả number/string
-        sequenceNumber = BigInt(sequenceNumber as unknown as number);
-      }
+      // --------- Lấy sequenceNumber từ SequenceService ----------
+      const sequenceNumber: bigint = await this.sequenceService.getNextSequence(
+        command.conversationId,
+      );
+
       if (sequenceNumber < 0n) {
         throw new Error('sequenceNumber must be non-negative');
       }

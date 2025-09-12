@@ -8,6 +8,7 @@ import { AuthModule } from './auth';
 import { ChatModule } from './chat';
 import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
+import { HealthModule } from './health';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { CorrelationIdMiddleware } from './shared/middleware/correlation-id.middleware';
 import { RedisModule } from './shared/redis/redis.module';
@@ -43,6 +44,7 @@ import { RedisModule } from './shared/redis/redis.module';
     ChatModule,
     PresenceModule,
     NotificationModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

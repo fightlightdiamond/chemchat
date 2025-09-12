@@ -320,7 +320,7 @@ export class ChatGateway
       const message = result;
 
       // Broadcast message to room members
-      void this.messageBroadcast.broadcastMessage(data.conversationId, message);
+      void this.messageBroadcast.broadcastMessage(message, data.conversationId);
 
       // Send confirmation to sender
       client.emit('message_sent', {
