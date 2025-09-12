@@ -19,7 +19,7 @@ export interface RedisModuleOptions {
   password?: string;
   keyPrefix?: string;
   enableAutoPipelining?: boolean; // ioredis feature
-  tls?: TlsOptions;
+  tls?: boolean | TlsOptions;
   pool?: RedisPoolOptions; // bật pool nếu cần
   circuitBreaker?: CircuitBreakerOptions;
   maxRetriesPerRequest?: number; // ioredis
