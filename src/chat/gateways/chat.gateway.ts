@@ -145,7 +145,7 @@ export class ChatGateway
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+     
     (this.messageBroadcast as any).setServer(this.server);
   }
 
@@ -308,7 +308,7 @@ export class ChatGateway
       });
 
       // Execute command - CommandBus returns any by design
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const result = await this.commandBus.execute(command);
 
       // Type guard to ensure result is a Message
@@ -356,7 +356,7 @@ export class ChatGateway
         tenantId,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const result = await this.commandBus.execute(command);
 
       if (!isMessage(result)) {
@@ -364,7 +364,7 @@ export class ChatGateway
       }
 
       // Broadcast edit to room members
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+       
       await (this.messageBroadcast as any).broadcastMessageEdit(result);
 
       // Send confirmation to sender
@@ -398,7 +398,7 @@ export class ChatGateway
         tenantId,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const result = await this.commandBus.execute(command);
 
       if (!isMessage(result)) {
@@ -406,7 +406,7 @@ export class ChatGateway
       }
 
       // Broadcast deletion to room members
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+       
       await (this.messageBroadcast as any).broadcastMessageDelete(result);
 
       // Send confirmation to sender
@@ -443,7 +443,7 @@ export class ChatGateway
         tenantId,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const result = await this.queryBus.execute(query);
 
       if (!isPaginatedResult(result)) {

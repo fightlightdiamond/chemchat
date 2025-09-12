@@ -69,12 +69,12 @@ export class IdempotencyMiddleware implements NestMiddleware {
       res.json = (body: unknown): Response => {
         statusCode = res.statusCode;
         chunks.push(body);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+         
         return originalJson.call(res, body);
       };
 
       // Override res.end to cache the response
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const originalEnd = res.end.bind(res);
       res.end = (
         chunk?: unknown,
@@ -85,7 +85,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
           chunks.push(chunk);
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+         
         const responseBody = chunks.length === 1 ? chunks[0] : chunks;
 
         // Only cache successful responses
@@ -100,7 +100,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+         
         return originalEnd.call(res, chunk, encoding, callback);
       };
 
@@ -115,7 +115,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
 
   private getCacheKey(req: Request, idempotencyKey: string): string {
     const { method, originalUrl } = req;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+     
     const userId = (req as any).user?.id || 'anonymous';
     return `${this.PREFIX}${userId}:${method}:${originalUrl}:${idempotencyKey}`;
   }

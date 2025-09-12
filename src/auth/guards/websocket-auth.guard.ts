@@ -35,7 +35,7 @@ export class WebSocketAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+       
       const client = context.switchToWs().getClient();
 
       // Type guard to ensure client has expected structure

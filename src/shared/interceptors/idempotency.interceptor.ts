@@ -52,7 +52,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         // Record successful execution for future idempotency checks
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+         
         this.idempotencyService.recordExecution(command, handler);
       }),
       catchError((error: unknown) => {
