@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import Redis, { Redis as RedisClient, RedisOptions } from 'ioredis';
 import * as genericPool from 'generic-pool';
-import CircuitBreaker from 'opossum';
 import { REDIS_OPTIONS } from './redis.constants';
 import { RedisModuleOptions } from './redis.types';
 import * as prom from 'prom-client';
+import SafeCircuitBreaker from './circuit-breaker-wrapper';
 
 type Pool<T> = genericPool.Pool<T>;
 
@@ -15,10 +15,7 @@ export class RedisService implements OnModuleDestroy {
   private base!: RedisClient; // client chính (publisher/query)
   private subscriber!: RedisClient; // client cho Pub/Sub (tách riêng)
   private pool?: Pool<RedisClient>; // pool các conn phụ (optional)
-  private breaker!: CircuitBreaker<
-    [(c: RedisClient) => Promise<unknown>],
-    unknown
-  >;
+  private breaker!: SafeCircuitBreaker<unknown>;
 
   // metrics
   private readonly histLatency = new prom.Histogram({
@@ -42,7 +39,17 @@ export class RedisService implements OnModuleDestroy {
       keyPrefix: opts.keyPrefix,
       enableAutoPipelining: opts.enableAutoPipelining ?? true,
       maxRetriesPerRequest: opts.maxRetriesPerRequest ?? 3,
-      tls: opts.tls as any,
+      // Handle TLS options with proper type safety
+      tls: opts.tls
+        ? (() => {
+            const tlsOptions =
+              typeof opts.tls === 'boolean'
+                ? { rejectUnauthorized: true }
+                : { ...opts.tls, rejectUnauthorized: true };
+            // We need to use a type assertion here due to differences between ioredis and Node.js TLS types
+            return tlsOptions as unknown as RedisOptions['tls'];
+          })()
+        : undefined,
       // backoff tăng dần
       retryStrategy: (retries: number) => Math.min(1000 + retries * 200, 5000),
       // reconnect khi gặp một số lỗi TCP/cluster
@@ -101,36 +108,47 @@ export class RedisService implements OnModuleDestroy {
       });
     }
 
-    // circuit breaker bao quanh mọi exec operation
-    this.breaker = new CircuitBreaker(
-      async (operation: (c: RedisClient) => Promise<unknown>) => {
-        const client = await this.acquire();
-        const end = this.histLatency.startTimer();
-        try {
-          const res = await operation(client);
-          end();
-          return res;
-        } catch (e) {
-          end();
-          this.counterErrors.inc();
-          throw e;
-        } finally {
-          await this.release(client);
-        }
-      },
-      {
-        timeout: opts.circuitBreaker?.timeout ?? 1500,
-        errorThresholdPercentage:
-          opts.circuitBreaker?.errorThresholdPercentage ?? 50,
-        resetTimeout: opts.circuitBreaker?.resetTimeout ?? 10000,
-      },
-    );
+    // Initialize the circuit breaker with proper error handling
+    try {
+      // Create a type-safe wrapper for the circuit breaker
+      const breaker = new SafeCircuitBreaker<unknown>(
+        async (operation) => {
+          const client = await this.acquire();
+          const end = this.histLatency.startTimer();
+          try {
+            const result = await operation(client);
+            end();
+            return result;
+          } catch (e) {
+            end();
+            this.counterErrors.inc();
 
-    this.breaker.on('open', () => this.logger.warn('Redis circuit OPEN'));
-    this.breaker.on('halfOpen', () =>
-      this.logger.warn('Redis circuit HALF-OPEN'),
-    );
-    this.breaker.on('close', () => this.logger.log('Redis circuit CLOSED'));
+            throw e;
+          } finally {
+            await this.release(client);
+          }
+        },
+        {
+          timeout: opts.circuitBreaker?.timeout ?? 1500,
+          errorThresholdPercentage:
+            opts.circuitBreaker?.errorThresholdPercentage ?? 50,
+          resetTimeout: opts.circuitBreaker?.resetTimeout ?? 10000,
+        },
+      );
+
+      // Set up event listeners with proper chaining and formatting
+      breaker
+        .on('open', () => this.logger.warn('Redis circuit OPEN'))
+        .on('halfOpen', () => {
+          this.logger.warn('Redis circuit HALF-OPEN');
+        })
+        .on('close', () => this.logger.log('Redis circuit CLOSED'));
+
+      this.breaker = breaker;
+    } catch (error) {
+      this.logger.error('Failed to initialize circuit breaker', error);
+      throw new Error('Failed to initialize circuit breaker');
+    }
   }
 
   // ===== Acquire/Release (pool nếu có, không thì dùng base) =====
@@ -146,8 +164,25 @@ export class RedisService implements OnModuleDestroy {
 
   // ===== API công dụng chung =====
   /** Thực thi 1 hàm với client (được bảo vệ bởi circuit breaker) */
-  async exec<T>(fn: (client: RedisClient) => Promise<T>): Promise<T> {
-    return this.breaker.fire(fn) as Promise<T>;
+  async exec<T>(
+    fn: (client: RedisClient) => Promise<T>,
+    clientType: 'base' | 'subscriber' = 'base',
+  ): Promise<T> {
+    if (!this.breaker) {
+      throw new Error('Circuit breaker not initialized');
+    }
+
+    try {
+      const result = await this.breaker.fire(async (client: RedisClient) => {
+        const targetClient =
+          clientType === 'subscriber' ? this.subscriber : client;
+        return await fn(targetClient);
+      });
+      return result as T;
+    } catch (error) {
+      this.logger.error('Circuit breaker execution failed', error);
+      throw error;
+    }
   }
 
   /** Publish tiện lợi */
