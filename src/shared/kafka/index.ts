@@ -1,3 +1,4 @@
+export * from './services/kafka.service';
 export * from './services/kafka-producer.service';
 export * from './services/kafka-consumer.service';
 export * from './services/kafka-event-consumer.service';
