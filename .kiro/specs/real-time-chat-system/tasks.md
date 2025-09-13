@@ -115,14 +115,14 @@ This implementation plan converts the chat system design into discrete, manageab
     - Add consumer groups for notification delivery and search indexing
     - _Requirements: 7.2, 8.1, 5.3_
 
-- [ ] 8. Search and Indexing Implementation
-  - [ ] 8.1 Create Elasticsearch integration
+- [x] 8. Search and Indexing Implementation
+  - [x] 8.1 Create Elasticsearch integration
     - Implement ElasticsearchService with index management and document operations
     - Create message indexing worker that consumes events and updates search index
     - Add multi-language search with proper analyzers and field mappings
     - _Requirements: 5.1, 5.3, 5.4, 18.1_
 
-  - [ ] 8.2 Build search query service
+  - [x] 8.2 Build search query service
     - Implement SearchService with full-text search, filtering, and pagination
     - Add search result ranking and relevance scoring
     - Create search API endpoints with proper authorization and tenant isolation
