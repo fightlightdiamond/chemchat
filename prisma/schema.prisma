@@ -24,11 +24,15 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relationships
-  ownedConversations   Conversation[]      @relation("ConversationOwner")
-  conversationMembers  ConversationMember[]
-  sentMessages         Message[]           @relation("MessageSender")
-  messageReactions     MessageReaction[]
-  auditLogs            AuditLog[]          @relation("AuditActor")
+  ownedConversations      Conversation[]           @relation("ConversationOwner")
+  conversationMembers     ConversationMember[]
+  sentMessages            Message[]                @relation("MessageSender")
+  messageReactions        MessageReaction[]
+  auditLogs               AuditLog[]               @relation("AuditActor")
+  notificationPreferences NotificationPreference[] @relation("UserNotificationPreferences")
+  deviceTokens            DeviceToken[]            @relation("UserDeviceTokens")
+  notifications           NotificationDelivery[]   @relation("UserNotifications")
+  attachments             Attachment[]             @relation("AttachmentUploader")
 
   @@map("users")
 }
@@ -124,23 +128,93 @@ model ConversationState {
   @@map("conversation_state")
 }
 
-// Media attachments
+// Media attachments with enhanced metadata
 model Attachment {
-  id           String   @id @default(uuid())
-  messageId    String   @map("message_id")
-  filename     String   @db.VarChar(255)
-  mimeType     String   @map("mime_type") @db.VarChar(100)
-  fileSize     BigInt   @map("file_size")
-  fileHash     String   @map("file_hash") @db.VarChar(64)
-  storageUrl   String   @map("storage_url")
-  thumbnailUrl String?  @map("thumbnail_url")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id               String            @id @default(uuid())
+  messageId        String            @map("message_id")
+  filename         String            @db.VarChar(255)
+  originalFilename String            @map("original_filename") @db.VarChar(255)
+  mimeType         String            @map("mime_type") @db.VarChar(100)
+  fileSize         BigInt            @map("file_size")
+  fileHash         String            @map("file_hash") @db.VarChar(64)
+  storageUrl       String            @map("storage_url")
+  thumbnailUrl     String?           @map("thumbnail_url")
+  previewUrl       String?           @map("preview_url")
+  uploadStatus     MediaUploadStatus @default(PENDING) @map("upload_status")
+  processingStatus MediaProcessingStatus @default(PENDING) @map("processing_status")
+  metadata         Json?             // EXIF data, dimensions, duration, etc.
+  virusScanStatus  VirusScanStatus   @default(PENDING) @map("virus_scan_status")
+  virusScanResult  String?           @map("virus_scan_result")
+  contentSafety    Json?             @map("content_safety") // Content moderation results
+  cdnUrl           String?           @map("cdn_url")
+  expiresAt        DateTime?         @map("expires_at") @db.Timestamptz(6)
+  tenantId         String?           @map("tenant_id")
+  uploadedBy       String            @map("uploaded_by")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relationships
-  message      Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  message          Message           @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploader         User              @relation("AttachmentUploader", fields: [uploadedBy], references: [id])
+  mediaProcessing  MediaProcessing[]
 
   @@index([messageId])
+  @@index([uploadedBy])
+  @@index([tenantId])
+  @@index([fileHash])
+  @@index([uploadStatus])
+  @@index([virusScanStatus])
   @@map("attachments")
+}
+
+// Media processing jobs and results
+model MediaProcessing {
+  id           String                @id @default(uuid())
+  attachmentId String                @map("attachment_id")
+  jobType      MediaProcessingType   @map("job_type")
+  status       MediaProcessingStatus @default(PENDING)
+  priority     ProcessingPriority    @default(NORMAL)
+  inputUrl     String                @map("input_url")
+  outputUrl    String?               @map("output_url")
+  parameters   Json?                 // Processing parameters (size, quality, etc.)
+  result       Json?                 // Processing results and metadata
+  error        String?               // Error message if failed
+  attempts     Int                   @default(0)
+  maxAttempts  Int                   @default(3) @map("max_attempts")
+  scheduledAt  DateTime?             @map("scheduled_at") @db.Timestamptz(6)
+  startedAt    DateTime?             @map("started_at") @db.Timestamptz(6)
+  completedAt  DateTime?             @map("completed_at") @db.Timestamptz(6)
+  tenantId     String?               @map("tenant_id")
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  attachment   Attachment            @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+
+  @@index([attachmentId])
+  @@index([status])
+  @@index([jobType])
+  @@index([priority])
+  @@index([scheduledAt])
+  @@index([tenantId])
+  @@map("media_processing")
+}
+
+// Media quota tracking per tenant
+model MediaQuota {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique @map("tenant_id")
+  storageUsed     BigInt   @default(0) @map("storage_used") // bytes
+  storageLimit    BigInt   @map("storage_limit") // bytes
+  uploadCount     Int      @default(0) @map("upload_count")
+  uploadLimit     Int      @map("upload_limit")
+  bandwidthUsed   BigInt   @default(0) @map("bandwidth_used") // bytes
+  bandwidthLimit  BigInt   @map("bandwidth_limit") // bytes
+  resetAt         DateTime @map("reset_at") @db.Timestamptz(6) // monthly reset
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("media_quotas")
 }
 
 // Audit logs for compliance and moderation
@@ -179,6 +253,104 @@ model OutboxEvent {
   @@map("outbox_events")
 }
 
+// Notification preferences for users
+model NotificationPreference {
+  id                    String  @id @default(uuid())
+  userId                String  @map("user_id")
+  tenantId              String? @map("tenant_id")
+  pushEnabled           Boolean @default(true) @map("push_enabled")
+  emailEnabled          Boolean @default(true) @map("email_enabled")
+  mentionNotifications  Boolean @default(true) @map("mention_notifications")
+  dmNotifications       Boolean @default(true) @map("dm_notifications")
+  groupNotifications    Boolean @default(true) @map("group_notifications")
+  quietHoursEnabled     Boolean @default(false) @map("quiet_hours_enabled")
+  quietHoursStart       String? @map("quiet_hours_start") @db.VarChar(5) // HH:MM format
+  quietHoursEnd         String? @map("quiet_hours_end") @db.VarChar(5)   // HH:MM format
+  timezone              String  @default("UTC") @db.VarChar(50)
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user User @relation("UserNotificationPreferences", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@map("notification_preferences")
+}
+
+// Device tokens for push notifications
+model DeviceToken {
+  id           String            @id @default(uuid())
+  userId       String            @map("user_id")
+  tenantId     String?           @map("tenant_id")
+  deviceId     String            @map("device_id") @db.VarChar(255)
+  token        String            @db.VarChar(500)
+  platform     DevicePlatform
+  appVersion   String?           @map("app_version") @db.VarChar(50)
+  isActive     Boolean           @default(true) @map("is_active")
+  lastUsedAt   DateTime          @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user          User                   @relation("UserDeviceTokens", fields: [userId], references: [id], onDelete: Cascade)
+  notifications NotificationDelivery[] @relation("DeviceNotifications")
+
+  @@unique([userId, deviceId, tenantId])
+  @@index([userId, isActive])
+  @@map("device_tokens")
+}
+
+// Notification delivery tracking
+model NotificationDelivery {
+  id                String                    @id @default(uuid())
+  tenantId          String?                   @map("tenant_id")
+  userId            String                    @map("user_id")
+  notificationType  NotificationType          @map("notification_type")
+  deliveryChannel   NotificationChannel       @map("delivery_channel")
+  status            NotificationStatus
+  title             String                    @db.VarChar(255)
+  body              String                    @db.Text
+  data              Json?
+  deviceTokenId     String?                   @map("device_token_id")
+  externalId        String?                   @map("external_id") @db.VarChar(255) // Firebase/Email service ID
+  errorMessage      String?                   @map("error_message") @db.Text
+  retryCount        Int                       @default(0) @map("retry_count")
+  scheduledAt       DateTime?                 @map("scheduled_at") @db.Timestamptz(6)
+  sentAt            DateTime?                 @map("sent_at") @db.Timestamptz(6)
+  deliveredAt       DateTime?                 @map("delivered_at") @db.Timestamptz(6)
+  readAt            DateTime?                 @map("read_at") @db.Timestamptz(6)
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user        User         @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  deviceToken DeviceToken? @relation("DeviceNotifications", fields: [deviceTokenId], references: [id])
+
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@index([tenantId, status, createdAt(sort: Desc)])
+  @@index([scheduledAt])
+  @@map("notification_deliveries")
+}
+
+// Notification templates
+model NotificationTemplate {
+  id          String               @id @default(uuid())
+  tenantId    String?              @map("tenant_id")
+  name        String               @db.VarChar(100)
+  type        NotificationType
+  channel     NotificationChannel
+  subject     String?              @db.VarChar(255) // For email notifications
+  title       String               @db.VarChar(255)
+  body        String               @db.Text
+  variables   Json?                // Template variables schema
+  isActive    Boolean              @default(true) @map("is_active")
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, name, type, channel])
+  @@map("notification_templates")
+}
+
 // Enums
 enum ConversationType {
   DM    @map("dm")
@@ -196,4 +368,79 @@ enum MessageType {
   IMAGE  @map("image")
   FILE   @map("file")
   SYSTEM @map("system")
+}
+
+enum DevicePlatform {
+  IOS     @map("ios")
+  ANDROID @map("android")
+  WEB     @map("web")
+}
+
+enum NotificationType {
+  NEW_MESSAGE           @map("new_message")
+  MENTION               @map("mention")
+  CONVERSATION_INVITE   @map("conversation_invite")
+  USER_JOINED           @map("user_joined")
+  USER_LEFT             @map("user_left")
+  MESSAGE_REACTION      @map("message_reaction")
+  SYSTEM_ANNOUNCEMENT   @map("system_announcement")
+}
+
+enum NotificationChannel {
+  PUSH  @map("push")
+  EMAIL @map("email")
+  SMS   @map("sms")
+}
+
+enum NotificationStatus {
+  PENDING    @map("pending")
+  SCHEDULED  @map("scheduled")
+  SENT       @map("sent")
+  DELIVERED  @map("delivered")
+  READ       @map("read")
+  FAILED     @map("failed")
+  CANCELLED  @map("cancelled")
+}
+
+enum MediaUploadStatus {
+  PENDING    @map("pending")
+  UPLOADING  @map("uploading")
+  UPLOADED   @map("uploaded")
+  FAILED     @map("failed")
+  CANCELLED  @map("cancelled")
+}
+
+enum MediaProcessingStatus {
+  PENDING      @map("pending")
+  PROCESSING   @map("processing")
+  COMPLETED    @map("completed")
+  FAILED       @map("failed")
+  SKIPPED      @map("skipped")
+}
+
+enum MediaProcessingType {
+  THUMBNAIL_GENERATION @map("thumbnail_generation")
+  IMAGE_RESIZE         @map("image_resize")
+  VIDEO_TRANSCODE      @map("video_transcode")
+  AUDIO_TRANSCODE      @map("audio_transcode")
+  EXIF_STRIP           @map("exif_strip")
+  WATERMARK            @map("watermark")
+  VIRUS_SCAN           @map("virus_scan")
+  CONTENT_MODERATION   @map("content_moderation")
+}
+
+enum ProcessingPriority {
+  LOW      @map("low")
+  NORMAL   @map("normal")
+  HIGH     @map("high")
+  URGENT   @map("urgent")
+}
+
+enum VirusScanStatus {
+  PENDING    @map("pending")
+  SCANNING   @map("scanning")
+  CLEAN      @map("clean")
+  INFECTED   @map("infected")
+  FAILED     @map("failed")
+  SKIPPED    @map("skipped")
 }

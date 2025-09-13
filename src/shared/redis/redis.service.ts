@@ -235,6 +235,52 @@ export class RedisService implements OnModuleDestroy {
     });
   }
 
+  // ===== Common Redis Commands =====
+  /** Get a value by key */
+  async get(key: string): Promise<string | null> {
+    return this.exec(async (client) => client.get(key));
+  }
+
+  /** Set a value with expiration */
+  async setex(key: string, seconds: number, value: string): Promise<string> {
+    return this.exec(async (client) => client.setex(key, seconds, value));
+  }
+
+  /** Delete keys */
+  async del(...keys: string[]): Promise<number> {
+    return this.exec(async (client) => client.del(...keys));
+  }
+
+  /** Push to list (left) */
+  async lpush(key: string, ...values: string[]): Promise<number> {
+    return this.exec(async (client) => client.lpush(key, ...values));
+  }
+
+  /** Get range from list */
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.exec(async (client) => client.lrange(key, start, stop));
+  }
+
+  /** Trim list */
+  async ltrim(key: string, start: number, stop: number): Promise<string> {
+    return this.exec(async (client) => client.ltrim(key, start, stop));
+  }
+
+  /** Add to set */
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    return this.exec(async (client) => client.sadd(key, ...members));
+  }
+
+  /** Set expiration */
+  async expire(key: string, seconds: number): Promise<number> {
+    return this.exec(async (client) => client.expire(key, seconds));
+  }
+
+  /** Increment by value */
+  async incrby(key: string, increment: number): Promise<number> {
+    return this.exec(async (client) => client.incrby(key, increment));
+  }
+
   /** Health check + basic stats */
   async health(): Promise<{
     ok: boolean;

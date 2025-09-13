@@ -128,27 +128,27 @@ This implementation plan converts the chat system design into discrete, manageab
     - Create search API endpoints with proper authorization and tenant isolation
     - _Requirements: 5.1, 5.2, 5.6, 13.1_
 
-- [ ] 9. Notification System Implementation
-  - [ ] 9.1 Create notification service
+- [x] 9. Notification System Implementation
+  - [x] 9.1 Create notification service
     - Implement NotificationService with push notification and email delivery
     - Add notification preference management and delivery tracking
     - Create notification templates and personalization logic
     - _Requirements: 8.1, 8.2, 8.3_
 
-  - [ ] 9.2 Build notification delivery workers
+  - [x] 9.2 Build notification delivery workers
     - Implement push notification worker using Firebase/APNs integration
     - Create email notification worker with template rendering and delivery
     - Add notification retry logic with exponential backoff and dead letter queues
     - _Requirements: 8.4, 8.5_
 
-- [ ] 10. Media Handling and Storage
-  - [ ] 10.1 Implement media upload service
+- [x] 10. Media Handling and Storage
+  - [x] 10.1 Implement media upload service
     - Create MediaService with pre-signed URL generation for S3/MinIO
     - Add file validation for MIME types, file sizes, and security scanning
     - Implement attachment metadata storage and relationship management
     - _Requirements: 3.2, 16.1, 16.4_
 
-  - [ ] 10.2 Build media processing pipeline
+  - [x] 10.2 Build media processing pipeline
     - Create media processing worker for thumbnail generation and EXIF stripping
     - Implement virus scanning integration and content safety checks
     - Add CDN integration with signed URLs and cache control headers
