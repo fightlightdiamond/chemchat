@@ -27,5 +27,8 @@
       "@presence/*": ["src/presence/*"],
       "@notification/*": ["src/notification/*"]
     }
-  }
+  },
+  "exclude": [
+    "src/admin.disabled/**/*"
+  ]
 }
