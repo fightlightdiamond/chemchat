@@ -10,6 +10,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Tenants table for multi-tenancy support
+model Tenant {
+  id               String           @id @default(uuid())
+  name             String           @unique @db.VarChar(100)
+  subscriptionTier SubscriptionTier @default(FREE) @map("subscription_tier")
+  isActive         Boolean          @default(true) @map("is_active")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  settings TenantSettings?
+  quota    TenantQuota?
+  usage    TenantUsage?
+
+  @@map("tenants")
+}
+
+// Tenant settings and configuration
+model TenantSettings {
+  tenantId          String   @id @map("tenant_id")
+  allowFileUploads  Boolean  @default(true) @map("allow_file_uploads")
+  maxFileSize       Int      @map("max_file_size") // bytes
+  allowedFileTypes  String[] @map("allowed_file_types")
+  retentionDays     Int      @default(30) @map("retention_days")
+  enableNotifications Boolean @default(true) @map("enable_notifications")
+  enableSearch      Boolean  @default(true) @map("enable_search")
+  customBranding    Boolean  @default(false) @map("custom_branding")
+  ssoEnabled        Boolean  @default(false) @map("sso_enabled")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_settings")
+}
+
+// Tenant quota limits
+model TenantQuota {
+  tenantId                String @id @map("tenant_id")
+  maxUsers                Int    @map("max_users")
+  maxConversations        Int    @map("max_conversations")
+  maxMessagesPerDay       Int    @map("max_messages_per_day")
+  maxStorageBytes         BigInt @map("max_storage_bytes")
+  maxConnectionsPerUser   Int    @map("max_connections_per_user")
+  maxApiRequestsPerHour   Int    @map("max_api_requests_per_hour")
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_quotas")
+}
+
+// Tenant usage tracking
+model TenantUsage {
+  tenantId              String   @id @map("tenant_id")
+  currentUsers          Int      @default(0) @map("current_users")
+  currentConversations  Int      @default(0) @map("current_conversations")
+  messagesUsedToday     Int      @default(0) @map("messages_used_today")
+  storageUsedBytes      BigInt   @default(0) @map("storage_used_bytes")
+  currentConnections    Int      @default(0) @map("current_connections")
+  apiRequestsThisHour   Int      @default(0) @map("api_requests_this_hour")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_usage")
+}
+
 // Users table with authentication and MFA support
 model User {
   id           String   @id @default(uuid())
@@ -443,4 +516,11 @@ enum VirusScanStatus {
   INFECTED   @map("infected")
   FAILED     @map("failed")
   SKIPPED    @map("skipped")
+}
+
+enum SubscriptionTier {
+  FREE       @map("free")
+  BASIC      @map("basic")
+  PREMIUM    @map("premium")
+  ENTERPRISE @map("enterprise")
 }

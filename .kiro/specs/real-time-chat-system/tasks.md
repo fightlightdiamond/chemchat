@@ -154,14 +154,14 @@ This implementation plan converts the chat system design into discrete, manageab
     - Add CDN integration with signed URLs and cache control headers
     - _Requirements: 16.2, 16.3_
 
-- [ ] 11. Multi-tenancy and Resource Management
-  - [ ] 11.1 Implement tenant isolation
+- [x] 11. Multi-tenancy and Resource Management
+  - [x] 11.1 Implement tenant isolation
     - Add tenant context middleware that extracts and validates tenant ID
     - Modify all data access layers to include tenant filtering
     - Create tenant-scoped services and repository implementations
     - _Requirements: 13.1, 13.4_
 
-  - [ ] 11.2 Build quota and rate limiting system
+  - [x] 11.2 Build quota and rate limiting system
     - Implement quota tracking for connections, messages, and storage per tenant
     - Create rate limiting middleware with tenant-specific limits
     - Add quota enforcement with graceful degradation and user feedback
