@@ -10,6 +10,7 @@ import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
 import { MediaModule } from './media/media.module';
 // import { AdminModule } from './admin/admin.module'; // Temporarily commented out until Prisma migration
+import { SyncModule } from './sync/sync.module';
 import { HealthModule } from './health';
 import { ObservabilityModule } from './observability/observability.module';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
@@ -49,6 +50,7 @@ import { RedisModule } from './shared/redis/redis.module';
     NotificationModule,
     MediaModule,
     // AdminModule, // Temporarily commented out until Prisma migration
+    SyncModule,
     HealthModule,
     ObservabilityModule,
   ],
