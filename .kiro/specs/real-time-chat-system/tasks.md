@@ -180,14 +180,14 @@ This implementation plan converts the chat system design into discrete, manageab
     - Create moderation workflow with escalation and review processes
     - _Requirements: 9.4, 16.2_
 
-- [ ] 13. Observability and Monitoring
-  - [ ] 13.1 Implement OpenTelemetry tracing
+- [x] 13. Observability and Monitoring
+  - [x] 13.1 Implement OpenTelemetry tracing
     - Set up OpenTelemetry SDK with trace propagation across services
     - Add custom spans for critical operations and WebSocket event processing
     - Implement correlation ID propagation in WebSocket frames and HTTP requests
     - _Requirements: 10.4, 10.6_
 
-  - [ ] 13.2 Create metrics and health checks
+  - [x] 13.2 Create metrics and health checks
     - Implement custom Prometheus metrics for chat-specific operations
     - Add health check endpoints for all external dependencies
     - Create performance monitoring for message latency and throughput

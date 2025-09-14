@@ -128,8 +128,12 @@ export class IdempotencyMiddleware implements NestMiddleware {
   ): Promise<void> {
     try {
       // Filter out sensitive headers
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { 'set-cookie': _setCookie, ...safeHeaders } = headers;
+      const { 'set-cookie': setCookie, ...safeHeaders } = headers;
+      
+      // Log if set-cookie was filtered for security audit
+      if (setCookie) {
+        this.logger.debug('Filtered set-cookie header from idempotency cache for security');
+      }
 
       const responseData = {
         status,

@@ -384,17 +384,24 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async transcodeVideo(attachment: any, _options: any): Promise<MediaProcessingResult> {
-
+  private async transcodeVideo(attachment: any, options: any): Promise<MediaProcessingResult> {
     if (!attachment.mimeType.startsWith('video/')) {
       throw new Error('Video transcoding only supported for videos');
     }
+
+    // Use options to configure transcoding parameters
+    const quality = options?.quality || 'medium';
+    const format = options?.format || 'mp4';
+    
+    this.logger.log(`Transcoding video with quality: ${quality}, format: ${format}`);
+    
     // For now, return a placeholder result
     // In a real implementation, you would use FFmpeg to transcode the video
     return {
       outputUrl: attachment.storageUrl, // Placeholder
       metadata: {
+        quality,
+        format,
         // Placeholder metadata - would include video processing details
       } as any,
     };

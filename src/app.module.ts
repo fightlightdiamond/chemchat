@@ -11,6 +11,7 @@ import { NotificationModule } from './notification';
 import { MediaModule } from './media/media.module';
 // import { AdminModule } from './admin/admin.module'; // Temporarily commented out until Prisma migration
 import { HealthModule } from './health';
+import { ObservabilityModule } from './observability/observability.module';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { CorrelationIdMiddleware } from './shared/middleware/correlation-id.middleware';
 import { RedisModule } from './shared/redis/redis.module';
@@ -49,6 +50,7 @@ import { RedisModule } from './shared/redis/redis.module';
     MediaModule,
     // AdminModule, // Temporarily commented out until Prisma migration
     HealthModule,
+    ObservabilityModule,
   ],
   controllers: [AppController],
   providers: [

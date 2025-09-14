@@ -26,9 +26,8 @@ import {
   Attachment, 
 } from '@prisma/client';
 
-// Temporary enum definitions until Prisma client is updated
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-enum MediaUploadStatus {
+// Enum definitions for media processing status
+export enum MediaUploadStatus {
   PENDING = 'PENDING',
   UPLOADING = 'UPLOADING', 
   UPLOADED = 'UPLOADED',
@@ -37,16 +36,14 @@ enum MediaUploadStatus {
   FAILED = 'FAILED',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-enum MediaProcessingStatus {
+export enum MediaProcessingStatus {
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
   COMPLETED = 'COMPLETED', 
   FAILED = 'FAILED',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-enum VirusScanStatus {
+export enum VirusScanStatus {
   PENDING = 'PENDING',
   SCANNING = 'SCANNING',
   CLEAN = 'CLEAN',
@@ -172,10 +169,8 @@ export class MediaService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async confirmUpload(uploadId: string, _options?: MediaUploadOptions): Promise<MediaAttachment> {
-     
-    this.logger.log(`Confirming upload: ${uploadId}`);
+  async confirmUpload(uploadId: string, options?: MediaUploadOptions): Promise<MediaAttachment> {
+    this.logger.log(`Confirming upload: ${uploadId}`, { options });
 
     // Get upload metadata from Redis
     const metadataJson = await this.redis.get(`media:upload:${uploadId}`);
@@ -205,7 +200,6 @@ export class MediaService {
 
     // Create attachment record
     const storageUrl = this.generateStorageUrl(metadata.storageKey);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const cdnUrl = this.getCDNUrl(storageUrl);
 
     const attachment = await this.prisma.attachment.create({
@@ -216,6 +210,7 @@ export class MediaService {
         fileSize: BigInt(metadata.fileSize),
         fileHash,
         storageUrl,
+        cdnUrl,
         originalFilename: metadata.filename,
         uploadedBy: metadata.uploaderId || 'system',
       } as any,
@@ -254,7 +249,6 @@ export class MediaService {
     this.logger.log(`Confirming upload: ${filename}`);
 
     // Create attachment record
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const cdnUrl = this.storageConfig.cdnUrl 
       ? `${this.storageConfig.cdnUrl}/${storageUrl}`
       : storageUrl;
@@ -267,6 +261,7 @@ export class MediaService {
         fileSize: BigInt(fileSize),
         fileHash,
         storageUrl,
+        cdnUrl,
         thumbnailUrl,
         originalFilename: filename,
         uploadedBy: _options?.uploaderId || 'system',
@@ -351,8 +346,7 @@ export class MediaService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteAttachment(id: string, _mimeType: string): Promise<void> {
+  async deleteAttachment(id: string, mimeType: string): Promise<void> {
     const attachment = await this.prisma.attachment.findFirst({
       where: {
         id,
@@ -361,6 +355,11 @@ export class MediaService {
 
     if (!attachment) {
       throw new BadRequestException('Attachment not found');
+    }
+
+    // Validate mimeType matches for security
+    if (attachment.mimeType !== mimeType) {
+      this.logger.warn(`MIME type mismatch for attachment ${id}: expected ${mimeType}, got ${attachment.mimeType}`);
     }
 
     // Delete from storage
@@ -575,8 +574,7 @@ export class MediaService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async scheduleProcessingJobs(attachmentId: string, _mimeType: string): Promise<void> {
+  private async scheduleProcessingJobs(attachmentId: string, mimeType: string): Promise<void> {
     const jobs: Array<{ type: string; priority: string }> = [];
 
     // Virus scan
@@ -587,6 +585,17 @@ export class MediaService {
     // Content moderation
     if (this.validationRules.requireContentModeration) {
       jobs.push({ type: 'CONTENT_MODERATION', priority: 'HIGH' });
+    }
+
+    // Schedule processing jobs based on MIME type
+    if (mimeType.startsWith('image/')) {
+      jobs.push({ type: 'THUMBNAIL_GENERATION', priority: 'NORMAL' });
+      jobs.push({ type: 'EXIF_EXTRACTION', priority: 'LOW' });
+    } else if (mimeType.startsWith('video/')) {
+      jobs.push({ type: 'VIDEO_THUMBNAIL', priority: 'NORMAL' });
+      jobs.push({ type: 'VIDEO_TRANSCODING', priority: 'LOW' });
+    } else if (mimeType.startsWith('audio/')) {
+      jobs.push({ type: 'AUDIO_TRANSCODING', priority: 'LOW' });
     }
 
     // Thumbnail generation

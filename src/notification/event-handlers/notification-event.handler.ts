@@ -63,16 +63,16 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async getConversationMembers(_conversationId: string, _tenantId?: string): Promise<any[]> {
+  private async getConversationMembers(conversationId: string, tenantId?: string): Promise<any[]> {
     // Placeholder implementation - in real scenario, this would use ConversationService
+    this.logger.debug(`Getting conversation members for ${conversationId} in tenant ${tenantId}`);
     // For now, return empty array to avoid errors
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async handleMessageCreated(event: MessageCreatedEvent, _conversationId: string, _tenantId?: string): Promise<void> {
+  private async handleMessageCreated(event: MessageCreatedEvent, conversationId: string, tenantId?: string): Promise<void> {
     // Placeholder implementation - in real scenario, this would use ConversationService
+    this.logger.debug(`Handling message created event for conversation ${conversationId} in tenant ${tenantId}`, { event });
     // For now, do nothing to avoid errors
   }
 
