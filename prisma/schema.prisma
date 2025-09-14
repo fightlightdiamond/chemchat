@@ -106,6 +106,18 @@ model User {
   deviceTokens            DeviceToken[]            @relation("UserDeviceTokens")
   notifications           NotificationDelivery[]   @relation("UserNotifications")
   attachments             Attachment[]             @relation("AttachmentUploader")
+  
+  // Admin and moderation relationships
+  adminRoles              AdminRole[]              @relation("UserAdminRoles")
+  grantedAdminRoles       AdminRole[]              @relation("AdminRoleGranter")
+  moderationActions       ModerationAction[]       @relation("ModeratorActions")
+  contentReports          ContentReport[]          @relation("UserReports")
+  assignedReports         ContentReport[]          @relation("AssignedReports")
+  createdRules            AutoModerationRule[]     @relation("AutoModerationRuleCreator")
+  violations              AutoModerationViolation[] @relation("UserViolations")
+  reviewedViolations      AutoModerationViolation[] @relation("ViolationReviewer")
+  userBans                UserBan[]                @relation("UserBans")
+  moderatorBans           UserBan[]                @relation("ModeratorBans")
 
   @@map("users")
 }
@@ -523,4 +535,243 @@ enum SubscriptionTier {
   BASIC      @map("basic")
   PREMIUM    @map("premium")
   ENTERPRISE @map("enterprise")
+}
+
+// Admin and moderation models
+model AdminRole {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  tenantId    String?  @map("tenant_id")
+  role        AdminRoleType
+  permissions String[] // Array of permission strings
+  grantedBy   String   @map("granted_by")
+  grantedAt   DateTime @default(now()) @map("granted_at") @db.Timestamptz(6)
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user      User @relation("UserAdminRoles", fields: [userId], references: [id], onDelete: Cascade)
+  grantedByUser User @relation("AdminRoleGranter", fields: [grantedBy], references: [id])
+
+  @@unique([userId, tenantId, role])
+  @@index([userId, isActive])
+  @@index([tenantId, role])
+  @@map("admin_roles")
+}
+
+model ModerationAction {
+  id           String            @id @default(uuid())
+  tenantId     String?           @map("tenant_id")
+  moderatorId  String            @map("moderator_id")
+  targetType   ModerationTargetType @map("target_type")
+  targetId     String            @map("target_id")
+  actionType   ModerationActionType @map("action_type")
+  reason       String            @db.Text
+  duration     Int?              // Duration in minutes for temporary actions
+  metadata     Json?             // Additional action metadata
+  isActive     Boolean           @default(true) @map("is_active")
+  expiresAt    DateTime?         @map("expires_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  moderator    User              @relation("ModeratorActions", fields: [moderatorId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([moderatorId, createdAt(sort: Desc)])
+  @@index([tenantId, actionType])
+  @@index([expiresAt])
+  @@map("moderation_actions")
+}
+
+model ContentReport {
+  id           String            @id @default(uuid())
+  tenantId     String?           @map("tenant_id")
+  reporterId   String            @map("reporter_id")
+  targetType   ModerationTargetType @map("target_type")
+  targetId     String            @map("target_id")
+  reportType   ReportType        @map("report_type")
+  reason       String            @db.Text
+  description  String?           @db.Text
+  status       ReportStatus      @default(PENDING)
+  priority     ReportPriority    @default(MEDIUM)
+  assignedTo   String?           @map("assigned_to")
+  resolution   String?           @db.Text
+  resolvedAt   DateTime?         @map("resolved_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  reporter     User              @relation("UserReports", fields: [reporterId], references: [id])
+  assignee     User?             @relation("AssignedReports", fields: [assignedTo], references: [id])
+
+  @@index([reporterId])
+  @@index([targetType, targetId])
+  @@index([status, priority])
+  @@index([tenantId, status])
+  @@index([assignedTo])
+  @@map("content_reports")
+}
+
+model AutoModerationRule {
+  id           String            @id @default(uuid())
+  tenantId     String?           @map("tenant_id")
+  name         String            @db.VarChar(100)
+  description  String?           @db.Text
+  ruleType     AutoModerationRuleType @map("rule_type")
+  conditions   Json              // Rule conditions and thresholds
+  actions      Json              // Actions to take when rule is triggered
+  isEnabled    Boolean           @default(true) @map("is_enabled")
+  severity     RuleSeverity      @default(MEDIUM)
+  createdBy    String            @map("created_by")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  creator      User              @relation("AutoModerationRuleCreator", fields: [createdBy], references: [id])
+  violations   AutoModerationViolation[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isEnabled])
+  @@index([ruleType])
+  @@map("auto_moderation_rules")
+}
+
+model AutoModerationViolation {
+  id           String            @id @default(uuid())
+  tenantId     String?           @map("tenant_id")
+  ruleId       String            @map("rule_id")
+  targetType   ModerationTargetType @map("target_type")
+  targetId     String            @map("target_id")
+  userId       String?           @map("user_id")
+  severity     RuleSeverity
+  content      String?           @db.Text // Offending content snapshot
+  confidence   Float             // Confidence score (0-1)
+  metadata     Json?             // Detection metadata
+  actionTaken  Json?             @map("action_taken") // Automated actions performed
+  reviewStatus ReviewStatus      @default(PENDING) @map("review_status")
+  reviewedBy   String?           @map("reviewed_by")
+  reviewedAt   DateTime?         @map("reviewed_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relationships
+  rule         AutoModerationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  user         User?              @relation("UserViolations", fields: [userId], references: [id])
+  reviewer     User?              @relation("ViolationReviewer", fields: [reviewedBy], references: [id])
+
+  @@index([ruleId])
+  @@index([targetType, targetId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([tenantId, reviewStatus])
+  @@index([severity, createdAt(sort: Desc)])
+  @@map("auto_moderation_violations")
+}
+
+model UserBan {
+  id           String            @id @default(uuid())
+  tenantId     String?           @map("tenant_id")
+  userId       String            @map("user_id")
+  bannedBy     String            @map("banned_by")
+  banType      BanType
+  reason       String            @db.Text
+  duration     Int?              // Duration in minutes for temporary bans
+  isActive     Boolean           @default(true) @map("is_active")
+  expiresAt    DateTime?         @map("expires_at") @db.Timestamptz(6)
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user         User              @relation("UserBans", fields: [userId], references: [id], onDelete: Cascade)
+  moderator    User              @relation("ModeratorBans", fields: [bannedBy], references: [id])
+
+  @@unique([userId, tenantId, banType])
+  @@index([userId, isActive])
+  @@index([tenantId, isActive])
+  @@index([expiresAt])
+  @@map("user_bans")
+}
+
+// New admin and moderation enums
+enum AdminRoleType {
+  SUPER_ADMIN    @map("super_admin")
+  TENANT_ADMIN   @map("tenant_admin")
+  MODERATOR      @map("moderator")
+  SUPPORT        @map("support")
+}
+
+enum ModerationTargetType {
+  USER         @map("user")
+  MESSAGE      @map("message")
+  CONVERSATION @map("conversation")
+  ATTACHMENT   @map("attachment")
+}
+
+enum ModerationActionType {
+  WARN         @map("warn")
+  MUTE         @map("mute")
+  KICK         @map("kick")
+  BAN          @map("ban")
+  DELETE       @map("delete")
+  EDIT         @map("edit")
+  QUARANTINE   @map("quarantine")
+  RESTORE      @map("restore")
+}
+
+enum ReportType {
+  SPAM         @map("spam")
+  HARASSMENT   @map("harassment")
+  HATE_SPEECH  @map("hate_speech")
+  VIOLENCE     @map("violence")
+  INAPPROPRIATE_CONTENT @map("inappropriate_content")
+  COPYRIGHT    @map("copyright")
+  IMPERSONATION @map("impersonation")
+  OTHER        @map("other")
+}
+
+enum ReportStatus {
+  PENDING      @map("pending")
+  INVESTIGATING @map("investigating")
+  RESOLVED     @map("resolved")
+  DISMISSED    @map("dismissed")
+  ESCALATED    @map("escalated")
+}
+
+enum ReportPriority {
+  LOW          @map("low")
+  MEDIUM       @map("medium")
+  HIGH         @map("high")
+  URGENT       @map("urgent")
+}
+
+enum AutoModerationRuleType {
+  SPAM_DETECTION     @map("spam_detection")
+  PROFANITY_FILTER   @map("profanity_filter")
+  RATE_LIMITING      @map("rate_limiting")
+  CONTENT_SIMILARITY @map("content_similarity")
+  LINK_FILTER        @map("link_filter")
+  CAPS_FILTER        @map("caps_filter")
+  MENTION_SPAM       @map("mention_spam")
+  IMAGE_MODERATION   @map("image_moderation")
+}
+
+enum RuleSeverity {
+  LOW          @map("low")
+  MEDIUM       @map("medium")
+  HIGH         @map("high")
+  CRITICAL     @map("critical")
+}
+
+enum ReviewStatus {
+  PENDING      @map("pending")
+  APPROVED     @map("approved")
+  REJECTED     @map("rejected")
+  ESCALATED    @map("escalated")
+}
+
+enum BanType {
+  TEMPORARY    @map("temporary")
+  PERMANENT    @map("permanent")
+  SHADOW       @map("shadow")
 }

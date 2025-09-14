@@ -9,6 +9,7 @@ import { ChatModule } from './chat';
 import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
 import { MediaModule } from './media/media.module';
+// import { AdminModule } from './admin/admin.module'; // Temporarily commented out until Prisma migration
 import { HealthModule } from './health';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { CorrelationIdMiddleware } from './shared/middleware/correlation-id.middleware';
@@ -46,6 +47,7 @@ import { RedisModule } from './shared/redis/redis.module';
     PresenceModule,
     NotificationModule,
     MediaModule,
+    // AdminModule, // Temporarily commented out until Prisma migration
     HealthModule,
   ],
   controllers: [AppController],
