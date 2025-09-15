@@ -4,7 +4,6 @@ initializeTelemetry();
 
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { CorrelationIdMiddleware } from './observability/tracing/correlation-id.middleware';
 
@@ -35,29 +34,8 @@ async function bootstrap() {
 
     // Swagger documentation
     if (process.env.NODE_ENV !== 'production') {
-      const config = new DocumentBuilder()
-        .setTitle('ChemChat API')
-        .setDescription('Real-time chat system with comprehensive observability')
-        .setVersion('1.0.0')
-        .addBearerAuth()
-        .addTag('auth', 'Authentication endpoints')
-        .addTag('chat', 'Chat and messaging endpoints')
-        .addTag('conversations', 'Conversation management')
-        .addTag('users', 'User management')
-        .addTag('admin', 'Admin and moderation')
-        .addTag('search', 'Search and indexing')
-        .addTag('media', 'Media handling and storage')
-        .addTag('notifications', 'Notification system')
-        .addTag('observability', 'Monitoring and health checks')
-        .build();
-
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document, {
-        swaggerOptions: {
-          persistAuthorization: true,
-        },
-      });
-
+      const { setupSwagger } = await import('./docs/swagger.config');
+      setupSwagger(app);
       logger.log('Swagger documentation available at /api/docs');
     }
 
