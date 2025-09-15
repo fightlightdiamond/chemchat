@@ -1,0 +1,330 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '../../database/prisma.service';
+import { CacheService } from './cache.service';
+
+interface PreloadingRule {
+  name: string;
+  enabled: boolean;
+  trigger: string;
+  condition?: () => Promise<boolean>;
+  action: () => Promise<void>;
+}
+
+@Injectable()
+export class CachePreloadingService {
+  private readonly logger = new Logger(CachePreloadingService.name);
+  private readonly rules: PreloadingRule[] = [];
+  private readonly thresholds = new Map<string, number>();
+
+  constructor(
+    private cacheService: CacheService,
+    private prismaService: PrismaService,
+    private configService: ConfigService,
+  ) {
+    this.setupPreloadingRules();
+  }
+
+  /**
+   * Execute preloading rule by name
+   */
+  async executeRule(ruleName: string, context?: any): Promise<void> {
+    const rule = this.rules.find(r => r.name === ruleName);
+    if (!rule) {
+      throw new Error(`Preloading rule '${ruleName}' not found`);
+    }
+
+    if (!rule.enabled) {
+      this.logger.warn(`Preloading rule '${ruleName}' is disabled`);
+      return;
+    }
+
+    const startTime = Date.now();
+    try {
+      await rule.execute(context);
+      const duration = Date.now() - startTime;
+      this.logger.debug(`Preloading rule '${ruleName}' executed in ${duration}ms`);
+    } catch (error) {
+      this.logger.error(`Preloading rule '${ruleName}' failed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Preload conversation data when user joins
+   */
+  async preloadConversationData(conversationId: string, userId: string): Promise<void> {
+    await this.executeRule('conversation_join', { conversationId, userId });
+  }
+
+  /**
+   * Preload user profile data
+   */
+  async preloadUserProfile(userId: string): Promise<void> {
+    await this.executeRule('user_profile_access', { userId });
+  }
+
+  /**
+   * Preload tenant data for new session
+   */
+  async preloadTenantData(tenantId: string): Promise<void> {
+    await this.executeRule('tenant_session_start', { tenantId });
+  }
+
+  /**
+   * Check and execute threshold-based preloading
+   */
+  async checkThresholds(): Promise<void> {
+    for (const rule of this.rules.filter(r => r.enabled && r.trigger === 'threshold')) {
+      try {
+        const currentValue = await this.getCurrentThresholdValue(rule.name);
+        const threshold = this.thresholds.get(rule.name) || 0;
+
+        if (currentValue >= threshold) {
+          await rule.execute({ currentValue, threshold });
+          this.logger.debug(`Threshold rule '${rule.name}' triggered: ${currentValue} >= ${threshold}`);
+        }
+      } catch (error) {
+        this.logger.error(`Threshold check failed for rule '${rule.name}':`, error);
+      }
+    }
+  }
+
+  /**
+   * Setup preloading rules
+   */
+  private setupPreloadingRules(): void {
+    // Conversation join preloading
+    this.rules.push({
+      name: 'conversation_join',
+      enabled: true,
+      trigger: 'event',
+      condition: { event: 'user_join_conversation' },
+      execute: async (context: { conversationId: string; userId: string }) => {
+        const { conversationId } = context;
+
+        // Preload recent messages
+        const recentMessages = await this.prismaService.message.findMany({
+          where: {
+            conversationId,
+            deletedAt: null,
+          },
+          include: {
+            sender: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+              },
+            },
+            replyTo: {
+              select: {
+                id: true,
+                content: true,
+                senderId: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 50,
+        });
+
+        // Cache recent messages
+        const messageItems = recentMessages.map(message => ({
+          key: `message:${message.id}`,
+          value: message,
+          options: { ttl: 600, tags: ['messages'], namespace: 'messages' },
+        }));
+
+        await this.cacheService.mset(messageItems);
+
+        // Preload conversation participants
+        const participants = await this.prismaService.conversationMember.findMany({
+          where: { conversationId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatar: true,
+                status: true,
+              },
+            },
+          },
+        });
+
+        await this.cacheService.set(
+          `conversation_participants:${conversationId}`,
+          participants,
+          { ttl: 1800, tags: ['conversation_participants'], namespace: 'conversations' },
+        );
+
+        this.logger.debug(`Preloaded ${recentMessages.length} messages and ${participants.length} participants for conversation ${conversationId}`);
+      },
+    });
+
+    // User profile access preloading
+    this.rules.push({
+      name: 'user_profile_access',
+      enabled: true,
+      trigger: 'event',
+      condition: { event: 'user_profile_view' },
+      execute: async (context: { userId: string }) => {
+        const { userId } = context;
+
+        // Preload user's recent conversations
+        const userConversations = await this.prismaService.conversationMember.findMany({
+          where: { userId },
+          include: {
+            conversation: {
+              include: {
+                participants: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true,
+                        username: true,
+                        displayName: true,
+                        avatar: true,
+                      },
+                    },
+                  },
+                },
+                _count: {
+                  select: {
+                    messages: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            conversation: {
+              updatedAt: 'desc',
+            },
+          },
+          take: 20,
+        });
+
+        const conversationItems = userConversations.map(cp => ({
+          key: `conversation:${cp.conversationId}`,
+          value: { id: cp.conversationId, name: 'Conversation' },
+          options: { ttl: 1800, tags: ['conversations'], namespace: 'conversations' },
+        }));
+
+        await this.cacheService.mset(conversationItems);
+
+        this.logger.debug(`Preloaded ${userConversations.length} user conversations for ${userId}`);
+      }
+    } catch (error) {
+      this.logger.error('Failed to preload user conversations:', error);
+    }
+  }
+
+  /**
+   * Preload notification preferences for active users
+   */
+  private async preloadNotificationPreferences(): Promise<void> {
+    try {
+      const preferences = await this.prisma.user.findMany({
+        where: {
+          lastActiveAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+          },
+        },
+        take: 50,
+      });
+
+      const preferenceItems = preferences.map(user => ({
+        key: `notification_preferences:${user.id}`,
+        value: { userId: user.id, preferences: {} },
+        options: { ttl: 3600, tags: ['notification_preferences'], namespace: 'notifications' },
+      }));
+
+      await this.cacheService.mset(preferenceItems);
+
+      this.logger.debug(`Preloaded ${preferences.length} notification preferences`);
+    } catch (error) {
+      this.logger.error('Failed to preload notification preferences:', error);
+    }
+  }
+
+  /**
+   * Preload tenant settings for critical tenants
+   */
+  private async preloadTenantSettings(): Promise<void> {
+    try {
+      const settings = await this.prisma.tenant.findMany({
+        take: 50,
+      });
+
+      const settingsItems = settings.map(tenant => ({
+        key: `tenant_settings:${tenant.id}`,
+        value: tenant,
+        options: { ttl: 1800, tags: ['tenant_settings'], namespace: 'tenants' },
+      }));
+
+      await this.cacheService.mset(settingsItems);
+
+      this.logger.debug(`Preloaded ${settings.length} critical tenant settings for low memory`);
+    } catch (error) {
+      this.logger.error('Failed to preload tenant settings:', error);
+    }
+  }
+
+  /**
+   * Get current threshold value for a rule
+   */
+  private async getCurrentThresholdValue(ruleName: string): Promise<number> {
+    switch (ruleName) {
+      case 'high_miss_rate_preload':
+        // This would come from cache metrics
+        return 0.25; // Placeholder
+      case 'low_memory_preload':
+        // This would come from system metrics
+        return 0.75; // Placeholder
+      default:
+        return 0;
+    }
+  }
+
+  /**
+   * Get preloading statistics
+   */
+  getStats(): {
+    totalRules: number;
+    enabledRules: number;
+    rules: Array<{
+      name: string;
+      enabled: boolean;
+      trigger: string;
+    }>;
+  } {
+    return {
+      totalRules: this.rules.length,
+      enabledRules: this.rules.filter(r => r.enabled).length,
+      rules: this.rules.map(r => ({
+        name: r.name,
+        enabled: r.enabled,
+        trigger: r.trigger,
+      })),
+    };
+  }
+
+  /**
+   * Enable/disable preloading rule
+   */
+  toggleRule(ruleName: string, enabled: boolean): void {
+    const rule = this.rules.find(r => r.name === ruleName);
+    if (rule) {
+      rule.enabled = enabled;
+      this.logger.log(`Preloading rule '${ruleName}' ${enabled ? 'enabled' : 'disabled'}`);
+    } else {
+      throw new Error(`Preloading rule '${ruleName}' not found`);
+    }
+  }
+}
