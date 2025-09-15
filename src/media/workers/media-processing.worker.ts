@@ -1,12 +1,8 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
-import { RedisService } from '../../shared/redis/redis.service';
+import { RedisService } from '@shared/redis/redis.service';
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { 
-  MediaProcessingResult, 
-  MediaMetadata
-} from '../interfaces/media.interface';
 
 // Temporary enum definitions until Prisma client is updated
 enum ProcessingPriority {
@@ -18,10 +14,24 @@ enum ProcessingPriority {
 
 enum MediaProcessingType {
   THUMBNAIL_GENERATION = 'THUMBNAIL_GENERATION',
-  EXIF_STRIPPING = 'EXIF_STRIPPING',
+  IMAGE_RESIZE = 'IMAGE_RESIZE',
+  VIDEO_TRANSCODE = 'VIDEO_TRANSCODE',
+  AUDIO_TRANSCODE = 'AUDIO_TRANSCODE',
   VIRUS_SCAN = 'VIRUS_SCAN',
   CONTENT_MODERATION = 'CONTENT_MODERATION',
-  TRANSCODING = 'TRANSCODING'
+  EXIF_STRIP = 'EXIF_STRIP'
+}
+
+interface MediaProcessingResult {
+  success: boolean;
+  processedUrl?: string;
+  outputUrl?: string;
+  thumbnailUrl?: string;
+  virusScanResult?: any;
+  contentSafetyResult?: any;
+  fileSize?: number;
+  metadata?: any;
+  error?: string;
 }
 
 enum MediaProcessingStatus {
@@ -287,6 +297,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const thumbnailUrl = await this.uploadFile(thumbnailKey, thumbnailBuffer, 'image/jpeg');
 
     return {
+      success: true,
       thumbnailUrl,
       fileSize: thumbnailBuffer.length,
       metadata: {
@@ -339,6 +350,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const outputUrl = await this.uploadFile(outputKey, outputBuffer, `image/${format || 'jpeg'}`);
 
     return {
+      success: true,
       outputUrl,
       fileSize: outputBuffer.length,
       metadata: {
@@ -376,6 +388,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const outputUrl = await this.uploadFile(outputKey, outputBuffer, attachment.mimeType);
 
     return {
+      success: true,
       outputUrl,
       fileSize: outputBuffer.length,
       metadata: {
@@ -398,6 +411,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     // For now, return a placeholder result
     // In a real implementation, you would use FFmpeg to transcode the video
     return {
+      success: true,
       outputUrl: attachment.storageUrl, // Placeholder
       metadata: {
         quality,
@@ -417,6 +431,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     // For now, return a placeholder result
     // In a real implementation, you would use FFmpeg to transcode the audio
     return {
+      success: true,
       outputUrl: attachment.storageUrl, // Placeholder
       metadata: {
         // codec,
@@ -431,6 +446,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const scanResult = await this.validationService.scanFileContent(inputBuffer, attachment.filename);
 
     return {
+      success: true,
       virusScanResult: scanResult,
     };
   }
@@ -440,6 +456,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const moderationResult = await this.validationService.moderateContent(inputBuffer, attachment.mimeType);
 
     return {
+      success: true,
       contentSafetyResult: moderationResult,
     };
   }

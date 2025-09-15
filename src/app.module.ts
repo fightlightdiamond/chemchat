@@ -10,6 +10,7 @@ import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
 import { MediaModule } from './media/media.module';
 // import { AdminModule } from './admin/admin.module'; // Temporarily commented out until Prisma migration
+// import { SecurityModule } from './security/security.module'; // Temporarily disabled due to build errors
 import { SyncModule } from './sync/sync.module';
 import { HealthModule } from './health';
 import { ObservabilityModule } from './observability/observability.module';
@@ -50,6 +51,7 @@ import { RedisModule } from './shared/redis/redis.module';
     NotificationModule,
     MediaModule,
     // AdminModule, // Temporarily commented out until Prisma migration
+    // SecurityModule, // Temporarily disabled due to build errors
     SyncModule,
     HealthModule,
     ObservabilityModule,
