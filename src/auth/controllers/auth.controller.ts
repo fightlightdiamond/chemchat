@@ -2,14 +2,13 @@ import {
   Controller,
   Post,
   Body,
-  HttpCode,
-  HttpStatus,
   UseGuards,
   Get,
+  HttpStatus,
+  HttpCode,
   Ip,
   Headers,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AuthService } from '../services/auth.service';
 import { MfaService } from '../services/mfa.service';
 import { RateLimitingService } from '../services/rate-limiting.service';

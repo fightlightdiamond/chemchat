@@ -1,11 +1,11 @@
 import {
   Injectable,
+  CanActivate,
   ExecutionContext,
   UnauthorizedException,
-  CanActivate,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { TokenService } from '../services/token.service';
 import { TokenRevocationService } from '../services/token-revocation.service';
 import { AuthService } from '../services/auth.service';
