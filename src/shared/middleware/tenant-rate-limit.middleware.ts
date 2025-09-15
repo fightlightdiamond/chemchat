@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { TenantRequest } from '../interfaces/tenant.interface';
 import { QuotaTrackingService, QuotaType } from '../services/quota-tracking.service';
 import { Logger } from '@nestjs/common';

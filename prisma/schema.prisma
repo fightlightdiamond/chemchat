@@ -775,3 +775,326 @@ enum BanType {
   PERMANENT    @map("permanent")
   SHADOW       @map("shadow")
 }
+
+// Security and Compliance Models
+
+// Data retention policies for GDPR compliance
+model DataRetentionPolicy {
+  id                    String   @id @default(uuid())
+  tenantId              String   @map("tenant_id")
+  name                  String   @db.VarChar(100)
+  description           String?  @db.Text
+  dataType              DataType @map("data_type")
+  retentionPeriodDays   Int      @map("retention_period_days")
+  isActive              Boolean  @default(true) @map("is_active")
+  autoDelete            Boolean  @default(false) @map("auto_delete")
+  notifyBeforeDeletion  Boolean  @default(true) @map("notify_before_deletion")
+  notificationDays      Int      @default(7) @map("notification_days")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@index([dataType])
+  @@map("data_retention_policies")
+}
+
+// Enhanced audit logs for security compliance
+model AuditLog {
+  id            String        @id @default(uuid())
+  tenantId      String?       @map("tenant_id")
+  userId        String?       @map("user_id")
+  sessionId     String?       @map("session_id")
+  action        AuditAction
+  resource      AuditResource
+  resourceId    String        @map("resource_id")
+  details       Json
+  ipAddress     String        @map("ip_address")
+  userAgent     String        @map("user_agent")
+  timestamp     DateTime      @default(now()) @db.Timestamptz(6)
+  correlationId String?       @map("correlation_id")
+  severity      AuditSeverity
+  outcome       AuditOutcome
+  metadata      Json?
+
+  @@index([tenantId, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([action, timestamp(sort: Desc)])
+  @@index([correlationId])
+  @@index([severity, timestamp(sort: Desc)])
+  @@map("audit_logs_enhanced")
+}
+
+// Security events for monitoring and alerting
+model SecurityEvent {
+  id          String            @id @default(uuid())
+  tenantId    String            @map("tenant_id")
+  eventType   SecurityEventType @map("event_type")
+  severity    SecuritySeverity
+  source      String            @db.VarChar(100)
+  userId      String?           @map("user_id")
+  ipAddress   String            @map("ip_address")
+  userAgent   String?           @map("user_agent")
+  details     Json
+  timestamp   DateTime          @default(now()) @db.Timestamptz(6)
+  resolved    Boolean           @default(false)
+  resolvedAt  DateTime?         @map("resolved_at") @db.Timestamptz(6)
+  resolvedBy  String?           @map("resolved_by")
+  tags        String[]
+
+  @@index([tenantId, timestamp(sort: Desc)])
+  @@index([eventType, timestamp(sort: Desc)])
+  @@index([severity, timestamp(sort: Desc)])
+  @@index([resolved, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@map("security_events")
+}
+
+// Anomaly detection results
+model AnomalyDetection {
+  id            String          @id @default(uuid())
+  tenantId      String          @map("tenant_id")
+  userId        String?         @map("user_id")
+  anomalyType   AnomalyType     @map("anomaly_type")
+  severity      AnomalySeverity
+  confidence    Float           // 0.0 to 1.0
+  description   String          @db.Text
+  evidence      Json
+  timestamp     DateTime        @default(now()) @db.Timestamptz(6)
+  investigated  Boolean         @default(false)
+  falsePositive Boolean         @default(false) @map("false_positive")
+
+  @@index([tenantId, timestamp(sort: Desc)])
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([anomalyType, timestamp(sort: Desc)])
+  @@index([severity, timestamp(sort: Desc)])
+  @@index([investigated])
+  @@map("anomaly_detections")
+}
+
+// Geographic access control rules
+model GeoAccessRule {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String   @db.VarChar(100)
+  ruleType  String   @map("rule_type") // 'allow' or 'block'
+  countries String[]
+  regions   String[]
+  cities    String[]
+  ipRanges  String[] @map("ip_ranges")
+  isActive  Boolean  @default(true) @map("is_active")
+  priority  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@index([priority])
+  @@map("geo_access_rules")
+}
+
+// Security incidents for incident response
+model SecurityIncident {
+  id          String           @id @default(uuid())
+  tenantId    String           @map("tenant_id")
+  title       String           @db.VarChar(255)
+  description String           @db.Text
+  severity    IncidentSeverity
+  status      IncidentStatus
+  category    IncidentCategory
+  assignedTo  String?          @map("assigned_to")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  resolvedAt  DateTime?        @map("resolved_at") @db.Timestamptz(6)
+  events      String[]         // Security event IDs
+  anomalies   String[]         // Anomaly detection IDs
+  metadata    Json?
+
+  // Relationships
+  actions     IncidentAction[]
+
+  @@index([tenantId, status, createdAt(sort: Desc)])
+  @@index([severity, createdAt(sort: Desc)])
+  @@index([assignedTo])
+  @@index([category, status])
+  @@map("security_incidents")
+}
+
+// Incident actions for tracking response activities
+model IncidentAction {
+  id          String       @id @default(uuid())
+  incidentId  String       @map("incident_id")
+  actionType  ActionType   @map("action_type")
+  description String       @db.Text
+  executedAt  DateTime     @default(now()) @map("executed_at") @db.Timestamptz(6)
+  executedBy  String       @map("executed_by")
+  result      ActionResult
+  details     Json?
+
+  // Relationships
+  incident    SecurityIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, executedAt(sort: Desc)])
+  @@index([actionType])
+  @@index([executedBy])
+  @@map("incident_actions")
+}
+
+// Automation rules for incident response
+model AutomationRule {
+  id          String               @id @default(uuid())
+  tenantId    String               @map("tenant_id")
+  name        String               @db.VarChar(100)
+  description String?              @db.Text
+  isActive    Boolean              @default(true) @map("is_active")
+  triggers    Json                 // AutomationTrigger[]
+  conditions  Json                 // AutomationCondition[]
+  actions     Json                 // AutomationAction[]
+  priority    Int                  @default(0)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@index([priority])
+  @@map("automation_rules")
+}
+
+// Security and compliance enums
+enum DataType {
+  USER_PROFILE    @map("user_profile")
+  MESSAGES        @map("messages")
+  CONVERSATIONS   @map("conversations")
+  ATTACHMENTS     @map("attachments")
+  NOTIFICATIONS   @map("notifications")
+  AUDIT_LOGS      @map("audit_logs")
+  DEVICE_TOKENS   @map("device_tokens")
+  SESSION_DATA    @map("session_data")
+}
+
+enum AuditAction {
+  CREATE              @map("create")
+  READ                @map("read")
+  UPDATE              @map("update")
+  DELETE              @map("delete")
+  LOGIN               @map("login")
+  LOGOUT              @map("logout")
+  EXPORT              @map("export")
+  IMPORT              @map("import")
+  ADMIN_ACTION        @map("admin_action")
+  PERMISSION_CHANGE   @map("permission_change")
+  CONFIGURATION_CHANGE @map("configuration_change")
+}
+
+enum AuditResource {
+  USER         @map("user")
+  MESSAGE      @map("message")
+  CONVERSATION @map("conversation")
+  ATTACHMENT   @map("attachment")
+  NOTIFICATION @map("notification")
+  ADMIN_ROLE   @map("admin_role")
+  TENANT       @map("tenant")
+  SYSTEM       @map("system")
+}
+
+enum AuditSeverity {
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  CRITICAL @map("critical")
+}
+
+enum AuditOutcome {
+  SUCCESS @map("success")
+  FAILURE @map("failure")
+  PARTIAL @map("partial")
+}
+
+enum SecurityEventType {
+  AUTHENTICATION_FAILURE  @map("authentication_failure")
+  AUTHORIZATION_FAILURE   @map("authorization_failure")
+  SUSPICIOUS_LOGIN        @map("suspicious_login")
+  BRUTE_FORCE_ATTEMPT     @map("brute_force_attempt")
+  RATE_LIMIT_EXCEEDED     @map("rate_limit_exceeded")
+  UNUSUAL_ACCESS_PATTERN  @map("unusual_access_pattern")
+  PRIVILEGE_ESCALATION    @map("privilege_escalation")
+  DATA_EXFILTRATION       @map("data_exfiltration")
+  MALICIOUS_PAYLOAD       @map("malicious_payload")
+  SYSTEM_INTRUSION        @map("system_intrusion")
+  POLICY_VIOLATION        @map("policy_violation")
+  ANOMALOUS_BEHAVIOR      @map("anomalous_behavior")
+}
+
+enum SecuritySeverity {
+  INFO     @map("info")
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  CRITICAL @map("critical")
+}
+
+enum AnomalyType {
+  UNUSUAL_LOGIN_TIME      @map("unusual_login_time")
+  UNUSUAL_LOCATION        @map("unusual_location")
+  EXCESSIVE_API_CALLS     @map("excessive_api_calls")
+  UNUSUAL_DATA_ACCESS     @map("unusual_data_access")
+  SUSPICIOUS_USER_AGENT   @map("suspicious_user_agent")
+  RAPID_PERMISSION_CHANGES @map("rapid_permission_changes")
+  BULK_DATA_OPERATIONS    @map("bulk_data_operations")
+  UNUSUAL_DEVICE          @map("unusual_device")
+}
+
+enum AnomalySeverity {
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  CRITICAL @map("critical")
+}
+
+enum IncidentSeverity {
+  LOW      @map("low")
+  MEDIUM   @map("medium")
+  HIGH     @map("high")
+  CRITICAL @map("critical")
+}
+
+enum IncidentStatus {
+  OPEN          @map("open")
+  INVESTIGATING @map("investigating")
+  CONTAINED     @map("contained")
+  RESOLVED      @map("resolved")
+  CLOSED        @map("closed")
+}
+
+enum IncidentCategory {
+  AUTHENTICATION @map("authentication")
+  AUTHORIZATION  @map("authorization")
+  DATA_BREACH    @map("data_breach")
+  MALWARE        @map("malware")
+  PHISHING       @map("phishing")
+  DDOS           @map("ddos")
+  INSIDER_THREAT @map("insider_threat")
+  SYSTEM_COMPROMISE @map("system_compromise")
+  POLICY_VIOLATION @map("policy_violation")
+  OTHER          @map("other")
+}
+
+enum ActionType {
+  BLOCK_IP         @map("block_ip")
+  BLOCK_USER       @map("block_user")
+  REVOKE_SESSION   @map("revoke_session")
+  SEND_ALERT       @map("send_alert")
+  CREATE_INCIDENT  @map("create_incident")
+  ESCALATE         @map("escalate")
+  QUARANTINE       @map("quarantine")
+  COLLECT_EVIDENCE @map("collect_evidence")
+  NOTIFY_ADMIN     @map("notify_admin")
+  DISABLE_ACCOUNT  @map("disable_account")
+}
+
+enum ActionResult {
+  SUCCESS @map("success")
+  FAILURE @map("failure")
+  PARTIAL @map("partial")
+  PENDING @map("pending")
+}
