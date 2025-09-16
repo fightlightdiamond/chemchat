@@ -15,7 +15,14 @@ export class DatabaseService
   private readonly logger = new Logger(DatabaseService.name);
 
   constructor(private configService: ConfigService) {
-    const databaseUrl = configService.get<string>('DATABASE_URL');
+    const databaseUrl =
+      configService.get<string>('DATABASE_URL') ||
+      process.env.DATABASE_URL ||
+      '';
+    if (!databaseUrl) {
+      // Fail fast with clear message instead of creating PrismaClient with undefined URL
+      throw new Error('DATABASE_URL is not configured');
+    }
 
     super({
       datasources: {
@@ -52,7 +59,10 @@ export class DatabaseService
       await this.$queryRaw`SELECT 1`;
       this.logger.log('Database health check passed');
     } catch (error) {
-      this.logger.error('Failed to connect to database', error);
+      this.logger.error(
+        'Failed to connect to database',
+        (error as Error).message,
+      );
       throw error;
     }
   }
@@ -89,16 +99,14 @@ export class DatabaseService
 
         if (attempt === maxRetries) {
           this.logger.error(
-            `Operation failed after ${maxRetries} attempts`,
-            lastError,
+            `Operation failed after ${maxRetries} attempts: ${lastError.message}`,
           );
           throw lastError;
         }
 
         const waitTime = delay * Math.pow(2, attempt - 1); // Exponential backoff
         this.logger.warn(
-          `Operation failed (attempt ${attempt}/${maxRetries}), retrying in ${waitTime}ms`,
-          error,
+          `Operation failed (attempt ${attempt}/${maxRetries}), retrying in ${waitTime}ms: ${(error as Error).message}`,
         );
 
         await this.sleep(waitTime);
