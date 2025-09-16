@@ -232,7 +232,7 @@ This implementation plan converts the chat system design into discrete, manageab
     - Create read replicas configuration for query load distribution
     - _Requirements: 7.5, 19.1_
 
-- [ ] 17. Security Hardening and Compliance
+- [-] 17. Security Hardening and Compliance
   - [ ] 17.1 Implement data protection features
     - Create GDPR compliance service with data export and deletion capabilities
     - Add data retention policies and automated cleanup processes

@@ -97,8 +97,99 @@ export class SecurityAuditService {
   }
 
   private async saveEventToDatabase(event: SecurityEvent): Promise<void> {
-    // Model not available - skip database save
-    this.logger.debug(`Would save security event: ${event.type}`, event);
+    try {
+      await this.prisma.securityEvent.create({
+        data: {
+          tenantId: event.metadata?.tenantId || null,
+          eventType: this.mapEventTypeToEnum(event.type),
+          severity: this.mapSeverityToEnum(event.type),
+          source: 'security_audit_service',
+          userId: event.userId,
+          ipAddress: event.ipAddress || 'unknown',
+          userAgent: event.userAgent,
+          details: {
+            originalType: event.type,
+            metadata: event.metadata,
+            timestamp: event.timestamp,
+          },
+          tags: this.generateEventTags(event),
+        },
+      });
+    } catch (error) {
+      this.logger.error('Failed to save security event to database:', error);
+      // Don't throw - we don't want to break the application flow
+    }
+  }
+
+  private mapEventTypeToEnum(eventType: SecurityEventType): any {
+    // Map our internal event types to the database enum
+    // This would need to match the SecurityEventType enum in the schema
+    const mapping: Record<SecurityEventType, string> = {
+      [SecurityEventType.LOGIN_SUCCESS]: 'LOGIN_SUCCESS',
+      [SecurityEventType.LOGIN_FAILED]: 'LOGIN_FAILED',
+      [SecurityEventType.PASSWORD_CHANGE]: 'PASSWORD_CHANGE',
+      [SecurityEventType.PERMISSION_CHANGE]: 'PERMISSION_CHANGE',
+      [SecurityEventType.DATA_ACCESS]: 'DATA_ACCESS',
+      [SecurityEventType.DATA_MODIFICATION]: 'DATA_MODIFICATION',
+      [SecurityEventType.CONFIGURATION_CHANGE]: 'CONFIGURATION_CHANGE',
+      [SecurityEventType.SECURITY_ALERT]: 'SECURITY_ALERT',
+      [SecurityEventType.SUSPICIOUS_ACTIVITY]: 'SUSPICIOUS_ACTIVITY',
+      [SecurityEventType.RATE_LIMIT_EXCEEDED]: 'RATE_LIMIT_EXCEEDED',
+      [SecurityEventType.GEO_BLOCKED]: 'GEO_BLOCKED',
+      [SecurityEventType.USER_BLOCKED]: 'USER_BLOCKED',
+      [SecurityEventType.USER_UNBLOCKED]: 'USER_UNBLOCKED',
+      [SecurityEventType.API_KEY_CREATED]: 'API_KEY_CREATED',
+      [SecurityEventType.API_KEY_REVOKED]: 'API_KEY_REVOKED',
+    };
+
+    return mapping[eventType] || 'UNKNOWN';
+  }
+
+  private mapSeverityToEnum(eventType: SecurityEventType): any {
+    // Map event types to severity levels
+    const severityMapping: Record<SecurityEventType, string> = {
+      [SecurityEventType.LOGIN_SUCCESS]: 'LOW',
+      [SecurityEventType.LOGIN_FAILED]: 'MEDIUM',
+      [SecurityEventType.PASSWORD_CHANGE]: 'MEDIUM',
+      [SecurityEventType.PERMISSION_CHANGE]: 'HIGH',
+      [SecurityEventType.DATA_ACCESS]: 'LOW',
+      [SecurityEventType.DATA_MODIFICATION]: 'MEDIUM',
+      [SecurityEventType.CONFIGURATION_CHANGE]: 'HIGH',
+      [SecurityEventType.SECURITY_ALERT]: 'HIGH',
+      [SecurityEventType.SUSPICIOUS_ACTIVITY]: 'HIGH',
+      [SecurityEventType.RATE_LIMIT_EXCEEDED]: 'MEDIUM',
+      [SecurityEventType.GEO_BLOCKED]: 'HIGH',
+      [SecurityEventType.USER_BLOCKED]: 'HIGH',
+      [SecurityEventType.USER_UNBLOCKED]: 'MEDIUM',
+      [SecurityEventType.API_KEY_CREATED]: 'MEDIUM',
+      [SecurityEventType.API_KEY_REVOKED]: 'HIGH',
+    };
+
+    return severityMapping[eventType] || 'MEDIUM';
+  }
+
+  private generateEventTags(event: SecurityEvent): string[] {
+    const tags: string[] = [];
+
+    // Add category tags
+    if (event.type.includes('LOGIN')) tags.push('authentication');
+    if (event.type.includes('DATA')) tags.push('data_access');
+    if (
+      event.type.includes('PERMISSION') ||
+      event.type.includes('CONFIGURATION')
+    ) {
+      tags.push('authorization');
+    }
+    if (event.type.includes('SUSPICIOUS') || event.type.includes('BLOCKED')) {
+      tags.push('threat_detection');
+    }
+
+    // Add context tags
+    if (event.userId) tags.push('user_action');
+    if (event.ipAddress) tags.push('network_event');
+    if (event.metadata?.automated) tags.push('automated');
+
+    return tags;
   }
 
   private isSuspiciousEvent(event: SecurityEvent): boolean {
@@ -157,13 +248,20 @@ export class SecurityAuditService {
     types?: SecurityEventType[],
     startDate?: Date,
     endDate?: Date,
+    tenantId?: string,
     limit = 100,
     offset = 0,
   ) {
     const where: any = {};
 
     if (userId) where.userId = userId;
-    if (types && types.length > 0) where.type = { in: types };
+    if (tenantId) where.tenantId = tenantId;
+
+    if (types && types.length > 0) {
+      where.eventType = {
+        in: types.map((type) => this.mapEventTypeToEnum(type)),
+      };
+    }
 
     if (startDate || endDate) {
       where.timestamp = {};
@@ -171,32 +269,201 @@ export class SecurityAuditService {
       if (endDate) where.timestamp.lte = endDate;
     }
 
-    // Model not available - return empty result
+    const [events, total] = await Promise.all([
+      this.prisma.securityEvent.findMany({
+        where,
+        orderBy: { timestamp: 'desc' },
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          eventType: true,
+          severity: true,
+          source: true,
+          userId: true,
+          ipAddress: true,
+          userAgent: true,
+          details: true,
+          timestamp: true,
+          resolved: true,
+          resolvedAt: true,
+          tags: true,
+        },
+      }),
+      this.prisma.securityEvent.count({ where }),
+    ]);
+
     return {
-      data: [],
+      data: events,
       pagination: {
-        total: 0,
+        total,
         limit,
         offset,
-        hasMore: false,
+        hasMore: offset + limit < total,
       },
     };
   }
 
-  async getSuspiciousActivityReport(days = 7) {
+  async getSuspiciousActivityReport(days = 7, tenantId?: string) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Model not available - return empty report
-    const blockedIps = await this.redis.keys('security:blocked_ips:*');
+    const [failedLogins, suspiciousActivities, blockedIps, anomalies] =
+      await Promise.all([
+        this.prisma.securityEvent.findMany({
+          where: {
+            eventType: 'AUTHENTICATION_FAILURE',
+            timestamp: { gte: startDate },
+            ...(tenantId && { tenantId }),
+          },
+          select: {
+            ipAddress: true,
+            userId: true,
+            timestamp: true,
+            details: true,
+          },
+          orderBy: { timestamp: 'desc' },
+        }),
+        this.prisma.securityEvent.findMany({
+          where: {
+            eventType: 'ANOMALOUS_BEHAVIOR',
+            timestamp: { gte: startDate },
+            ...(tenantId && { tenantId }),
+          },
+          select: {
+            id: true,
+            severity: true,
+            ipAddress: true,
+            userId: true,
+            timestamp: true,
+            details: true,
+            resolved: true,
+          },
+          orderBy: { timestamp: 'desc' },
+        }),
+        this.redis.keys('security:blocked_ips:*'),
+        this.prisma.anomalyDetection.findMany({
+          where: {
+            timestamp: { gte: startDate },
+            ...(tenantId && { tenantId }),
+          },
+          select: {
+            id: true,
+            anomalyType: true,
+            severity: true,
+            confidence: true,
+            description: true,
+            timestamp: true,
+            investigated: true,
+            falsePositive: true,
+          },
+          orderBy: { timestamp: 'desc' },
+          take: 50,
+        }),
+      ]);
+
+    // Group failed logins by IP
+    const failedLoginsByIp = failedLogins.reduce(
+      (acc, login) => {
+        const ip = login.ipAddress;
+        if (!acc[ip]) {
+          acc[ip] = { count: 0, attempts: [] };
+        }
+        acc[ip].count++;
+        acc[ip].attempts.push({
+          userId: login.userId,
+          timestamp: login.timestamp,
+          details: login.details,
+        });
+        return acc;
+      },
+      {} as Record<string, { count: number; attempts: any[] }>,
+    );
 
     return {
       timePeriod: { start: startDate, end: new Date() },
-      failedLoginAttempts: [],
-      suspiciousActivities: [],
+      summary: {
+        totalFailedLogins: failedLogins.length,
+        uniqueIpsWithFailures: Object.keys(failedLoginsByIp).length,
+        suspiciousActivities: suspiciousActivities.length,
+        unresolvedSuspiciousActivities: suspiciousActivities.filter(
+          (a) => !a.resolved,
+        ).length,
+        anomaliesDetected: anomalies.length,
+        currentlyBlockedIps: blockedIps.length,
+      },
+      failedLoginsByIp,
+      suspiciousActivities,
+      anomalies,
       currentlyBlockedIps: blockedIps.map((ip) =>
         ip.replace('security:blocked_ips:', ''),
       ),
     };
+  }
+
+  async resolveSecurityEvent(
+    eventId: string,
+    resolvedBy: string,
+    resolution?: string,
+  ): Promise<void> {
+    await this.prisma.securityEvent.update({
+      where: { id: eventId },
+      data: {
+        resolved: true,
+        resolvedAt: new Date(),
+        resolvedBy,
+        details: {
+          // Preserve existing details and add resolution
+          ...(((
+            await this.prisma.securityEvent.findUnique({
+              where: { id: eventId },
+              select: { details: true },
+            })
+          )?.details as object) || {}),
+          resolution,
+          resolvedBy,
+          resolvedAt: new Date(),
+        },
+      },
+    });
+
+    this.logger.log(`Security event ${eventId} resolved by ${resolvedBy}`);
+  }
+
+  async createSecurityIncident(
+    title: string,
+    description: string,
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    category: string,
+    tenantId?: string,
+    relatedEventIds: string[] = [],
+  ): Promise<string> {
+    const incident = await this.prisma.securityIncident.create({
+      data: {
+        tenantId: tenantId || '',
+        title,
+        description,
+        severity: severity as any,
+        status: 'OPEN' as any,
+        category: category as any,
+        events: relatedEventIds,
+        metadata: {
+          createdBy: 'security_audit_service',
+          autoGenerated: true,
+        },
+      },
+    });
+
+    this.logger.log(`Created security incident ${incident.id}: ${title}`);
+
+    // Emit event for incident response automation
+    this.eventEmitter.emit('security.incident.created', {
+      incidentId: incident.id,
+      severity,
+      category,
+      tenantId,
+    });
+
+    return incident.id;
   }
 }

@@ -1,7 +1,6 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import CircuitBreaker = require('opossum');
+import CircuitBreaker from 'opossum';
 
 @Injectable()
 export class RedisService {

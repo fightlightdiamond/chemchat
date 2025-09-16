@@ -20,9 +20,15 @@ model Tenant {
   updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relationships
-  settings TenantSettings?
-  quota    TenantQuota?
-  usage    TenantUsage?
+  settings              TenantSettings?
+  quota                 TenantQuota?
+  usage                 TenantUsage?
+  securityPolicies      SecurityPolicy[]
+  dataSubjectRequests   DataSubjectRequest[]
+  dataRetentionPolicies DataRetentionPolicy[]
+  dataProcessingRecords DataProcessingRecord[]
+  consentRecords        ConsentRecord[]
+  vulnerabilityScans    VulnerabilityScan[]
 
   @@map("tenants")
 }
@@ -118,6 +124,12 @@ model User {
   reviewedViolations      AutoModerationViolation[] @relation("ViolationReviewer")
   userBans                UserBan[]                @relation("UserBans")
   moderatorBans           UserBan[]                @relation("ModeratorBans")
+  
+  // Data protection and compliance relationships
+  dataSubjectRequests     DataSubjectRequest[]     @relation("UserDataRequests")
+  dataProcessingRecords   DataProcessingRecord[]   @relation("UserDataProcessing")
+  consentRecords          ConsentRecord[]          @relation("UserConsent")
+  vulnerabilityScans      VulnerabilityScan[]
 
   @@map("users")
 }
@@ -793,37 +805,16 @@ model DataRetentionPolicy {
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  // Relationships
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@unique([tenantId, name])
   @@index([tenantId, isActive])
   @@index([dataType])
   @@map("data_retention_policies")
 }
 
-// Enhanced audit logs for security compliance
-model AuditLog {
-  id            String        @id @default(uuid())
-  tenantId      String?       @map("tenant_id")
-  userId        String?       @map("user_id")
-  sessionId     String?       @map("session_id")
-  action        AuditAction
-  resource      AuditResource
-  resourceId    String        @map("resource_id")
-  details       Json
-  ipAddress     String        @map("ip_address")
-  userAgent     String        @map("user_agent")
-  timestamp     DateTime      @default(now()) @db.Timestamptz(6)
-  correlationId String?       @map("correlation_id")
-  severity      AuditSeverity
-  outcome       AuditOutcome
-  metadata      Json?
 
-  @@index([tenantId, timestamp(sort: Desc)])
-  @@index([userId, timestamp(sort: Desc)])
-  @@index([action, timestamp(sort: Desc)])
-  @@index([correlationId])
-  @@index([severity, timestamp(sort: Desc)])
-  @@map("audit_logs_enhanced")
-}
 
 // Security events for monitoring and alerting
 model SecurityEvent {
@@ -1010,11 +1001,38 @@ enum AuditOutcome {
   PARTIAL @map("partial")
 }
 
+enum DataSubjectRequestType {
+  EXPORT        @map("export")
+  DELETION      @map("deletion")
+  RECTIFICATION @map("rectification")
+  PORTABILITY   @map("portability")
+  RESTRICTION   @map("restriction")
+}
+
+enum DataSubjectRequestStatus {
+  PENDING    @map("pending")
+  PROCESSING @map("processing")
+  COMPLETED  @map("completed")
+  FAILED     @map("failed")
+  CANCELLED  @map("cancelled")
+}
+
+enum ConsentType {
+  DATA_PROCESSING    @map("data_processing")
+  MARKETING          @map("marketing")
+  ANALYTICS          @map("analytics")
+  THIRD_PARTY_SHARING @map("third_party_sharing")
+  NOTIFICATIONS      @map("notifications")
+  COOKIES            @map("cookies")
+}
+
 // Security Policy Models
 model SecurityPolicy {
   id          String   @id @default(uuid())
   name        String   @db.VarChar(100)
   description String?  @db.Text
+  type        String   @default("access_control") @db.VarChar(50)
+  rules       Json     @default("[]")
   isEnabled   Boolean  @default(true) @map("is_enabled")
   priority    Int      @default(0)
   conditions  Json     @default("{}")
@@ -1027,6 +1045,85 @@ model SecurityPolicy {
   tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("security_policies")
+}
+
+// Data Subject Requests for GDPR compliance
+model DataSubjectRequest {
+  id          String                @id @default(uuid())
+  requestId   String                @unique @map("request_id") @db.VarChar(100)
+  userId      String                @map("user_id")
+  tenantId    String?               @map("tenant_id")
+  requestType DataSubjectRequestType @map("request_type")
+  status      DataSubjectRequestStatus @default(PENDING)
+  data        Json?                 // Additional data for rectification requests
+  metadata    Json?                 // Request metadata and context
+  result      Json?                 // Result data for export requests
+  error       String?               @db.Text
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  completedAt DateTime?             @map("completed_at") @db.Timestamptz(6)
+
+  // Relationships
+  user        User                  @relation("UserDataRequests", fields: [userId], references: [id], onDelete: Cascade)
+  tenant      Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([tenantId, status])
+  @@index([requestType, status])
+  @@index([createdAt(sort: Desc)])
+  @@map("data_subject_requests")
+}
+
+
+
+// Data processing records for GDPR compliance
+model DataProcessingRecord {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  tenantId        String?  @map("tenant_id")
+  dataType        DataType @map("data_type")
+  purpose         String   @db.VarChar(255)
+  legalBasis      String   @map("legal_basis") @db.VarChar(100)
+  processingDate  DateTime @map("processing_date") @db.Timestamptz(6)
+  retentionPeriod Int      @map("retention_period") // days
+  consentGiven    Boolean  @map("consent_given")
+  consentDate     DateTime? @map("consent_date") @db.Timestamptz(6)
+  dataSubject     String   @map("data_subject") @db.VarChar(255)
+  metadata        Json?
+
+  // Relationships
+  user            User     @relation("UserDataProcessing", fields: [userId], references: [id], onDelete: Cascade)
+  tenant          Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dataType])
+  @@index([tenantId, dataType])
+  @@index([processingDate(sort: Desc)])
+  @@index([consentGiven])
+  @@map("data_processing_records")
+}
+
+// Consent management
+model ConsentRecord {
+  id          String      @id @default(uuid())
+  userId      String      @map("user_id")
+  tenantId    String?     @map("tenant_id")
+  consentType ConsentType @map("consent_type")
+  granted     Boolean
+  grantedAt   DateTime?   @map("granted_at") @db.Timestamptz(6)
+  revokedAt   DateTime?   @map("revoked_at") @db.Timestamptz(6)
+  version     String      @db.VarChar(20) // Consent version
+  metadata    Json?
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relationships
+  user        User        @relation("UserConsent", fields: [userId], references: [id], onDelete: Cascade)
+  tenant      Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId, consentType])
+  @@index([userId, granted])
+  @@index([tenantId, consentType])
+  @@map("consent_records")
 }
 
 // Vulnerability Scan Results
@@ -1094,7 +1191,6 @@ enum SecurityEventType {
   DATA_RETENTION_PROCESS  @map("data_retention_process")
   USER_DATA_DELETED       @map("user_data_deleted")
   CONSENT_UPDATED         @map("consent_updated")
-  RATE_LIMIT_EXCEEDED     @map("rate_limit_exceeded")
   UNUSUAL_ACCESS_PATTERN  @map("unusual_access_pattern")
   PRIVILEGE_ESCALATION    @map("privilege_escalation")
   DATA_EXFILTRATION       @map("data_exfiltration")
