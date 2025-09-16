@@ -6,8 +6,9 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { Response } from 'express';
+import { RequestWithCorrelationId } from '../interfaces';
+import { randomUUID } from 'crypto';
 
 export abstract class DomainError extends Error {
   abstract readonly code: string;
@@ -41,10 +42,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<RequestWithCorrelationId>();
 
     // Ensure correlation ID exists
-    const correlationId = (request as any).correlationId || uuidv4();
+    const correlationId = request.correlationId || randomUUID();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';

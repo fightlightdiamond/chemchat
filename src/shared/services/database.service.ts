@@ -56,13 +56,12 @@ export class DatabaseService
       // Query logging is handled by Prisma's log configuration
 
       // Test database connection
+
       await this.$queryRaw`SELECT 1`;
       this.logger.log('Database health check passed');
     } catch (error) {
-      this.logger.error(
-        'Failed to connect to database',
-        (error as Error).message,
-      );
+      const errorMessage = (error as Error).message;
+      this.logger.error(`Failed to connect to database: ${errorMessage}`);
       throw error;
     }
   }
@@ -72,7 +71,8 @@ export class DatabaseService
       await this.$disconnect();
       this.logger.log('Disconnected from database');
     } catch (error) {
-      this.logger.error('Error disconnecting from database', error);
+      const errorMessage = (error as Error).message;
+      this.logger.error(`Error disconnecting from database: ${errorMessage}`);
     }
   }
 
@@ -151,12 +151,14 @@ export class DatabaseService
   }> {
     try {
       const start = Date.now();
+
       await this.$queryRaw`SELECT 1`;
       const latency = Date.now() - start;
 
       return { connected: true, latency };
     } catch (error) {
-      this.logger.error('Database connection check failed', error);
+      const errorMessage = (error as Error).message;
+      this.logger.error(`Database connection check failed: ${errorMessage}`);
       return { connected: false };
     }
   }
