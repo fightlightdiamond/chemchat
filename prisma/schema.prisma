@@ -1010,11 +1010,90 @@ enum AuditOutcome {
   PARTIAL @map("partial")
 }
 
+// Security Policy Models
+model SecurityPolicy {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  priority    Int      @default(0)
+  conditions  Json     @default("{}")
+  actions     String[] @default([])
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenantId    String?  @map("tenant_id")
+
+  // Relationships
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("security_policies")
+}
+
+// Vulnerability Scan Results
+model VulnerabilityScan {
+  id           String   @id @default(uuid())
+  type         String   @db.VarChar(50)
+  status       String   @db.VarChar(20)
+  issues       Json     @default("[]")
+  summary      Json     @default("{}")
+  startedAt    DateTime @map("started_at") @db.Timestamptz(6)
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
+  error        String?  @db.Text
+  tenantId     String?  @map("tenant_id")
+  initiatedBy  String?  @map("initiated_by") @db.VarChar(36)
+
+  // Relationships
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [initiatedBy], references: [id], onDelete: SetNull)
+
+  @@map("vulnerability_scans")
+}
+
+// Security Events (extending existing enum)
 enum SecurityEventType {
+  // Authentication Events
   AUTHENTICATION_FAILURE  @map("authentication_failure")
+  AUTHENTICATION_SUCCESS  @map("authentication_success")
+  PASSWORD_CHANGE         @map("password_change")
+  MFA_ENABLED            @map("mfa_enabled")
+  MFA_DISABLED           @map("mfa_disabled")
+  
+  // Authorization Events
   AUTHORIZATION_FAILURE   @map("authorization_failure")
+  PERMISSION_GRANTED      @map("permission_granted")
+  PERMISSION_REVOKED      @map("permission_revoked")
+  ROLE_ASSIGNED          @map("role_assigned")
+  ROLE_REVOKED           @map("role_revoked")
+  
+  // Security Events
   SUSPICIOUS_LOGIN        @map("suspicious_login")
   BRUTE_FORCE_ATTEMPT     @map("brute_force_attempt")
+  RATE_LIMIT_EXCEEDED     @map("rate_limit_exceeded")
+  GEO_BLOCKED             @map("geo_blocked")
+  
+  // Policy Events
+  POLICY_CREATED          @map("policy_created")
+  POLICY_UPDATED          @map("policy_updated")
+  POLICY_DELETED          @map("policy_deleted")
+  POLICY_EVALUATION       @map("policy_evaluation")
+  
+  // Vulnerability Events
+  VULNERABILITY_FOUND     @map("vulnerability_found")
+  VULNERABILITY_FIXED     @map("vulnerability_fixed")
+  SCAN_STARTED            @map("scan_started")
+  SCAN_COMPLETED          @map("scan_completed")
+  SCAN_FAILED             @map("scan_failed")
+  
+  // Data Protection Events
+  DATA_ACCESS             @map("data_access")
+  DATA_MODIFICATION       @map("data_modification")
+  DATA_DELETION           @map("data_deletion")
+  DATA_EXPORT             @map("data_export")
+  
+  // Compliance Events
+  DATA_RETENTION_PROCESS  @map("data_retention_process")
+  USER_DATA_DELETED       @map("user_data_deleted")
+  CONSENT_UPDATED         @map("consent_updated")
   RATE_LIMIT_EXCEEDED     @map("rate_limit_exceeded")
   UNUSUAL_ACCESS_PATTERN  @map("unusual_access_pattern")
   PRIVILEGE_ESCALATION    @map("privilege_escalation")
