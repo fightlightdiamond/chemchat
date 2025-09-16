@@ -39,12 +39,17 @@ export class PrismaService
     await this.$disconnect();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async enableShutdownHooks(_app: any) {
-    // Note: beforeExit event is not available in current Prisma version
-    // this.$on('beforeExit', async () => {
-    //   await app.close();
-    // });
+  async enableShutdownHooks(app: any) {
+    // Setup graceful shutdown
+    process.on('SIGINT', async () => {
+      await this.$disconnect();
+      await app.close();
+    });
+
+    process.on('SIGTERM', async () => {
+      await this.$disconnect();
+      await app.close();
+    });
   }
 
   // Helper method for transactions
