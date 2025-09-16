@@ -24,6 +24,7 @@ import {
   SecurityAuditService,
   SecurityEventType,
 } from '../services/security-audit.service';
+import { DataType } from '@prisma/client';
 import {
   SecurityPolicyService,
   PolicyEvaluationContext,
@@ -185,7 +186,7 @@ export class SecurityController {
     description: 'Data retention processing started',
   })
   async processDataRetention(): Promise<{ success: boolean }> {
-    await this.complianceService.enforceDataRetention('audit_logs', 90);
+    await this.complianceService.enforceDataRetention(DataType.AUDIT_LOGS, 90);
     return { success: true };
   }
 
@@ -199,9 +200,15 @@ export class SecurityController {
   async getAuditLogs(
     @Query('type') type?: SecurityEventType,
     @Query('userId') userId?: string,
-    @Query('limit') _limit = 100, // eslint-disable-line @typescript-eslint/no-unused-vars
+    @Query('limit') limit = 100,
   ) {
-    // Implementation would go here
-    return [];
+    return this.securityAuditService.getSecurityEvents(
+      userId,
+      type ? [type] : undefined,
+      undefined, // startDate
+      undefined, // endDate
+      undefined, // tenantId
+      limit,
+    );
   }
 }
