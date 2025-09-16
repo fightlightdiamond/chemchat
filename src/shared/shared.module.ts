@@ -6,7 +6,12 @@ import { DatabaseService } from './services/database.service';
 import databaseConfig from './config/database.config';
 
 @Module({
-  imports: [ConfigModule.forFeature(databaseConfig)],
+  imports: [
+    // Load environment variables globally so ConfigService works across modules
+    ConfigModule.forRoot({ isGlobal: true }),
+    // Register typed database configuration
+    ConfigModule.forFeature(databaseConfig),
+  ],
   providers: [GlobalExceptionFilter, CorrelationIdMiddleware, DatabaseService],
   exports: [GlobalExceptionFilter, CorrelationIdMiddleware, DatabaseService],
 })

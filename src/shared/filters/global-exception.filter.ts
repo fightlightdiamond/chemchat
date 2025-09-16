@@ -56,12 +56,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       code = exception.code;
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
-      message = exception.message;
+      const responseBody = exception.getResponse();
+      if (typeof responseBody === 'string') {
+        message = responseBody;
+      } else if (
+        responseBody &&
+        typeof (responseBody as any).message === 'string'
+      ) {
+        message = (responseBody as any).message as string;
+      } else if (
+        responseBody &&
+        Array.isArray((responseBody as any).message)
+      ) {
+        message = ((responseBody as any).message as string[]).join(', ');
+      } else {
+        message = exception.message;
+      }
       code = 'HTTP_EXCEPTION';
     }
 
-    // Structured logging with correlation ID
-    this.logger.error({
+    // Structured logging with correlation ID (stringified for Logger)
+    const logPayload = {
       correlationId,
       error: {
         name: exception instanceof Error ? exception.name : 'Unknown',
@@ -76,7 +91,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ip: request.ip,
       },
       timestamp: new Date().toISOString(),
-    });
+    };
+    this.logger.error(JSON.stringify(logPayload));
 
     const errorResponse = {
       code,

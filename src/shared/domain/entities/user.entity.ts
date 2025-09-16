@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 export class User {
   constructor(
     public readonly id: string,
@@ -149,7 +150,12 @@ export class User {
   }
 
   public isPasswordValid(hashedPassword: string): boolean {
-    return this.passwordHash === hashedPassword;
+    const current = Buffer.from(this.passwordHash, 'utf8');
+    const incoming = Buffer.from(hashedPassword, 'utf8');
+    if (current.length !== incoming.length) {
+      return false;
+    }
+    return timingSafeEqual(current, incoming);
   }
 
   public getAge(): number {
