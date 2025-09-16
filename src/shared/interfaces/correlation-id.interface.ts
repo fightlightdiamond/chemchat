@@ -1,7 +1,9 @@
+import { Request } from 'express';
+
 export interface CorrelationIdContext {
   correlationId: string;
 }
 
-export interface RequestWithCorrelationId extends Request {
+export type RequestWithCorrelationId = Request & {
   correlationId: string;
-}
+};

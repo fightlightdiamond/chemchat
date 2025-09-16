@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RequestWithCorrelationId } from './shared/interfaces';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -16,14 +17,20 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      const mockRequest = { correlationId: 'test-correlation-id' } as any;
+      const mockRequest: RequestWithCorrelationId = {
+        correlationId: 'test-correlation-id',
+      } as unknown as RequestWithCorrelationId;
       const result = appController.getHello(mockRequest);
 
-      expect(result).toEqual({
+      const { timestamp, ...rest } = result as { timestamp: string } & Record<
+        string,
+        unknown
+      >;
+      expect(rest).toEqual({
         message: 'Hello World!',
         correlationId: 'test-correlation-id',
-        timestamp: expect.any(String),
       });
+      expect(typeof timestamp).toBe('string');
     });
   });
 });
