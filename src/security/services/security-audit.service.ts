@@ -100,7 +100,7 @@ export class SecurityAuditService {
     try {
       await this.prisma.securityEvent.create({
         data: {
-          tenantId: event.metadata?.tenantId || null,
+          tenantId: event.metadata?.tenantId || '',
           eventType: this.mapEventTypeToEnum(event.type),
           severity: this.mapSeverityToEnum(event.type),
           source: 'security_audit_service',
@@ -123,32 +123,31 @@ export class SecurityAuditService {
 
   private mapEventTypeToEnum(eventType: SecurityEventType): any {
     // Map our internal event types to the database enum
-    // This would need to match the SecurityEventType enum in the schema
     const mapping: Record<SecurityEventType, string> = {
-      [SecurityEventType.LOGIN_SUCCESS]: 'LOGIN_SUCCESS',
-      [SecurityEventType.LOGIN_FAILED]: 'LOGIN_FAILED',
+      [SecurityEventType.LOGIN_SUCCESS]: 'AUTHENTICATION_SUCCESS',
+      [SecurityEventType.LOGIN_FAILED]: 'AUTHENTICATION_FAILURE',
       [SecurityEventType.PASSWORD_CHANGE]: 'PASSWORD_CHANGE',
-      [SecurityEventType.PERMISSION_CHANGE]: 'PERMISSION_CHANGE',
+      [SecurityEventType.PERMISSION_CHANGE]: 'PERMISSION_GRANTED',
       [SecurityEventType.DATA_ACCESS]: 'DATA_ACCESS',
       [SecurityEventType.DATA_MODIFICATION]: 'DATA_MODIFICATION',
-      [SecurityEventType.CONFIGURATION_CHANGE]: 'CONFIGURATION_CHANGE',
-      [SecurityEventType.SECURITY_ALERT]: 'SECURITY_ALERT',
-      [SecurityEventType.SUSPICIOUS_ACTIVITY]: 'SUSPICIOUS_ACTIVITY',
+      [SecurityEventType.CONFIGURATION_CHANGE]: 'POLICY_UPDATED',
+      [SecurityEventType.SECURITY_ALERT]: 'ANOMALOUS_BEHAVIOR',
+      [SecurityEventType.SUSPICIOUS_ACTIVITY]: 'SUSPICIOUS_LOGIN',
       [SecurityEventType.RATE_LIMIT_EXCEEDED]: 'RATE_LIMIT_EXCEEDED',
       [SecurityEventType.GEO_BLOCKED]: 'GEO_BLOCKED',
-      [SecurityEventType.USER_BLOCKED]: 'USER_BLOCKED',
-      [SecurityEventType.USER_UNBLOCKED]: 'USER_UNBLOCKED',
-      [SecurityEventType.API_KEY_CREATED]: 'API_KEY_CREATED',
-      [SecurityEventType.API_KEY_REVOKED]: 'API_KEY_REVOKED',
+      [SecurityEventType.USER_BLOCKED]: 'POLICY_VIOLATION',
+      [SecurityEventType.USER_UNBLOCKED]: 'POLICY_UPDATED',
+      [SecurityEventType.API_KEY_CREATED]: 'PERMISSION_GRANTED',
+      [SecurityEventType.API_KEY_REVOKED]: 'PERMISSION_REVOKED',
     };
 
-    return mapping[eventType] || 'UNKNOWN';
+    return mapping[eventType] || 'ANOMALOUS_BEHAVIOR';
   }
 
   private mapSeverityToEnum(eventType: SecurityEventType): any {
     // Map event types to severity levels
     const severityMapping: Record<SecurityEventType, string> = {
-      [SecurityEventType.LOGIN_SUCCESS]: 'LOW',
+      [SecurityEventType.LOGIN_SUCCESS]: 'INFO',
       [SecurityEventType.LOGIN_FAILED]: 'MEDIUM',
       [SecurityEventType.PASSWORD_CHANGE]: 'MEDIUM',
       [SecurityEventType.PERMISSION_CHANGE]: 'HIGH',
@@ -364,7 +363,7 @@ export class SecurityAuditService {
 
     // Group failed logins by IP
     const failedLoginsByIp = failedLogins.reduce(
-      (acc, login) => {
+      (acc: Record<string, { count: number; attempts: any[] }>, login: any) => {
         const ip = login.ipAddress;
         if (!acc[ip]) {
           acc[ip] = { count: 0, attempts: [] };
@@ -387,7 +386,7 @@ export class SecurityAuditService {
         uniqueIpsWithFailures: Object.keys(failedLoginsByIp).length,
         suspiciousActivities: suspiciousActivities.length,
         unresolvedSuspiciousActivities: suspiciousActivities.filter(
-          (a) => !a.resolved,
+          (a: any) => !a.resolved,
         ).length,
         anomaliesDetected: anomalies.length,
         currentlyBlockedIps: blockedIps.length,
@@ -395,7 +394,7 @@ export class SecurityAuditService {
       failedLoginsByIp,
       suspiciousActivities,
       anomalies,
-      currentlyBlockedIps: blockedIps.map((ip) =>
+      currentlyBlockedIps: blockedIps.map((ip: string) =>
         ip.replace('security:blocked_ips:', ''),
       ),
     };

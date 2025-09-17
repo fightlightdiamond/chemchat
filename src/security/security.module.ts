@@ -8,6 +8,7 @@ import { InputValidationService } from './services/input-validation.service';
 import { EncryptionService } from './services/encryption.service';
 import { ComplianceService } from './services/compliance.service';
 import { SecurityAuditService } from './services/security-audit.service';
+import { SecurityMonitoringService } from './services/security-monitoring.service';
 import { VulnerabilityScanningService } from './services/vulnerability-scanning.service';
 import { SecurityPolicyService } from './services/security-policy.service';
 import { DataProtectionService } from './services/data-protection.service';
@@ -39,6 +40,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     EncryptionService,
     ComplianceService,
     SecurityAuditService,
+    SecurityMonitoringService,
     VulnerabilityScanningService,
     SecurityPolicyService,
     DataProtectionService,
@@ -61,6 +63,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     EncryptionService,
     ComplianceService,
     SecurityAuditService,
+    SecurityMonitoringService,
     VulnerabilityScanningService,
     SecurityPolicyService,
     DataProtectionService,
