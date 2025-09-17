@@ -9,7 +9,7 @@
 .PHONY: dev dev-watch dev-debug
 .PHONY: prod prod-build prod-deploy
 .PHONY: health check-services monitor
-.PHONY: test-unit test-e2e test-coverage test-watch
+.PHONY: test-unit test-integration test-e2e test-websocket test-load test-coverage test-watch test-all test-ci
 .PHONY: format format-check security-scan
 
 # Variables
@@ -131,17 +131,38 @@ redis-flush: ## Flush all Redis data
 cache-clear: redis-flush ## Clear application cache
 
 ##@ Testing
-test: ## Run all tests
-	@echo "$(BLUE)Running all tests...$(NC)"
+test: ## Run basic unit tests
+	@echo "$(BLUE)Running basic unit tests...$(NC)"
 	npm test
 
 test-unit: ## Run unit tests only
 	@echo "$(BLUE)Running unit tests...$(NC)"
 	npm run test:unit
 
+test-integration: ## Run integration tests
+	@echo "$(BLUE)Running integration tests...$(NC)"
+	npm run test:integration
+
 test-e2e: ## Run end-to-end tests
 	@echo "$(BLUE)Running e2e tests...$(NC)"
 	npm run test:e2e
+
+test-websocket: ## Run WebSocket tests
+	@echo "$(BLUE)Running WebSocket tests...$(NC)"
+	jest --config ./test/jest-websocket.json
+
+test-load: ## Run k6 load tests
+	@echo "$(BLUE)Running k6 load tests...$(NC)"
+	@command -v k6 >/dev/null 2>&1 || { echo "$(RED)k6 is not installed. Install it first: brew install k6$(NC)"; exit 1; }
+	npm run test:load
+
+test-all: ## Run all test suites
+	@echo "$(BLUE)Running all test suites...$(NC)"
+	npm run test:all
+
+test-ci: ## Run tests in CI mode with coverage
+	@echo "$(BLUE)Running tests in CI mode...$(NC)"
+	npm run test:ci
 
 test-coverage: ## Run tests with coverage report
 	@echo "$(BLUE)Running tests with coverage...$(NC)"
@@ -150,6 +171,10 @@ test-coverage: ## Run tests with coverage report
 test-watch: ## Run tests in watch mode
 	@echo "$(BLUE)Running tests in watch mode...$(NC)"
 	npm run test:watch
+
+test-debug: ## Run tests in debug mode
+	@echo "$(BLUE)Running tests in debug mode...$(NC)"
+	npm run test:debug
 
 ##@ Code Quality
 lint: ## Run ESLint
@@ -218,6 +243,25 @@ quick-start: install docker-up ## Quick start for new developers
 	@echo "  3. Visit http://localhost:8080 for database management"
 
 quick-test: docker-up test ## Quick test run with Docker services
+
+test-setup: docker-up ## Setup test environment
+	@echo "$(BLUE)Setting up test environment...$(NC)"
+	@echo "$(YELLOW)Starting services for testing...$(NC)"
+	sleep 5
+	@echo "$(GREEN)Test environment ready!$(NC)"
+
+test-teardown: ## Cleanup test environment
+	@echo "$(YELLOW)Cleaning up test environment...$(NC)"
+	docker-compose -f $(COMPOSE_FILE) exec redis redis-cli -a chemchat_redis_pass FLUSHALL
+	@echo "$(GREEN)Test environment cleaned!$(NC)"
+
+test-full: test-setup test-all test-teardown ## Full test suite with setup and cleanup
+
+test-report: ## Generate comprehensive test report
+	@echo "$(BLUE)Generating test report...$(NC)"
+	npm run test:ci
+	@echo "$(GREEN)Test report generated in coverage/ directory$(NC)"
+	@echo "$(YELLOW)Open coverage/lcov-report/index.html to view detailed report$(NC)"
 
 quick-reset: docker-down docker-clean docker-up db-migrate ## Quick environment reset
 
