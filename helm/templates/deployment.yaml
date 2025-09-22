@@ -1,0 +1,178 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chemchat.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chemchat.labels" . | nindent 4 }}
+  {{- with .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.deployment.replicaCount }}
+  strategy:
+    {{- toYaml .Values.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "chemchat.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "chemchat.selectorLabels" . | nindent 8 }}
+        {{- with .Values.deployment.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.deployment.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chemchat.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.deployment.podSecurityContext | nindent 8 }}
+      {{- if or .Values.initContainers.waitForDependencies.enabled .Values.initContainers.databaseMigration.enabled }}
+      initContainers:
+      {{- if .Values.initContainers.waitForDependencies.enabled }}
+      - name: wait-for-postgres
+        image: {{ .Values.initContainers.waitForDependencies.image.repository }}:{{ .Values.initContainers.waitForDependencies.image.tag }}
+        command: ['sh', '-c', 'until nc -z {{ include "chemchat.postgresql.host" . }} {{ include "chemchat.postgresql.port" . }}; do echo waiting for postgres; sleep 2; done;']
+        resources:
+          {{- toYaml .Values.initContainers.waitForDependencies.resources | nindent 10 }}
+      - name: wait-for-redis
+        image: {{ .Values.initContainers.waitForDependencies.image.repository }}:{{ .Values.initContainers.waitForDependencies.image.tag }}
+        command: ['sh', '-c', 'until nc -z {{ include "chemchat.redis.host" . }} {{ include "chemchat.redis.port" . }}; do echo waiting for redis; sleep 2; done;']
+        resources:
+          {{- toYaml .Values.initContainers.waitForDependencies.resources | nindent 10 }}
+      - name: wait-for-elasticsearch
+        image: {{ .Values.initContainers.waitForDependencies.image.repository }}:{{ .Values.initContainers.waitForDependencies.image.tag }}
+        command: ['sh', '-c', 'until nc -z {{ include "chemchat.elasticsearch.host" . }} {{ include "chemchat.elasticsearch.port" . }}; do echo waiting for elasticsearch; sleep 2; done;']
+        resources:
+          {{- toYaml .Values.initContainers.waitForDependencies.resources | nindent 10 }}
+      - name: wait-for-kafka
+        image: {{ .Values.initContainers.waitForDependencies.image.repository }}:{{ .Values.initContainers.waitForDependencies.image.tag }}
+        command: ['sh', '-c', 'until nc -z {{ include "chemchat.kafka.host" . }} {{ include "chemchat.kafka.port" . }}; do echo waiting for kafka; sleep 2; done;']
+        resources:
+          {{- toYaml .Values.initContainers.waitForDependencies.resources | nindent 10 }}
+      {{- end }}
+      {{- if .Values.initContainers.databaseMigration.enabled }}
+      - name: migrate-database
+        image: {{ include "chemchat.image" . }}
+        command: {{ .Values.initContainers.databaseMigration.command }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "chemchat.fullname" . }}-config
+        - secretRef:
+            name: {{ include "chemchat.secretName" . }}
+        env:
+        {{- include "chemchat.env" . | nindent 8 }}
+        resources:
+          {{- toYaml .Values.initContainers.databaseMigration.resources | nindent 10 }}
+      {{- end }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ include "chemchat.image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.env.PORT }}
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: {{ include "chemchat.fullname" . }}-config
+        - secretRef:
+            name: {{ include "chemchat.secretName" . }}
+        env:
+        {{- include "chemchat.env" . | nindent 8 }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          {{- toYaml .Values.deployment.resources | nindent 10 }}
+        {{- if .Values.healthChecks.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.healthChecks.liveness.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.healthChecks.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.healthChecks.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.healthChecks.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.healthChecks.liveness.failureThreshold }}
+        {{- end }}
+        {{- if .Values.healthChecks.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.healthChecks.readiness.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.healthChecks.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.healthChecks.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.healthChecks.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.healthChecks.readiness.failureThreshold }}
+        {{- end }}
+        {{- if .Values.healthChecks.startup.enabled }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.healthChecks.startup.path }}
+            port: http
+          initialDelaySeconds: {{ .Values.healthChecks.startup.initialDelaySeconds }}
+          periodSeconds: {{ .Values.healthChecks.startup.periodSeconds }}
+          timeoutSeconds: {{ .Values.healthChecks.startup.timeoutSeconds }}
+          failureThreshold: {{ .Values.healthChecks.startup.failureThreshold }}
+        {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+        securityContext:
+          {{- toYaml .Values.deployment.securityContext | nindent 10 }}
+        volumeMounts:
+        {{- if .Values.volumes.tmp.enabled }}
+        - name: tmp-volume
+          mountPath: {{ .Values.volumes.tmp.mountPath }}
+        {{- end }}
+        {{- if .Values.volumes.cache.enabled }}
+        - name: cache-volume
+          mountPath: {{ .Values.volumes.cache.mountPath }}
+        {{- end }}
+      volumes:
+      {{- if .Values.volumes.tmp.enabled }}
+      - name: tmp-volume
+        {{- if eq .Values.volumes.tmp.type "emptyDir" }}
+        emptyDir: {}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.volumes.cache.enabled }}
+      - name: cache-volume
+        {{- if eq .Values.volumes.cache.type "emptyDir" }}
+        emptyDir: {}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
