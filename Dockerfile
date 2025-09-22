@@ -1,6 +1,35 @@
 # Multi-stage build for production optimization
 FROM node:18-alpine AS base
 
+# Development stage for hot-reload
+FROM base AS development
+WORKDIR /app
+
+# Install system dependencies for development
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    procps
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install pnpm and all dependencies (including dev dependencies)
+RUN npm install -g pnpm && pnpm install
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Expose ports (3000 for app, 9229 for debugger)
+EXPOSE 3000 9229
+
+# Start development server with hot reload
+CMD ["npm", "run", "start:dev"]
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
