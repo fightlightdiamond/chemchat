@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chemchat.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chemchat.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.env.NODE_ENV | quote }}
+  PORT: {{ .Values.env.PORT | quote }}
+  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
+  METRICS_ENABLED: {{ .Values.env.METRICS_ENABLED | quote }}
+  TRACING_ENABLED: {{ .Values.env.TRACING_ENABLED | quote }}
+  SWAGGER_ENABLED: {{ .Values.env.SWAGGER_ENABLED | quote }}
+  CORS_ORIGIN: {{ .Values.env.CORS_ORIGIN | quote }}
+  RATE_LIMIT_WINDOW_MS: {{ .Values.env.RATE_LIMIT_WINDOW_MS | quote }}
+  RATE_LIMIT_MAX_REQUESTS: {{ .Values.env.RATE_LIMIT_MAX_REQUESTS | quote }}
+  JWT_EXPIRES_IN: {{ .Values.env.JWT_EXPIRES_IN | quote }}
+  JWT_REFRESH_EXPIRES_IN: {{ .Values.env.JWT_REFRESH_EXPIRES_IN | quote }}
+  WEBSOCKET_TOKEN_EXPIRES_IN: {{ .Values.env.WEBSOCKET_TOKEN_EXPIRES_IN | quote }}
+  HEALTH_CHECK_TIMEOUT: {{ .Values.env.HEALTH_CHECK_TIMEOUT | quote }}
+  GRACEFUL_SHUTDOWN_TIMEOUT: {{ .Values.env.GRACEFUL_SHUTDOWN_TIMEOUT | quote }}
+  JAEGER_ENDPOINT: {{ .Values.env.JAEGER_ENDPOINT | quote }}
+  PROMETHEUS_METRICS_PATH: {{ .Values.env.PROMETHEUS_METRICS_PATH | quote }}

@@ -1,0 +1,34 @@
+apiVersion: v2
+name: chemchat
+description: A Helm chart for ChemChat real-time chat system
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://github.com/chemchat/chemchat
+sources:
+  - https://github.com/chemchat/chemchat
+maintainers:
+  - name: ChemChat Team
+    email: team@chemchat.com
+keywords:
+  - chat
+  - realtime
+  - websocket
+  - messaging
+dependencies:
+  - name: postgresql
+    version: 12.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: 17.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: elasticsearch
+    version: 19.x.x
+    repository: https://helm.elastic.co
+    condition: elasticsearch.enabled
+  - name: kafka
+    version: 22.x.x
+    repository: https://charts.bitnami.com/bitnami
+    condition: kafka.enabled

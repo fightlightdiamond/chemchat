@@ -1,0 +1,23 @@
+{{- if .Values.monitoring.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "chemchat.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chemchat.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.prometheusRule.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.monitoring.prometheusRule.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  groups:
+  - name: {{ include "chemchat.fullname" . }}.rules
+    rules:
+    {{- with .Values.monitoring.prometheusRule.rules }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
