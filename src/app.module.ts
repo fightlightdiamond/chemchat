@@ -9,8 +9,9 @@ import { ChatModule } from './chat';
 import { PresenceModule } from './presence';
 import { NotificationModule } from './notification';
 import { MediaModule } from './media/media.module';
-// import { AdminModule } from './admin/admin.module'; // Temporarily commented out until Prisma migration
-// import { SecurityModule } from './security/security.module'; // Temporarily disabled due to build errors
+import { SearchModule } from './search/search.module';
+import { TenantModule } from './shared/modules/tenant.module';
+import { SecurityModule } from './security/security.module';
 import { SyncModule } from './sync/sync.module';
 import { HealthModule } from './health';
 import { ObservabilityModule } from './observability/observability.module';
@@ -50,8 +51,9 @@ import { RedisModule } from './shared/redis/redis.module';
     PresenceModule,
     NotificationModule,
     MediaModule,
-    // AdminModule, // Temporarily commented out until Prisma migration
-    // SecurityModule, // Temporarily disabled due to build errors
+    SearchModule,
+    TenantModule,
+    SecurityModule,
     SyncModule,
     HealthModule,
     ObservabilityModule,
