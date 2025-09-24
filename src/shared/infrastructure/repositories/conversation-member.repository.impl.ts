@@ -5,7 +5,8 @@ import {
   ConversationMemberRepository,
   type MemberWithUnreadCount,
 } from '../../domain/repositories/conversation-member.repository';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { BaseRepositoryImpl } from '../../domain/repositories/base.repository';
 import type {
   PaginatedResult,
@@ -35,7 +36,7 @@ export class ConversationMemberRepositoryImpl
 {
   protected entityName = 'ConversationMember';
 
-  constructor(private readonly db: PrismaClient) {
+  constructor(private readonly db: PrismaService) {
     super();
   }
 

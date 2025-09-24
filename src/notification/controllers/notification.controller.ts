@@ -11,6 +11,15 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { NotificationService } from '../services/notification.service';
@@ -30,6 +39,8 @@ interface AuthenticatedUser {
   tenantId?: string;
 }
 
+@ApiTags('notifications')
+@ApiBearerAuth('JWT-auth')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
@@ -39,6 +50,10 @@ export class NotificationController {
     private readonly templateService: NotificationTemplateService,
   ) {}
 
+  @ApiOperation({ summary: 'Send notification', description: 'Send a notification to users' })
+  @ApiBody({ schema: { type: 'object', properties: { type: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, channels: { type: 'array', items: { type: 'string' } } } } })
+  @ApiResponse({ status: 201, description: 'Notification sent successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async sendNotification(
@@ -60,6 +75,16 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Get notifications', description: 'Get user notifications with optional filters' })
+  @ApiQuery({ name: 'type', required: false, description: 'Filter by notification type' })
+  @ApiQuery({ name: 'status', required: false, description: 'Filter by notification status' })
+  @ApiQuery({ name: 'channel', required: false, description: 'Filter by notification channel' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Filter from start date' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'Filter to end date' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Limit number of results' })
+  @ApiQuery({ name: 'offset', required: false, description: 'Offset for pagination' })
+  @ApiResponse({ status: 200, description: 'Notifications retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   async getNotifications(
     @CurrentUser() user: AuthenticatedUser,
@@ -92,6 +117,10 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Mark as read', description: 'Mark a notification as read' })
+  @ApiParam({ name: 'id', description: 'Notification ID' })
+  @ApiResponse({ status: 200, description: 'Notification marked as read' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put(':id/read')
   @HttpCode(HttpStatus.OK)
   async markAsRead(
@@ -106,6 +135,11 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Get notification stats', description: 'Get notification statistics for user' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Stats from start date' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'Stats to end date' })
+  @ApiResponse({ status: 200, description: 'Notification statistics retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('stats')
   async getNotificationStats(
     @CurrentUser() user: AuthenticatedUser,
@@ -126,6 +160,9 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Get preferences', description: 'Get user notification preferences' })
+  @ApiResponse({ status: 200, description: 'Notification preferences retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('preferences')
   async getPreferences(@CurrentUser() user: AuthenticatedUser) {
     const preferences = await this.preferenceService.getUserPreferences(
@@ -140,6 +177,10 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Update preferences', description: 'Update user notification preferences' })
+  @ApiBody({ schema: { type: 'object', properties: { emailEnabled: { type: 'boolean' }, pushEnabled: { type: 'boolean' }, smsEnabled: { type: 'boolean' } } } })
+  @ApiResponse({ status: 200, description: 'Notification preferences updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put('preferences')
   @HttpCode(HttpStatus.OK)
   async updatePreferences(
@@ -159,6 +200,10 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Register device', description: 'Register device token for push notifications' })
+  @ApiBody({ schema: { type: 'object', properties: { token: { type: 'string' }, platform: { type: 'string' }, deviceId: { type: 'string' } } } })
+  @ApiResponse({ status: 201, description: 'Device token registered successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('devices')
   @HttpCode(HttpStatus.CREATED)
   async registerDevice(
@@ -180,6 +225,9 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Get devices', description: 'Get registered device tokens' })
+  @ApiResponse({ status: 200, description: 'Device tokens retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('devices')
   async getDevices(@CurrentUser() user: AuthenticatedUser) {
     const devices = await this.preferenceService.getActiveDeviceTokens(
@@ -194,6 +242,10 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Deactivate device', description: 'Deactivate a device token' })
+  @ApiParam({ name: 'deviceId', description: 'Device ID to deactivate' })
+  @ApiResponse({ status: 200, description: 'Device token deactivated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Delete('devices/:deviceId')
   @HttpCode(HttpStatus.OK)
   async deactivateDevice(
@@ -212,6 +264,9 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Get templates', description: 'Get notification templates for tenant' })
+  @ApiResponse({ status: 200, description: 'Notification templates retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('templates')
   async getTemplates(@CurrentUser() user: AuthenticatedUser) {
     const templates = await this.templateService.getTemplatesByTenant(user.tenantId);
@@ -223,6 +278,10 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Create template', description: 'Create a new notification template' })
+  @ApiBody({ schema: { type: 'object', properties: { name: { type: 'string' }, subject: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' } } } })
+  @ApiResponse({ status: 201, description: 'Notification template created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('templates')
   @HttpCode(HttpStatus.CREATED)
   async createTemplate(
@@ -241,6 +300,11 @@ export class NotificationController {
     };
   }
 
+  @ApiOperation({ summary: 'Update template', description: 'Update a notification template' })
+  @ApiParam({ name: 'id', description: 'Template ID' })
+  @ApiBody({ schema: { type: 'object', properties: { name: { type: 'string' }, subject: { type: 'string' }, body: { type: 'string' } } } })
+  @ApiResponse({ status: 200, description: 'Notification template updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put('templates/:id')
   @HttpCode(HttpStatus.OK)
   async updateTemplate(

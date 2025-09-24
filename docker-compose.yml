@@ -110,26 +110,20 @@ services:
     ports:
       - "3000:3000"
       - "9229:9229"  # Node.js debugger port
+    env_file:
+      - .env.docker
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://chemchat:chemchat_password@postgres:5432/chatdb
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redis_password
-      - KAFKA_BROKERS=kafka:9092
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - JWT_ACCESS_SECRET=your-super-secret-access-token-key-docker
-      - JWT_REFRESH_SECRET=your-super-secret-refresh-token-key-docker
-      - JWT_WS_SECRET=your-super-secret-websocket-token-key-docker
       - JWT_MFA_SECRET=your-super-secret-mfa-token-key-docker
       - LOG_LEVEL=debug
       - ENABLE_SWAGGER=true
       - CORS_ORIGIN=http://localhost:3001,http://localhost:3000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     volumes:
       - .:/app
       - /app/node_modules
       - ./logs:/app/logs
-    command: npm run start:dev
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
       interval: 30s

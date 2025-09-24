@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { BaseCommandHandler } from '../../shared/cqrs/base-command-handler';
 import { ValidateCommand } from '../../shared/cqrs/command-validation.decorator';
@@ -19,6 +20,7 @@ export class EditMessageCommandHandler extends BaseCommandHandler<
   Message
 > {
   constructor(
+    @Inject('MessageRepository')
     private readonly messageRepository: MessageRepository,
     private readonly eventBus: EventBus,
   ) {

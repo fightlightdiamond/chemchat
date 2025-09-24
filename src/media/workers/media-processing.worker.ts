@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
-import { RedisService } from '@shared/redis/redis.service';
+import { RedisService } from '../../shared/redis/redis.service';
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // Temporary enum definitions until Prisma client is updated

@@ -54,7 +54,16 @@ export class WebSocketTracingInterceptor implements NestInterceptor {
           if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
             this.tracingService.setAttribute(spanId, `websocket.data.${key}`, value);
           } else if (value !== null && value !== undefined) {
-            this.tracingService.setAttribute(spanId, `websocket.data.${key}`, JSON.stringify(value).substring(0, 100));
+            try {
+              const stringified = JSON.stringify(value);
+              if (stringified) {
+                this.tracingService.setAttribute(spanId, `websocket.data.${key}`, stringified.substring(0, 100));
+              }
+            } catch (error) {
+              // Handle circular references and other JSON.stringify errors
+              const errorMsg = error instanceof Error ? error.message : 'serialization error';
+              this.tracingService.setAttribute(spanId, `websocket.data.${key}`, `[${typeof value}: ${errorMsg}]`);
+            }
           }
         }
       });

@@ -15,7 +15,8 @@ import {
   PaginationOptions,
   PaginatedResult,
 } from '../../domain/repositories/base.repository';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 // Use Prisma generated types
 type PrismaMessage = Prisma.MessageGetPayload<object>;
@@ -27,7 +28,7 @@ export class MessageRepositoryImpl
 {
   protected entityName = 'Message';
 
-  constructor(protected readonly db: PrismaClient) {
+  constructor(protected readonly db: PrismaService) {
     super();
   }
 

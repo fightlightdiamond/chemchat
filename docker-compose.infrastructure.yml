@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: chemchat-postgres-local
+    environment:
+      POSTGRES_DB: chemchat_dev
+      POSTGRES_USER: chemchat
+      POSTGRES_PASSWORD: chemchat123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chemchat -d chemchat_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: chemchat-redis-local
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass chemchat123
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "chemchat123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: chemchat-adminer-local
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: chemchat-local-network

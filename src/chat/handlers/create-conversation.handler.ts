@@ -1,5 +1,5 @@
 import { CommandHandler, EventBus } from '@nestjs/cqrs';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseCommandHandler } from '../../shared/cqrs/base-command-handler';
 import { ValidateCommand } from '../../shared/cqrs/command-validation.decorator';
@@ -19,8 +19,11 @@ export class CreateConversationCommandHandler extends BaseCommandHandler<
   Conversation
 > {
   constructor(
+    @Inject('ConversationRepository')
     private readonly conversationRepository: ConversationRepository,
+    @Inject('UserRepository')
     private readonly userRepository: UserRepository,
+    @Inject('ConversationMemberRepository')
     private readonly conversationMemberRepository: ConversationMemberRepository,
     private readonly eventBus: EventBus,
   ) {

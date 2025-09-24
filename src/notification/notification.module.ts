@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { PrismaModule } from '../shared/infrastructure/prisma/prisma.module';
 import { RedisModule } from '../shared/redis/redis.module';
+import { AuthModule } from '../auth/auth.module';
 import { NotificationService } from './services/notification.service';
 import { NotificationPreferenceService } from './services/notification-preference.service';
 import { NotificationTemplateService } from './services/notification-template.service';
@@ -21,6 +22,7 @@ import {
     CqrsModule,
     PrismaModule,
     RedisModule,
+    AuthModule,
   ],
   providers: [
     NotificationService,

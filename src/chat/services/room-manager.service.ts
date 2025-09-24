@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConversationRepository } from '../../shared/domain/repositories/conversation.repository';
 import { RedisService } from '../../shared/redis/redis.service';
 
@@ -17,6 +17,7 @@ export class RoomManagerService {
   private readonly ROOM_TTL = 86400; // 24 hours
 
   constructor(
+    @Inject('ConversationRepository')
     private readonly conversationRepository: ConversationRepository,
     private readonly redis: RedisService,
   ) {}

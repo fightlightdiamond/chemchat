@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RedisService } from '../../redis/redis.service';
+import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
+import { RedisService } from '../../shared/redis/redis.service';
 import {
   SecurityPolicy,
   SecurityPolicyType,

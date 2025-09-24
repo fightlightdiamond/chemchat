@@ -281,6 +281,75 @@ export class RedisService implements OnModuleDestroy {
     return this.exec(async (client) => client.incrby(key, increment));
   }
 
+  /** Increment by 1 */
+  async incr(key: string): Promise<number> {
+    return this.exec(async (client) => client.incr(key));
+  }
+
+  /** Hash set */
+  async hset(key: string, field: string, value: string): Promise<number>;
+  async hset(key: string, ...args: string[]): Promise<number>;
+  async hset(key: string, ...args: string[]): Promise<number> {
+    return this.exec(async (client) => client.hset(key, ...args));
+  }
+
+  /** Hash get */
+  async hget(key: string, field: string): Promise<string | null> {
+    return this.exec(async (client) => client.hget(key, field));
+  }
+
+  /** Hash get all */
+  async hgetall(key: string): Promise<Record<string, string>> {
+    return this.exec(async (client) => client.hgetall(key));
+  }
+
+  /** Get keys by pattern (use scanKeys for production) */
+  async keys(pattern: string): Promise<string[]> {
+    return this.exec(async (client) => client.keys(pattern));
+  }
+
+  /** Get TTL */
+  async ttl(key: string): Promise<number> {
+    return this.exec(async (client) => client.ttl(key));
+  }
+
+  /** Push to list (right) */
+  async rpush(key: string, ...values: string[]): Promise<number> {
+    return this.exec(async (client) => client.rpush(key, ...values));
+  }
+
+  /** Pop from list (left) */
+  async lpop(key: string): Promise<string | null> {
+    return this.exec(async (client) => client.lpop(key));
+  }
+
+  /** Sorted set add */
+  async zadd(key: string, score: number, member: string): Promise<number>;
+  async zadd(key: string, ...args: (string | number)[]): Promise<number>;
+  async zadd(key: string, ...args: (string | number)[]): Promise<number> {
+    return this.exec(async (client) => client.zadd(key, ...args));
+  }
+
+  /** Sorted set count */
+  async zcount(key: string, min: string | number, max: string | number): Promise<number> {
+    return this.exec(async (client) => client.zcount(key, min, max));
+  }
+
+  /** Sorted set range */
+  async zrange(key: string, start: number, stop: number): Promise<string[]> {
+    return this.exec(async (client) => client.zrange(key, start, stop));
+  }
+
+  /** Sorted set remove by score */
+  async zremrangebyscore(key: string, min: string | number, max: string | number): Promise<number> {
+    return this.exec(async (client) => client.zremrangebyscore(key, min, max));
+  }
+
+  /** Sorted set cardinality */
+  async zcard(key: string): Promise<number> {
+    return this.exec(async (client) => client.zcard(key));
+  }
+
   /** Health check + basic stats */
   async health(): Promise<{
     ok: boolean;

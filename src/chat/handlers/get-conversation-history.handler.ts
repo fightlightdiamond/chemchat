@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { BaseQueryHandler } from '../../shared/cqrs/base-query-handler';
 import { GetConversationHistoryQuery } from '../queries/get-conversation-history.query';
@@ -21,7 +22,9 @@ export class GetConversationHistoryQueryHandler extends BaseQueryHandler<
   PaginatedResult<Message>
 > {
   constructor(
+    @Inject('MessageRepository')
     private readonly messageRepository: MessageRepository,
+    @Inject('ConversationRepository')
     private readonly conversationRepository: ConversationRepository,
   ) {
     super();
