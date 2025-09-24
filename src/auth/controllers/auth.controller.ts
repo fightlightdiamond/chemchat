@@ -9,6 +9,13 @@ import {
   Ip,
   Headers,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { MfaService } from '../services/mfa.service';
 import { RateLimitingService } from '../services/rate-limiting.service';
@@ -24,7 +31,19 @@ import {
   AuthenticatedUser,
 } from '../interfaces/auth.interface';
 import { MfaCompleteRequest } from '../interfaces/request.interface';
+import {
+  LoginRequestDto,
+  LoginResponseDto,
+  RefreshTokenRequestDto,
+  LogoutRequestDto,
+  MfaCompleteRequestDto,
+  AuthenticatedUserDto,
+  ChangePasswordDto,
+  MfaSetupDto,
+  WebSocketTokenResponseDto,
+} from '../dto/auth.dto';
 
+@ApiTags('auth-hot-reload-test')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -34,6 +53,18 @@ export class AuthController {
     private readonly securityMonitoringService: SecurityMonitoringService,
   ) {}
 
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticate user with email and password - HOT RELOAD TEST',
+  })
+  @ApiBody({ type: LoginRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 429, description: 'Too many login attempts' })
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -88,6 +119,18 @@ export class AuthController {
     }
   }
 
+  @ApiOperation({
+    summary: 'Complete MFA login',
+    description: 'Complete multi-factor authentication login',
+  })
+  @ApiBody({ type: MfaCompleteRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA login completed',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid MFA code' })
+  @ApiResponse({ status: 429, description: 'Too many MFA attempts' })
   @Public()
   @Post('mfa/complete')
   @HttpCode(HttpStatus.OK)
@@ -121,6 +164,17 @@ export class AuthController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Refresh token',
+    description: 'Refresh JWT access token using refresh token',
+  })
+  @ApiBody({ type: RefreshTokenRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refreshed successfully',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -141,6 +195,14 @@ export class AuthController {
     });
   }
 
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Logout user and invalidate tokens',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiBody({ type: LogoutRequestDto })
+  @ApiResponse({ status: 204, description: 'Logout successful' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -151,12 +213,34 @@ export class AuthController {
     this.authService.logout(logoutRequest, user.id);
   }
 
+  @ApiOperation({
+    summary: 'Get user profile',
+    description: 'Get current authenticated user profile',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved',
+    type: AuthenticatedUserDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
     return user;
   }
 
+  @ApiOperation({
+    summary: 'Get WebSocket token',
+    description: 'Generate token for WebSocket authentication',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'WebSocket token generated',
+    type: WebSocketTokenResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Post('websocket-token')
   @HttpCode(HttpStatus.OK)
@@ -166,6 +250,17 @@ export class AuthController {
     return this.authService.generateWebSocketToken(user);
   }
 
+  @ApiOperation({
+    summary: 'Change password',
+    description: 'Change user password',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiBody({ type: ChangePasswordDto })
+  @ApiResponse({ status: 204, description: 'Password changed successfully' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized or invalid current password',
+  })
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -180,12 +275,31 @@ export class AuthController {
     );
   }
 
+  @ApiOperation({
+    summary: 'Setup MFA',
+    description: 'Generate MFA setup QR code and secret',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiResponse({ status: 200, description: 'MFA setup data generated' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Post('mfa/setup')
   async setupMfa(@CurrentUser() user: AuthenticatedUser) {
     return this.mfaService.generateMfaSetup(user.email);
   }
 
+  @ApiOperation({
+    summary: 'Verify MFA setup',
+    description: 'Verify MFA setup with TOTP token',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiBody({ type: MfaSetupDto })
+  @ApiResponse({
+    status: 200,
+    description: 'MFA verification result',
+    schema: { type: 'object', properties: { success: { type: 'boolean' } } },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Post('mfa/verify-setup')
   @HttpCode(HttpStatus.OK)
@@ -202,6 +316,17 @@ export class AuthController {
     return { success: isValid };
   }
 
+  @ApiOperation({
+    summary: 'Get security events',
+    description: 'Get user security events and login history',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Security events retrieved',
+    schema: { type: 'array', items: { type: 'object' } },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
   @Get('security/events')
   getSecurityEvents(@CurrentUser() user: AuthenticatedUser): any[] {

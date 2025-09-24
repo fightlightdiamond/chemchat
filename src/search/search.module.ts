@@ -19,6 +19,8 @@ import { GetSearchSuggestionsHandler } from './handlers/get-search-suggestions.h
 
 // Shared modules
 import { KafkaModule } from '../shared/kafka/kafka.module';
+import { SharedModule } from '../shared/shared.module';
+import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../shared/infrastructure/prisma/prisma.module';
 
 const queryHandlers = [
@@ -40,8 +42,10 @@ const workers = [
   imports: [
     CqrsModule,
     ConfigModule,
-    KafkaModule,
+    SharedModule,
     PrismaModule,
+    KafkaModule.forRoot(),
+    AuthModule,
   ],
   controllers: [SearchController],
   providers: [

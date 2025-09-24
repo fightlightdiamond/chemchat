@@ -1,20 +1,23 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SharedModule } from './shared';
 import { AuthModule } from './auth';
-import { ChatModule } from './chat';
-import { PresenceModule } from './presence';
-import { NotificationModule } from './notification';
-import { MediaModule } from './media/media.module';
-import { SearchModule } from './search/search.module';
 import { TenantModule } from './shared/modules/tenant.module';
+// import { ChatModule } from './chat';
+// import { PresenceModule } from './presence';
+import { NotificationModule } from './notification/notification.module';
+import { MediaModule } from './media/media.module';
 import { SecurityModule } from './security/security.module';
 import { SyncModule } from './sync/sync.module';
-import { HealthModule } from './health';
+import { ChatModule } from './chat/chat.module';
+import { PresenceModule } from './presence/presence.module';
+import { SearchModule } from './search/search.module';
 import { ObservabilityModule } from './observability/observability.module';
+import { HealthModule } from './health';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
 import { CorrelationIdMiddleware } from './shared/middleware/correlation-id.middleware';
 import { RedisModule } from './shared/redis/redis.module';
@@ -22,6 +25,10 @@ import { RedisModule } from './shared/redis/redis.module';
 @Module({
   imports: [
     // Global modules
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env.development', '.env'],
+    }),
     SharedModule,
     RedisModule.forRoot({
       host: process.env.REDIS_HOST || 'localhost',
@@ -47,15 +54,15 @@ import { RedisModule } from './shared/redis/redis.module';
 
     // Feature modules
     AuthModule,
-    ChatModule,
-    PresenceModule,
+    HealthModule,
+    TenantModule,
     NotificationModule,
     MediaModule,
-    SearchModule,
-    TenantModule,
     SecurityModule,
     SyncModule,
-    HealthModule,
+    ChatModule,
+    PresenceModule,
+    SearchModule,
     ObservabilityModule,
   ],
   controllers: [AppController],

@@ -1,5 +1,5 @@
 import { QueryHandler } from '@nestjs/cqrs';
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, Inject } from '@nestjs/common';
 import { BaseQueryHandler } from '../../shared/cqrs/base-query-handler';
 import { SearchMessagesQuery } from '../queries/search-messages.query';
 import { PaginatedResult } from '../../shared/cqrs/pagination.dto';
@@ -14,7 +14,9 @@ export class SearchMessagesQueryHandler extends BaseQueryHandler<
   PaginatedResult<Message>
 > {
   constructor(
+    @Inject('MessageRepository')
     private readonly messageRepository: MessageRepository,
+    @Inject('ConversationRepository')
     private readonly conversationRepository: ConversationRepository,
   ) {
     super();

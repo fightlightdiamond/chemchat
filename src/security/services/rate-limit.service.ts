@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '../../redis/redis.service';
+import { RedisService } from '../../shared/redis/redis.service';
 import * as geoip from 'geoip-lite';
 
 export interface RateLimitConfig {
@@ -80,7 +80,7 @@ export class RateLimitService {
 
     // Check if the limit has been exceeded
     if (count >= effectiveConfig.maxRequests) {
-      const oldest = await this.redis.zrange(redisKey, 0, 0, true);
+      const oldest = await this.redis.zrange(redisKey, 0, 0);
       const resetTime =
         parseInt(oldest[1] || '0', 10) + effectiveConfig.windowMs;
       const retryAfter = Math.ceil((resetTime - now) / 1000);

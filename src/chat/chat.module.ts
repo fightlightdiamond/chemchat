@@ -7,6 +7,9 @@ import { MessageIdModule } from './message-id.module';
 import { PresenceModule } from '../presence/presence.module';
 import { OutboxModule } from '../shared/outbox/outbox.module';
 import { KafkaModule } from '../shared/kafka/kafka.module';
+import { PrismaModule } from '../shared/infrastructure/prisma/prisma.module';
+import { RedisModule } from '../shared/redis/redis.module';
+import { SharedModule } from '../shared/shared.module';
 
 // Command Handlers
 import { SendMessageCommandHandler } from './handlers/send-message.handler';
@@ -34,6 +37,9 @@ import { MessageBroadcastService } from './services/message-broadcast.service';
 
 // Services
 import { MessageIdService } from './services/message-id.service';
+import { MessageRepositoryImpl } from '../shared/infrastructure/repositories/message.repository.impl';
+import { ConversationRepositoryImpl } from '../shared/infrastructure/repositories/conversation.repository.impl';
+import { ConversationMemberRepositoryImpl } from '../shared/infrastructure/repositories/conversation-member.repository.impl';
 
 const CommandHandlers = [
   SendMessageCommandHandler,
@@ -71,6 +77,9 @@ const Services = [
     PresenceModule,
     OutboxModule,
     KafkaModule.forRoot(),
+    PrismaModule,
+    RedisModule,
+    SharedModule,
   ],
   providers: [
     ...CommandHandlers,
@@ -79,6 +88,18 @@ const Services = [
     ...Services,
     ConversationSummaryService,
     ChatGateway,
+    {
+      provide: 'MessageRepository',
+      useClass: MessageRepositoryImpl,
+    },
+    {
+      provide: 'ConversationRepository',
+      useClass: ConversationRepositoryImpl,
+    },
+    {
+      provide: 'ConversationMemberRepository',
+      useClass: ConversationMemberRepositoryImpl,
+    },
   ],
   exports: [ChatGateway, SequenceModule, IdempotencyModule, MessageIdModule],
 })

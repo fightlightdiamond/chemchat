@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RedisService } from '../../redis/redis.service';
+import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
+import { RedisService } from '../../shared/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { EventEmitter2 } from '@nestjs/event-emitter';

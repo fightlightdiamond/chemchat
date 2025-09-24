@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RedisService } from '../../redis/redis.service';
+import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
+import { RedisService } from '../../shared/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -480,7 +480,7 @@ export class SecurityMonitoringService {
     // Add to alerts list
     await this.redis.lpush('security:alerts:list', alertId);
     // Use Redis list operations through exec wrapper
-    await this.redis.exec('ltrim', 'security:alerts:list', '0', '999'); // Keep last 1000 alerts
+    await this.redis.ltrim('security:alerts:list', 0, 999); // Keep last 1000 alerts
 
     // Emit event for real-time notifications
     this.eventEmitter.emit('security.alert.created', alertData);
@@ -509,7 +509,7 @@ export class SecurityMonitoringService {
     severity?: string,
     resolved?: boolean,
   ): Promise<SecurityAlert[]> {
-    const alertIds = await this.redis.exec('lrange', 'security:alerts:list', '0', String(limit - 1)) as string[];
+    const alertIds = await this.redis.lrange('security:alerts:list', 0, limit - 1);
     const alerts: SecurityAlert[] = [];
 
     for (const alertId of alertIds) {

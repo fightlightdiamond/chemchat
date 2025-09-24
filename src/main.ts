@@ -5,7 +5,7 @@ initializeTelemetry();
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { CorrelationIdMiddleware } from './observability/tracing/correlation-id.middleware';
+// import { CorrelationIdMiddleware } from './observability/tracing/correlation-id.middleware';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -29,8 +29,8 @@ async function bootstrap() {
     });
 
     // Apply correlation ID middleware globally
-    const correlationIdMiddleware = app.get(CorrelationIdMiddleware);
-    app.use(correlationIdMiddleware.use.bind(correlationIdMiddleware));
+    // const correlationIdMiddleware = app.get(CorrelationIdMiddleware);
+    // app.use(correlationIdMiddleware.use.bind(correlationIdMiddleware));
 
     // Swagger documentation
     if (process.env.NODE_ENV !== 'production') {
@@ -45,15 +45,13 @@ async function bootstrap() {
     });
 
     const port = process.env.PORT ?? 3000;
-    await app.listen(port);
+    const host = process.env.HOST ?? '0.0.0.0';
+    await app.listen(port, host);
     
-    logger.log(`🚀 ChemChat API is running on port ${port}`);
-    logger.log(`📊 Metrics available at /metrics`);
-    logger.log(`🏥 Health checks available at /health`);
-    
-    if (process.env.NODE_ENV !== 'production') {
-      logger.log(`📚 API documentation available at http://localhost:${port}/api/docs`);
-    }
+    logger.log(' ChemChat API is running on 0.0.0.0:3000 - HOT RELOAD TEST');
+    logger.log(' Metrics available at /metrics');
+    logger.log(' Health checks available at /health');
+    logger.log(` API documentation available at http://localhost:3000/api/docs`);
 
     // Graceful shutdown
     process.on('SIGTERM', async () => {

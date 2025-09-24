@@ -12,7 +12,7 @@ import {
   PaginationOptions,
   PaginatedResult,
 } from '../../domain/repositories/base.repository';
-import { DatabaseService } from '../../services/database.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ConversationRepositoryImpl
@@ -21,7 +21,7 @@ export class ConversationRepositoryImpl
 {
   protected entityName = 'Conversation';
 
-  constructor(protected readonly db: DatabaseService) {
+  constructor(protected readonly db: PrismaService) {
     super();
   }
 

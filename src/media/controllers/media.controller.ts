@@ -12,6 +12,15 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { MediaService } from '../services/media.service';
@@ -55,6 +64,8 @@ enum VirusScanStatus {
   FAILED = 'FAILED'
 }
 
+@ApiTags('media')
+@ApiBearerAuth('JWT-auth')
 @Controller('media')
 @UseGuards(JwtAuthGuard)
 export class MediaController {
@@ -63,12 +74,13 @@ export class MediaController {
     private readonly validationService: MediaValidationService,
   ) {}
 
+  @ApiOperation({ summary: 'Get upload URL', description: 'Generate a pre-signed URL for media upload' })
+  @ApiBody({ type: Object, description: 'Media upload request with file details' })
+  @ApiResponse({ status: 200, description: 'Upload URL generated successfully', type: Object })
+  @ApiResponse({ status: 400, description: 'Invalid request parameters' })
   @Post('upload/url')
   @HttpCode(HttpStatus.OK)
-  async generateUploadUrl(
-    @Body() request: MediaUploadRequest,
-    @CurrentUser() user: any,
-  ): Promise<MediaUploadResponse> {
+  async getUploadUrl(@Body() request: MediaUploadRequest, @CurrentUser() user: any): Promise<MediaUploadResponse> {
     // Set user ID from authenticated user
     request.userId = user.id;
     request.tenantId = user.tenantId;
@@ -79,6 +91,11 @@ export class MediaController {
     return await this.mediaService.generateUploadUrl(request);
   }
 
+  @ApiOperation({ summary: 'Confirm upload', description: 'Confirm that a media file has been uploaded successfully' })
+  @ApiParam({ name: 'uploadId', description: 'Upload ID from the upload URL response' })
+  @ApiBody({ type: Object, description: 'Upload confirmation options', required: false })
+  @ApiResponse({ status: 201, description: 'Upload confirmed successfully', type: Object })
+  @ApiResponse({ status: 404, description: 'Upload ID not found' })
   @Post('upload/:uploadId/confirm')
   @HttpCode(HttpStatus.CREATED)
   async confirmUpload(
@@ -88,6 +105,10 @@ export class MediaController {
     return await this.mediaService.confirmUpload(uploadId, options);
   }
 
+  @ApiOperation({ summary: 'Get attachment', description: 'Retrieve media attachment details by ID' })
+  @ApiParam({ name: 'id', description: 'Media attachment ID' })
+  @ApiResponse({ status: 200, description: 'Attachment retrieved successfully', type: Object })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
   @Get(':id')
   async getAttachment(
     @Param('id') id: string,
@@ -102,6 +123,12 @@ export class MediaController {
     return attachment;
   }
 
+  @ApiOperation({ summary: 'Get download URL', description: 'Generate a temporary download URL for a media attachment' })
+  @ApiParam({ name: 'id', description: 'Media attachment ID' })
+  @ApiQuery({ name: 'expires', description: 'URL expiration time in seconds (60-86400)', required: false })
+  @ApiResponse({ status: 200, description: 'Download URL generated successfully', schema: { type: 'object', properties: { downloadUrl: { type: 'string' }, expiresAt: { type: 'string', format: 'date-time' } } } })
+  @ApiResponse({ status: 400, description: 'Invalid expiration time' })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
   @Get(':id/download')
   async getDownloadUrl(
     @Param('id') id: string,
@@ -126,6 +153,22 @@ export class MediaController {
     };
   }
 
+  @ApiOperation({ summary: 'Search attachments', description: 'Search and filter media attachments with pagination' })
+  @ApiQuery({ name: 'page', description: 'Page number (default: 1)', required: false })
+  @ApiQuery({ name: 'limit', description: 'Items per page (1-100, default: 20)', required: false })
+  @ApiQuery({ name: 'category', description: 'Filter by media category', required: false, enum: ['IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'ARCHIVE', 'OTHER'] })
+  @ApiQuery({ name: 'mimeType', description: 'Filter by MIME type', required: false })
+  @ApiQuery({ name: 'uploadStatus', description: 'Filter by upload status', required: false })
+  @ApiQuery({ name: 'processingStatus', description: 'Filter by processing status', required: false })
+  @ApiQuery({ name: 'virusScanStatus', description: 'Filter by virus scan status', required: false })
+  @ApiQuery({ name: 'minFileSize', description: 'Minimum file size in bytes', required: false })
+  @ApiQuery({ name: 'maxFileSize', description: 'Maximum file size in bytes', required: false })
+  @ApiQuery({ name: 'uploadedAfter', description: 'Filter files uploaded after this date (ISO string)', required: false })
+  @ApiQuery({ name: 'uploadedBefore', description: 'Filter files uploaded before this date (ISO string)', required: false })
+  @ApiQuery({ name: 'userId', description: 'Filter by uploader user ID', required: false })
+  @ApiQuery({ name: 'messageId', description: 'Filter by associated message ID', required: false })
+  @ApiResponse({ status: 200, description: 'Search results retrieved successfully', type: Object })
+  @ApiResponse({ status: 400, description: 'Invalid query parameters' })
   @Get()
   async searchAttachments(
     @Query('page') page: string = '1',
@@ -172,6 +215,11 @@ export class MediaController {
     return await this.mediaService.searchAttachments(filter, pageNum, limitNum);
   }
 
+  @ApiOperation({ summary: 'Delete attachment', description: 'Delete a media attachment (only by uploader or admin)' })
+  @ApiParam({ name: 'id', description: 'Media attachment ID' })
+  @ApiResponse({ status: 204, description: 'Attachment deleted successfully' })
+  @ApiResponse({ status: 400, description: 'Permission denied or invalid request' })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAttachment(
@@ -193,6 +241,9 @@ export class MediaController {
     await this.mediaService.deleteAttachment(id, user.tenantId);
   }
 
+  @ApiOperation({ summary: 'Get quota info', description: 'Get media storage quota information for the tenant' })
+  @ApiResponse({ status: 200, description: 'Quota information retrieved successfully', type: Object })
+  @ApiResponse({ status: 400, description: 'Tenant ID is required' })
   @Get('quota/info')
   async getQuotaInfo(@CurrentUser() user: any): Promise<MediaQuotaInfo> {
     if (!user.tenantId) {
@@ -202,6 +253,10 @@ export class MediaController {
     return await this.mediaService.getQuotaInfo(user.tenantId);
   }
 
+  @ApiOperation({ summary: 'Get media statistics', description: 'Get media usage statistics for a specified time period' })
+  @ApiQuery({ name: 'period', description: 'Time period for statistics (24h, 7d, 30d, 90d)', required: false })
+  @ApiResponse({ status: 200, description: 'Media statistics retrieved successfully', schema: { type: 'object', properties: { totalFiles: { type: 'number' }, totalSize: { type: 'number' }, byCategory: { type: 'object' }, byStatus: { type: 'object' }, byVirusScan: { type: 'object' }, period: { type: 'string' }, startDate: { type: 'string' }, endDate: { type: 'string' } } } })
+  @ApiResponse({ status: 400, description: 'Invalid period parameter' })
   @Get('stats/summary')
   async getMediaStats(
     @Query('period') period: string = '30d',
@@ -299,6 +354,9 @@ export class MediaController {
     return stats;
   }
 
+  @ApiOperation({ summary: 'Validate file', description: 'Validate a media file upload request without actually uploading' })
+  @ApiBody({ type: Object, description: 'Media upload request to validate' })
+  @ApiResponse({ status: 200, description: 'Validation result', schema: { type: 'object', properties: { valid: { type: 'boolean' }, errors: { type: 'array', items: { type: 'string' } } } } })
   @Post('validate')
   @HttpCode(HttpStatus.OK)
   async validateFile(
@@ -320,6 +378,8 @@ export class MediaController {
     }
   }
 
+  @ApiOperation({ summary: 'Get allowed categories', description: 'Get list of allowed media categories, MIME types, and file size limits' })
+  @ApiResponse({ status: 200, description: 'Allowed categories and configuration retrieved successfully', schema: { type: 'object', properties: { categories: { type: 'array', items: { type: 'string' } }, mimeTypes: { type: 'object' }, maxFileSize: { type: 'number' } } } })
   @Get('categories/allowed')
   async getAllowedCategories(): Promise<{
     categories: MediaCategory[];

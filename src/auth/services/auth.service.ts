@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { TokenService } from './token.service';
@@ -20,7 +20,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly mfaService: MfaService,
     private readonly tokenRevocationService: TokenRevocationService,
-    private readonly userRepository: UserRepository,
+    @Inject('UserRepository') private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
   ) {}
 

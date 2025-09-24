@@ -1,11 +1,11 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { KafkaService } from '../../shared/kafka';
+import { KafkaConsumerService, EventHandler } from '../../shared/kafka/services/kafka-consumer.service';
 import { ElasticsearchService } from '../services/elasticsearch.service';
 import { MessageIndexService } from '../services/message-index.service';
 import { SearchDocument } from '../interfaces/elasticsearch.interface';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
-import { Consumer } from 'kafkajs';
+import { SerializedEvent } from '../../shared/kafka/interfaces/kafka.interface';
 
 interface MessageCreatedEvent {
   messageId: string;
@@ -36,109 +36,91 @@ interface MessageDeletedEvent {
 }
 
 @Injectable()
-export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy {
+export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, EventHandler {
   private readonly logger = new Logger(MessageIndexingWorker.name);
-  private consumer: Consumer | null = null;
   private isRunning = false;
-  private readonly consumerGroupId: string;
   private readonly batchSize: number;
   private readonly batchTimeout: number;
+  
+  readonly eventType = 'message.created';
 
   constructor(
-    private readonly kafkaService: KafkaService,
+    private readonly kafkaConsumerService: KafkaConsumerService,
     private readonly elasticsearchService: ElasticsearchService,
     private readonly messageIndexService: MessageIndexService,
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.consumerGroupId = this.configService.get<string>('KAFKA_SEARCH_CONSUMER_GROUP', 'search-indexing');
     this.batchSize = this.configService.get<number>('SEARCH_INDEXING_BATCH_SIZE', 100);
     this.batchTimeout = this.configService.get<number>('SEARCH_INDEXING_BATCH_TIMEOUT', 5000);
   }
 
-  async onModuleInit(): Promise<void> {
-    await this.startWorker();
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.stopWorker();
-  }
-
-  private async startWorker(): Promise<void> {
+  async onModuleInit() {
     try {
-      this.consumer = this.kafkaService.createConsumer(this.consumerGroupId);
+      this.logger.log('Initializing Message Indexing Worker');
       
-      await this.consumer.subscribe({
-        topics: ['message.created', 'message.edited', 'message.deleted'],
-        fromBeginning: false,
-      });
-
+      // Register this worker as an event handler
+      this.kafkaConsumerService.registerEventHandler(this);
+      
       this.isRunning = true;
-      
-      await this.consumer.run({
-        eachBatch: async ({ batch, resolveOffset, heartbeat }) => {
-          const messages = batch.messages;
-          if (messages.length === 0) return;
-
-          this.logger.debug(`Processing batch of ${messages.length} messages from topic ${batch.topic}`);
-
-          for (const message of messages) {
-            try {
-              if (message.value) {
-                await this.processMessage(batch.topic, message.value.toString());
-              }
-              resolveOffset(message.offset);
-              await heartbeat();
-            } catch (error) {
-              this.logger.error(`Failed to process message from topic ${batch.topic}`, error);
-              // Continue processing other messages in the batch
-            }
-          }
-        },
-      });
-
-      this.logger.log('Message indexing worker started');
+      this.logger.log('Message Indexing Worker started successfully');
     } catch (error) {
-      this.logger.error('Failed to start message indexing worker', error);
+      this.logger.error('Failed to start Message Indexing Worker', error);
       throw error;
     }
   }
 
-  private async stopWorker(): Promise<void> {
-    if (this.consumer && this.isRunning) {
+  async onModuleDestroy(): Promise<void> {
+    try {
+      this.logger.log('Shutting down Message Indexing Worker');
       this.isRunning = false;
-      await this.consumer.disconnect();
-      this.logger.log('Message indexing worker stopped');
+      
+      // Unregister the event handler
+      this.kafkaConsumerService.unregisterEventHandler(this.eventType, this);
+      
+      this.logger.log('Message Indexing Worker shut down successfully');
+    } catch (error) {
+      this.logger.error('Error during Message Indexing Worker shutdown', error);
     }
   }
 
-  private async processMessage(topic: string, messageValue: string | undefined): Promise<void> {
-    if (!messageValue) {
-      this.logger.warn('Received empty message value');
+  /**
+   * Handle incoming events from Kafka
+   */
+  async handle(event: SerializedEvent): Promise<void> {
+    if (!this.isRunning) {
       return;
     }
 
     try {
-      const event = JSON.parse(messageValue);
-      
-      switch (topic) {
-        case 'message.created':
-          await this.handleMessageCreated(event as MessageCreatedEvent);
-          break;
-        case 'message.edited':
-          await this.handleMessageEdited(event as MessageEditedEvent);
-          break;
-        case 'message.deleted':
-          await this.handleMessageDeleted(event as MessageDeletedEvent);
-          break;
-        default:
-          this.logger.warn(`Unknown topic: ${topic}`);
-      }
+      await this.processEvent(event);
     } catch (error) {
-      this.logger.error(`Failed to process message from topic ${topic}`, error);
-      throw error;
+      this.logger.error('Error processing event', {
+        eventType: event.metadata.eventType,
+        eventId: event.metadata.eventId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
+
+  private async processEvent(event: SerializedEvent): Promise<void> {
+    const { metadata, data } = event;
+    
+    switch (metadata.eventType) {
+      case 'message.created':
+        await this.handleMessageCreated(data as MessageCreatedEvent);
+        break;
+      case 'message.edited':
+        await this.handleMessageEdited(data as MessageEditedEvent);
+        break;
+      case 'message.deleted':
+        await this.handleMessageDeleted(data as MessageDeletedEvent);
+        break;
+      default:
+        this.logger.debug(`Ignoring event type: ${metadata.eventType}`);
+    }
+  }
+
 
   private async handleMessageCreated(event: MessageCreatedEvent): Promise<void> {
     try {
@@ -343,13 +325,13 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy {
 
   async getWorkerStatus(): Promise<{
     isRunning: boolean;
-    consumerGroupId: string;
+    eventType: string;
     batchSize: number;
     batchTimeout: number;
   }> {
     return {
       isRunning: this.isRunning,
-      consumerGroupId: this.consumerGroupId,
+      eventType: this.eventType,
       batchSize: this.batchSize,
       batchTimeout: this.batchTimeout,
     };

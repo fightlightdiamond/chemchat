@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseCommandHandler } from '../../shared/cqrs/base-command-handler';
@@ -58,7 +59,9 @@ export class SendMessageCommandHandler extends BaseCommandHandler<
   Message
 > {
   constructor(
+    @Inject('MessageRepository')
     private readonly messageRepository: MessageRepository,
+    @Inject('ConversationRepository')
     private readonly conversationRepository: ConversationRepository,
     private readonly eventBus: EventBus,
     private readonly outboxPublisher: OutboxEventPublisherService,

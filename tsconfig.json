@@ -29,10 +29,14 @@
     }
   },
   "exclude": [
-    "node_modules",
+    "node_modules", 
     "dist",
-    "test",
+    "scripts/**/*",
+    "test/**/*",
     "**/*spec.ts",
-    "src/admin.disabled/**/*"
+    "**/*.spec.ts",
+    "src/admin.disabled/**/*",
+    "src/security.disabled/**/*",
+    "src/sync.disabled/**/*"
   ]
 }

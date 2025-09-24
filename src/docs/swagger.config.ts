@@ -118,17 +118,9 @@ List endpoints support cursor-based pagination:
       },
       'tenant-auth',
     )
-    .addTag('auth', 'Authentication and authorization endpoints')
-    .addTag('chat', 'Real-time chat and messaging')
-    .addTag('conversations', 'Conversation management and history')
-    .addTag('users', 'User profile and management')
-    .addTag('admin', 'Admin panel and moderation tools')
-    .addTag('search', 'Message search and indexing')
-    .addTag('media', 'File upload and media handling')
-    .addTag('notifications', 'Push notifications and preferences')
-    .addTag('sync', 'Client synchronization and offline support')
-    .addTag('observability', 'Monitoring, metrics, and health checks')
-    .addTag('tenant', 'Multi-tenant management and quotas')
+    .addTag('auth-hot-reload-test', 'Authentication and authorization endpoints')
+    .addTag('Health', 'System health checks and status')
+    .addTag('tenant', 'Multi-tenant management')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
@@ -147,7 +139,7 @@ List endpoints support cursor-based pagination:
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,
-      docExpansion: 'none',
+      docExpansion: 'list',
       filter: true,
       showExtensions: true,
       showCommonExtensions: true,
