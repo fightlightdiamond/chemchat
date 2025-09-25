@@ -1,16 +1,17 @@
 # Multi-stage build for production optimization
-FROM node:20-alpine AS base
+FROM node:20-alpine@sha256:2d07db07023cedc80d8990119e1a3667c68b7cdd134e75d8b7a7c0b0e6e7de8c AS base
 
 # Development stage for hot-reload
 FROM base AS development
 WORKDIR /app
 
 # Install system dependencies for development
-RUN apk add --no-cache \
+RUN apk update && apk upgrade && apk add --no-cache \
     git \
     curl \
     bash \
-    procps
+    procps \
+    && rm -rf /var/cache/apk/*
 
 # Copy package files
 COPY package.json package-lock.json* ./
