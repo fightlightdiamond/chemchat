@@ -76,7 +76,7 @@ const packageManagers = {
             installPackage: 'add',
         },
     },
-    'pnpm': {
+    'npm': {
         commands: {
             installAll: 'install',
             installPackage: 'install',

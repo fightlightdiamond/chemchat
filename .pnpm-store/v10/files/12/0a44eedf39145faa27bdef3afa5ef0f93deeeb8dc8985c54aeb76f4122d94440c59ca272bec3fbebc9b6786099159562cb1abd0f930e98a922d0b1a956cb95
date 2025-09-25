@@ -54,7 +54,7 @@ var import_path4 = require("path");
 var import_os = require("os");
 var import_path5 = require("path");
 var require_indent_string = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/indent-string@4.0.0/node_modules/indent-string/index.js"(exports, module2) {
+  "../../node_modules/.npm/indent-string@4.0.0/node_modules/indent-string/index.js"(exports, module2) {
     "use strict";
     module2.exports = (string, count = 1, options) => {
       options = {
@@ -86,7 +86,7 @@ var require_indent_string = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_clean_stack = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/clean-stack@2.2.0/node_modules/clean-stack/index.js"(exports, module2) {
+  "../../node_modules/.npm/clean-stack@2.2.0/node_modules/clean-stack/index.js"(exports, module2) {
     "use strict";
     var os = (0, import_chunk_QGM4M3NI.__require)("os");
     var extractPathRegex = /\s+at.*(?:\(|\s)(.*)\)?/;
@@ -114,7 +114,7 @@ var require_clean_stack = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_aggregate_error = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/aggregate-error@3.1.0/node_modules/aggregate-error/index.js"(exports, module2) {
+  "../../node_modules/.npm/aggregate-error@3.1.0/node_modules/aggregate-error/index.js"(exports, module2) {
     "use strict";
     var indentString = require_indent_string();
     var cleanStack = require_clean_stack();
@@ -151,7 +151,7 @@ var require_aggregate_error = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_p_map = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/p-map@4.0.0/node_modules/p-map/index.js"(exports, module2) {
+  "../../node_modules/.npm/p-map@4.0.0/node_modules/p-map/index.js"(exports, module2) {
     "use strict";
     var AggregateError = require_aggregate_error();
     module2.exports = async (iterable, mapper, {
@@ -220,7 +220,7 @@ var require_p_map = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_balanced_match = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/balanced-match@1.0.2/node_modules/balanced-match/index.js"(exports, module2) {
+  "../../node_modules/.npm/balanced-match@1.0.2/node_modules/balanced-match/index.js"(exports, module2) {
     "use strict";
     module2.exports = balanced;
     function balanced(a, b, str) {
@@ -276,7 +276,7 @@ var require_balanced_match = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_brace_expansion = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/brace-expansion@2.0.1/node_modules/brace-expansion/index.js"(exports, module2) {
+  "../../node_modules/.npm/brace-expansion@2.0.1/node_modules/brace-expansion/index.js"(exports, module2) {
     "use strict";
     var balanced = require_balanced_match();
     module2.exports = expandTop;

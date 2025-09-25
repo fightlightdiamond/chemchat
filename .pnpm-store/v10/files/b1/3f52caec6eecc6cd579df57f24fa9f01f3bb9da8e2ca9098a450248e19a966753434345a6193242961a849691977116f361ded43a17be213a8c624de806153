@@ -11,7 +11,7 @@ Redis cache store for [cache-manager](https://github.com/jaredwray/cacheable/tre
 ## Installation
 
 ```sh
-pnpm install cache-manager-redis-yet
+npm install cache-manager-redis-yet
 ```
 
 ## License

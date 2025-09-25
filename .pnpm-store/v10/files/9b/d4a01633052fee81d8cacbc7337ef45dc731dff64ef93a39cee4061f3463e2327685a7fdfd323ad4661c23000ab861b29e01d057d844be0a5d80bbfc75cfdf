@@ -13,7 +13,7 @@ npm install @eslint/object-schema
 # or
 yarn add @eslint/object-schema
 # or
-pnpm install @eslint/object-schema
+npm install @eslint/object-schema
 # or
 bun install @eslint/object-schema
 ```

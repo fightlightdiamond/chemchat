@@ -324,7 +324,7 @@ Please note, this bug fix requires that vue-loader users still using v14 should 
 
 ## v4.3.0
 
-* [Fix dependency resolution when using pnpm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
+* [Fix dependency resolution when using npm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
 * [Add `allowTsInNodeModules` option for importing .ts files from node_modules](https://github.com/TypeStrong/ts-loader/pull/773) - thanks @aelawson!
 
 ## v4.2.0

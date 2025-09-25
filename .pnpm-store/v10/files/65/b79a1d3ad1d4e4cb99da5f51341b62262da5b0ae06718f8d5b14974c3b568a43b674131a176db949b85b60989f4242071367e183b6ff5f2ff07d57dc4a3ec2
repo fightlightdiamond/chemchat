@@ -25,7 +25,7 @@ var import_chunk_IPLRRT6O = require("../chunk-IPLRRT6O.js");
 var import_chunk_7MLUNQIZ = require("../chunk-7MLUNQIZ.js");
 var import_chunk_2ESYSVXG = require("../chunk-2ESYSVXG.js");
 var require_ansi_regex = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/ansi-regex@5.0.1/node_modules/ansi-regex/index.js"(exports, module2) {
+  "../../node_modules/.npm/ansi-regex@5.0.1/node_modules/ansi-regex/index.js"(exports, module2) {
     "use strict";
     module2.exports = ({ onlyFirst = false } = {}) => {
       const pattern = [
@@ -37,7 +37,7 @@ var require_ansi_regex = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_strip_ansi = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/strip-ansi@6.0.1/node_modules/strip-ansi/index.js"(exports, module2) {
+  "../../node_modules/.npm/strip-ansi@6.0.1/node_modules/strip-ansi/index.js"(exports, module2) {
     "use strict";
     var ansiRegex = require_ansi_regex();
     module2.exports = (string) => typeof string === "string" ? string.replace(ansiRegex(), "") : string;

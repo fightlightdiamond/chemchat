@@ -21,7 +21,7 @@ This library exposes an API similar to [`import.meta.resolve`](https://nodejs.or
 Install the package:
 
 ```sh
-# ✨ Auto-detect (npm, yarn, pnpm, bun, deno)
+# ✨ Auto-detect (npm, yarn, npm, bun, deno)
 npx nypm install exsolve
 ```
 
@@ -201,8 +201,8 @@ This allows the resolution fast path to skip reading the closest `package.json` 
 - Clone this repository
 - Install the latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+- Install dependencies using `npm install`
+- Run interactive tests using `npm dev`
 
 </details>
 

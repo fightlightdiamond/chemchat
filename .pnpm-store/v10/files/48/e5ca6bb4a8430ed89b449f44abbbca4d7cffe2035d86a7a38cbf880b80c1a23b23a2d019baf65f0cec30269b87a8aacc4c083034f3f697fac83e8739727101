@@ -51,8 +51,8 @@ npm install c12
 # yarn
 yarn add c12
 
-# pnpm
-pnpm install c12
+# npm
+npm install c12
 
 # bun
 bun install c12
@@ -398,8 +398,8 @@ npm install -D magicast
 # yarn
 yarn add -D magicast
 
-# pnpm
-pnpm install -D magicast
+# npm
+npm install -D magicast
 
 # bun
 bun install -D magicast
@@ -438,8 +438,8 @@ console.log(`Config file ${created ? "created" : "updated"} in ${configFile}`);
 - Clone this repository
 - Install the latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run tests using `pnpm dev` or `pnpm test`
+- Install dependencies using `npm install`
+- Run tests using `npm dev` or `npm test`
 
 </details>
 

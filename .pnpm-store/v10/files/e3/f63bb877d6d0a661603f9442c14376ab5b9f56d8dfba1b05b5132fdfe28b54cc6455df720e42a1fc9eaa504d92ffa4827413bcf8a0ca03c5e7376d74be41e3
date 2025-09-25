@@ -18,8 +18,8 @@
     "dev": "vitest --typecheck",
     "lint": "eslint && prettier -c src test",
     "lint:fix": "automd && eslint --fix . && prettier -w src test",
-    "prepack": "pnpm build",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
+    "prepack": "npm build",
+    "release": "npm test && changelogen --release && npm publish && git push --follow-tags",
     "test": "vitest run --typecheck --coverage"
   },
   "dependencies": {
@@ -41,5 +41,5 @@
     "unbuild": "^3.6.1",
     "vitest": "^3.2.4"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "npm@10.14.0"
 }

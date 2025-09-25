@@ -71,11 +71,11 @@ const answer = await checkbox({
     { name: 'npm', value: 'npm' },
     { name: 'yarn', value: 'yarn' },
     new Separator(),
-    { name: 'pnpm', value: 'pnpm', disabled: true },
+    { name: 'npm', value: 'npm', disabled: true },
     {
-      name: 'pnpm',
-      value: 'pnpm',
-      disabled: '(pnpm is not available)',
+      name: 'npm',
+      value: 'npm',
+      disabled: '(npm is not available)',
     },
   ],
 });

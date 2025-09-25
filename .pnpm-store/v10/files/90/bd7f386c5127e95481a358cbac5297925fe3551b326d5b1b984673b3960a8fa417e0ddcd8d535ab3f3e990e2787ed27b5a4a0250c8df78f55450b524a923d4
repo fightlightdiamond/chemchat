@@ -4,7 +4,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// ../../node_modules/.pnpm/kleur@4.1.5/node_modules/kleur/colors.mjs
+// ../../node_modules/.npm/kleur@4.1.5/node_modules/kleur/colors.mjs
 var colors_exports = {};
 __export(colors_exports, {
   $: () => $,

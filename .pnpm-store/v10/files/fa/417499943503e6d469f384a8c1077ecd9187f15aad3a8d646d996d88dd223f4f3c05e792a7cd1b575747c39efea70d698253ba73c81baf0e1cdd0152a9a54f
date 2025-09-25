@@ -70,7 +70,7 @@ const answer = await rawlist({
   choices: [
     { name: 'npm', value: 'npm' },
     { name: 'yarn', value: 'yarn' },
-    { name: 'pnpm', value: 'pnpm' },
+    { name: 'npm', value: 'npm' },
   ],
 });
 ```

@@ -20,7 +20,7 @@ npm run dev:status
 
 - **Docker Desktop**: Required for running all services
 - **Node.js 20+**: For local development and scripts
-- **pnpm**: Package manager (`npm install -g pnpm`)
+- **npm**: Package manager (`npm install -g npm`)
 
 ## Development Services
 

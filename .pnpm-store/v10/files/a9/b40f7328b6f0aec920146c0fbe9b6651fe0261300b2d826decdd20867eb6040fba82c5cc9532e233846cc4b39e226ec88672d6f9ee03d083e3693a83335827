@@ -312,7 +312,7 @@ function getPostInstallTrigger() {
   npm_config_argv: '{"remain":[],"cooked":["add"],"original":["add","../test"]}'
   ```
 
-  Other package managers like `pnpm` have not been tested.
+  Other package managers like `npm` have not been tested.
   */
 
   const maybe_npm_config_argv_string = process.env.npm_config_argv
@@ -377,7 +377,7 @@ function parsePackageManagerName(userAgent) {
 
   // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
   // References:
-  // - https://pnpm.io/only-allow-pnpm
+  // - https://npm.io/only-allow-npm
   // - https://github.com/cameronhunter/npm-config-user-agent-parser
   if (userAgent) {
     const matchResult = userAgent.match(/^([^/]+)\/.+/)

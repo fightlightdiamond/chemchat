@@ -50,7 +50,7 @@ var import_fs = __toESM(require("fs"));
 var import_path = __toESM(require("path"));
 var import_util = require("util");
 var require_windows = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports, module2) {
+  "../../node_modules/.npm/isexe@2.0.0/node_modules/isexe/windows.js"(exports, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -89,7 +89,7 @@ var require_windows = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_mode = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports, module2) {
+  "../../node_modules/.npm/isexe@2.0.0/node_modules/isexe/mode.js"(exports, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -121,7 +121,7 @@ var require_mode = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_isexe = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports, module2) {
+  "../../node_modules/.npm/isexe@2.0.0/node_modules/isexe/index.js"(exports, module2) {
     "use strict";
     var fs2 = (0, import_chunk_QGM4M3NI.__require)("fs");
     var core;
@@ -175,7 +175,7 @@ var require_isexe = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_which = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports, module2) {
+  "../../node_modules/.npm/which@2.0.2/node_modules/which/which.js"(exports, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
     var path2 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -270,7 +270,7 @@ var require_which = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_path_key = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports, module2) {
+  "../../node_modules/.npm/path-key@3.1.1/node_modules/path-key/index.js"(exports, module2) {
     "use strict";
     var pathKey = (options = {}) => {
       const environment = options.env || process.env;
@@ -285,7 +285,7 @@ var require_path_key = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_resolveCommand = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module2) {
     "use strict";
     var path2 = (0, import_chunk_QGM4M3NI.__require)("path");
     var which = require_which();
@@ -325,7 +325,7 @@ var require_resolveCommand = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_escape = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/escape.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/escape.js"(exports, module2) {
     "use strict";
     var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
     function escapeCommand(arg) {
@@ -348,13 +348,13 @@ var require_escape = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_shebang_regex = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports, module2) {
+  "../../node_modules/.npm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports, module2) {
     "use strict";
     module2.exports = /^#!(.*)/;
   }
 });
 var require_shebang_command = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports, module2) {
+  "../../node_modules/.npm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports, module2) {
     "use strict";
     var shebangRegex = require_shebang_regex();
     module2.exports = (string = "") => {
@@ -372,7 +372,7 @@ var require_shebang_command = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_readShebang = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/readShebang.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/util/readShebang.js"(exports, module2) {
     "use strict";
     var fs2 = (0, import_chunk_QGM4M3NI.__require)("fs");
     var shebangCommand = require_shebang_command();
@@ -392,7 +392,7 @@ var require_readShebang = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_parse = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/parse.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/parse.js"(exports, module2) {
     "use strict";
     var path2 = (0, import_chunk_QGM4M3NI.__require)("path");
     var resolveCommand = require_resolveCommand();
@@ -452,7 +452,7 @@ var require_parse = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_enoent = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/enoent.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/lib/enoent.js"(exports, module2) {
     "use strict";
     var isWin = process.platform === "win32";
     function notFoundError(original, syscall) {
@@ -500,7 +500,7 @@ var require_enoent = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_cross_spawn = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/index.js"(exports, module2) {
+  "../../node_modules/.npm/cross-spawn@7.0.3/node_modules/cross-spawn/index.js"(exports, module2) {
     "use strict";
     var cp = (0, import_chunk_QGM4M3NI.__require)("child_process");
     var parse = require_parse();
@@ -525,7 +525,7 @@ var require_cross_spawn = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_strip_final_newline = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/strip-final-newline@2.0.0/node_modules/strip-final-newline/index.js"(exports, module2) {
+  "../../node_modules/.npm/strip-final-newline@2.0.0/node_modules/strip-final-newline/index.js"(exports, module2) {
     "use strict";
     module2.exports = (input) => {
       const LF = typeof input === "string" ? "\n" : "\n".charCodeAt();
@@ -541,7 +541,7 @@ var require_strip_final_newline = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_npm_run_path = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/npm-run-path@4.0.1/node_modules/npm-run-path/index.js"(exports, module2) {
+  "../../node_modules/.npm/npm-run-path@4.0.1/node_modules/npm-run-path/index.js"(exports, module2) {
     "use strict";
     var path2 = (0, import_chunk_QGM4M3NI.__require)("path");
     var pathKey = require_path_key();
@@ -580,7 +580,7 @@ var require_npm_run_path = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_mimic_fn = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/mimic-fn@2.1.0/node_modules/mimic-fn/index.js"(exports, module2) {
+  "../../node_modules/.npm/mimic-fn@2.1.0/node_modules/mimic-fn/index.js"(exports, module2) {
     "use strict";
     var mimicFn = (to, from) => {
       for (const prop of Reflect.ownKeys(from)) {
@@ -593,7 +593,7 @@ var require_mimic_fn = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_onetime = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/onetime@5.1.2/node_modules/onetime/index.js"(exports, module2) {
+  "../../node_modules/.npm/onetime@5.1.2/node_modules/onetime/index.js"(exports, module2) {
     "use strict";
     var mimicFn = require_mimic_fn();
     var calledFunctions = /* @__PURE__ */ new WeakMap();
@@ -629,7 +629,7 @@ var require_onetime = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_core = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/core.js"(exports) {
+  "../../node_modules/.npm/human-signals@2.1.0/node_modules/human-signals/build/src/core.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SIGNALS = void 0;
@@ -908,7 +908,7 @@ var require_core = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_realtime = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/realtime.js"(exports) {
+  "../../node_modules/.npm/human-signals@2.1.0/node_modules/human-signals/build/src/realtime.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SIGRTMAX = exports.getRealtimeSignals = void 0;
@@ -932,7 +932,7 @@ var require_realtime = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_signals = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/signals.js"(exports) {
+  "../../node_modules/.npm/human-signals@2.1.0/node_modules/human-signals/build/src/signals.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getSignals = void 0;
@@ -963,7 +963,7 @@ var require_signals = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_main = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/human-signals@2.1.0/node_modules/human-signals/build/src/main.js"(exports) {
+  "../../node_modules/.npm/human-signals@2.1.0/node_modules/human-signals/build/src/main.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.signalsByNumber = exports.signalsByName = void 0;
@@ -1018,7 +1018,7 @@ var require_main = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_error = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/error.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/error.js"(exports, module2) {
     "use strict";
     var { signalsByName } = require_main();
     var getErrorPrefix = ({ timedOut, timeout, errorCode, signal, signalDescription, exitCode, isCanceled }) => {
@@ -1093,7 +1093,7 @@ ${error.message}` : execaMessage;
   }
 });
 var require_stdio = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stdio.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/stdio.js"(exports, module2) {
     "use strict";
     var aliases = ["stdin", "stdout", "stderr"];
     var hasAlias = (options) => aliases.some((alias) => options[alias] !== void 0);
@@ -1134,7 +1134,7 @@ var require_stdio = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_signals2 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/signals.js"(exports, module2) {
+  "../../node_modules/.npm/signal-exit@3.0.7/node_modules/signal-exit/signals.js"(exports, module2) {
     "use strict";
     module2.exports = [
       "SIGABRT",
@@ -1170,7 +1170,7 @@ var require_signals2 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_signal_exit = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/index.js"(exports, module2) {
+  "../../node_modules/.npm/signal-exit@3.0.7/node_modules/signal-exit/index.js"(exports, module2) {
     "use strict";
     var process2 = global.process;
     var processOk = function(process3) {
@@ -1328,7 +1328,7 @@ var require_signal_exit = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_kill = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/kill.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/kill.js"(exports, module2) {
     "use strict";
     var os = (0, import_chunk_QGM4M3NI.__require)("os");
     var onExit = require_signal_exit();
@@ -1416,7 +1416,7 @@ var require_kill = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_buffer_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/buffer-stream.js"(exports, module2) {
+  "../../node_modules/.npm/get-stream@6.0.1/node_modules/get-stream/buffer-stream.js"(exports, module2) {
     "use strict";
     var { PassThrough: PassThroughStream } = (0, import_chunk_QGM4M3NI.__require)("stream");
     module2.exports = (options) => {
@@ -1459,7 +1459,7 @@ var require_buffer_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_get_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/index.js"(exports, module2) {
+  "../../node_modules/.npm/get-stream@6.0.1/node_modules/get-stream/index.js"(exports, module2) {
     "use strict";
     var { constants: BufferConstants } = (0, import_chunk_QGM4M3NI.__require)("buffer");
     var stream = (0, import_chunk_QGM4M3NI.__require)("stream");
@@ -1512,7 +1512,7 @@ var require_get_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_merge_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/merge-stream@2.0.0/node_modules/merge-stream/index.js"(exports, module2) {
+  "../../node_modules/.npm/merge-stream@2.0.0/node_modules/merge-stream/index.js"(exports, module2) {
     "use strict";
     var { PassThrough } = (0, import_chunk_QGM4M3NI.__require)("stream");
     module2.exports = function() {
@@ -1550,7 +1550,7 @@ var require_merge_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/stream.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/stream.js"(exports, module2) {
     "use strict";
     var isStream = (0, import_chunk_NA32AGOU.require_is_stream)();
     var getStream = require_get_stream();
@@ -1627,7 +1627,7 @@ var require_stream = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_promise = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/promise.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/promise.js"(exports, module2) {
     "use strict";
     var nativePromisePrototype = (async () => {
     })().constructor.prototype;
@@ -1664,7 +1664,7 @@ var require_promise = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_command = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/command.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/lib/command.js"(exports, module2) {
     "use strict";
     var normalizeArgs = (file, args = []) => {
       if (!Array.isArray(args)) {
@@ -1707,7 +1707,7 @@ var require_command = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_execa = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/execa@5.1.1/node_modules/execa/index.js"(exports, module2) {
+  "../../node_modules/.npm/execa@5.1.1/node_modules/execa/index.js"(exports, module2) {
     "use strict";
     var path2 = (0, import_chunk_QGM4M3NI.__require)("path");
     var childProcess = (0, import_chunk_QGM4M3NI.__require)("child_process");
@@ -1986,7 +1986,7 @@ var require_package = (0, import_chunk_QGM4M3NI.__commonJS)({
         dev: "DEV=true tsx helpers/build.ts",
         build: "tsx helpers/build.ts",
         test: "jest",
-        prepublishOnly: "pnpm run build"
+        prepublishOnly: "npm run build"
       },
       files: [
         "README.md",

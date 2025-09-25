@@ -40,8 +40,8 @@ For more details, please refer to the following issues:
 ### Install
 
 ```sh
-# pnpm
-pnpm add napi-postinstall
+# npm
+npm add napi-postinstall
 
 # yarn
 yarn add napi-postinstall

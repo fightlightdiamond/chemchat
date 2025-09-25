@@ -19,7 +19,7 @@ Simple object hashing, serialization and comparison utils.
 Install [`ohash`](https://www.npmjs.com/package/ohash):
 
 ```sh
-# ✨ Auto-detect (npm, yarn, pnpm, bun or deno)
+# ✨ Auto-detect (npm, yarn, npm, bun or deno)
 npx nypm i ohash
 ```
 
@@ -137,8 +137,8 @@ console.log(diff(obj1, obj2));
 
 - Clone this repository
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+- Install dependencies using `npm install`
+- Run interactive tests using `npm dev`
 
 ## License
 

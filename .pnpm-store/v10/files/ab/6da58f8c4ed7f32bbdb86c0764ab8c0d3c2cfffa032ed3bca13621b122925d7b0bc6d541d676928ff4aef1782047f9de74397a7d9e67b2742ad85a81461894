@@ -21,7 +21,7 @@ Note that this config _only_ turns rules _off,_ so it only makes sense using it 
    ```
 
    ```shell
-   pnpm add -D eslint-config-prettier
+   npm add -D eslint-config-prettier
    ```
 
    ```shell

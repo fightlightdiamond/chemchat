@@ -8,15 +8,15 @@
 
 <!-- /automd -->
 
-🌈 Unified Package Manager for Node.js (npm, pnpm, yarn), Bun and Deno.
+🌈 Unified Package Manager for Node.js (npm, npm, yarn), Bun and Deno.
 
-✅ Supports [npm](https://docs.npmjs.com/cli/v10/commands/npm), [yarn](https://yarnpkg.com/), [pnpm](https://pnpm.io/), [bun](https://bun.sh/package-manager) and [deno](https://deno.com/) out of the box with a unified API.
+✅ Supports [npm](https://docs.npmjs.com/cli/v10/commands/npm), [yarn](https://yarnpkg.com/), [npm](https://npm.io/), [bun](https://bun.sh/package-manager) and [deno](https://deno.com/) out of the box with a unified API.
 
 ✅ Provides an **API interface** to interact with package managers.
 
 ✅ **Autodetects** project's package manager using `package.json` and known lockfiles.
 
-✅ **[corepack](https://github.com/nodejs/corepack)** integration for **pnpm** and **yarn**.
+✅ **[corepack](https://github.com/nodejs/corepack)** integration for **npm** and **yarn**.
 
 ## `nypm` command
 
@@ -54,8 +54,8 @@ npm install nypm
 # yarn
 yarn add nypm
 
-# pnpm
-pnpm install nypm
+# npm
+npm install nypm
 
 # bun
 bun install nypm
@@ -135,8 +135,8 @@ Get the command to download and execute a package with the package manager.
 - Clone this repository
 - Play [Nyan Cat](https://www.nyan.cat/) in the background (really important!)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+- Install dependencies using `npm install`
+- Run interactive tests using `npm dev`
 
 ## Related Projects
 

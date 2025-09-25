@@ -13,7 +13,7 @@ npm install @eslint/eslintrc -D
 # or
 yarn add @eslint/eslintrc -D
 # or
-pnpm install @eslint/eslintrc -D
+npm install @eslint/eslintrc -D
 # or
 bun install @eslint/eslintrc -D
 ```

@@ -221,7 +221,7 @@ start_application() {
     print_status "Application will be available at http://localhost:3000"
     print_status "Press Ctrl+C to stop the application"
     
-    pnpm run start:dev
+    npm run start:dev
 }
 
 # Show service URLs

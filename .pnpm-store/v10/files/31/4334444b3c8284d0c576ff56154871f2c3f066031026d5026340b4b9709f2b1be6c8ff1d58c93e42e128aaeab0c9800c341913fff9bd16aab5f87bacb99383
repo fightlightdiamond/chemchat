@@ -28,8 +28,8 @@ npm install citty
 # yarn
 yarn add citty
 
-# pnpm
-pnpm install citty
+# npm
+npm install citty
 ```
 
 Import:
@@ -107,8 +107,8 @@ Renders usage and prints to the console
 - Clone this repository
 - Install latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+- Install dependencies using `npm install`
+- Run interactive tests using `npm dev`
 
 ## License
 

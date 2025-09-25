@@ -1,17 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PnpmPackageManager = void 0;
+exports.npmPackageManager = void 0;
 const runners_1 = require("../runners");
 const abstract_package_manager_1 = require("./abstract.package-manager");
 const package_manager_1 = require("./package-manager");
-class PnpmPackageManager extends abstract_package_manager_1.AbstractPackageManager {
+class npmPackageManager extends abstract_package_manager_1.AbstractPackageManager {
     constructor() {
-        super(runners_1.RunnerFactory.create(runners_1.Runner.PNPM));
+        super(runners_1.RunnerFactory.create(runners_1.Runner.npm));
     }
     get name() {
-        return package_manager_1.PackageManager.PNPM.toUpperCase();
+        return package_manager_1.PackageManager.npm.toUpperCase();
     }
-    // As of PNPM v5.3, all commands are shared with NPM v6.14.5. See: https://pnpm.js.org/en/pnpm-vs-npm
+    // As of npm v5.3, all commands are shared with NPM v6.14.5. See: https://npm.js.org/en/npm-vs-npm
     get cli() {
         return {
             install: 'install --strict-peer-dependencies=false',
@@ -24,4 +24,4 @@ class PnpmPackageManager extends abstract_package_manager_1.AbstractPackageManag
         };
     }
 }
-exports.PnpmPackageManager = PnpmPackageManager;
+exports.npmPackageManager = npmPackageManager;

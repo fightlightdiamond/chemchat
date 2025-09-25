@@ -21,14 +21,14 @@
     "lib"
   ],
   "scripts": {
-    "bench:bun": "pnpm build && bun --bun ./test/bench.mjs",
-    "bench:node": "pnpm build && node ./test/bench.mjs",
+    "bench:bun": "npm build && bun --bun ./test/bench.mjs",
+    "bench:node": "npm build && node ./test/bench.mjs",
     "build": "unbuild",
     "dev": "vitest dev",
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
-    "release": "pnpm test && pnpm build && changelogen --release --push && npm publish",
-    "test": "pnpm lint && vitest run --coverage"
+    "release": "npm test && npm build && changelogen --release --push && npm publish",
+    "test": "npm lint && vitest run --coverage"
   },
   "devDependencies": {
     "@hapi/bourne": "^3.0.0",
@@ -43,5 +43,5 @@
     "unbuild": "~3.4",
     "vitest": "^3.1.1"
   },
-  "packageManager": "pnpm@10.7.1"
+  "packageManager": "npm@10.7.1"
 }

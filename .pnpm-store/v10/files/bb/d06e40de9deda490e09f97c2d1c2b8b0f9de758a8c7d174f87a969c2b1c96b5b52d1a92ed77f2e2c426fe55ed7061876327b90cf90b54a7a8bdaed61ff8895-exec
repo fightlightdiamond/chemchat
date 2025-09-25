@@ -20,6 +20,6 @@ export declare enum PackageManager {
     Bun = "bun",
     Cnpm = "cnpm",
     Npm = "npm",
-    Pnpm = "pnpm",
+    npm = "npm",
     Yarn = "yarn"
 }

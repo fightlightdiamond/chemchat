@@ -54,8 +54,8 @@
     "dev": "vitest",
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
-    "release": "pnpm test && pnpm build && changelogen --release && pnpm publish && git push --follow-tags",
-    "test": "pnpm lint && vitest run --coverage",
+    "release": "npm test && npm build && changelogen --release && npm publish && git push --follow-tags",
+    "test": "npm lint && vitest run --coverage",
     "test:types": "tsc --noEmit"
   }
 }

@@ -43,7 +43,7 @@ function inferSingleRun(options) {
     if (!options.disallowAutomaticSingleRunInference) {
         const possibleEslintBinPaths = [
             'node_modules/.bin/eslint', // npm or yarn repo
-            'node_modules/eslint/bin/eslint.js', // pnpm repo
+            'node_modules/eslint/bin/eslint.js', // npm repo
         ];
         if (
         // Default to single runs for CI processes. CI=true is set by most CI providers by default.

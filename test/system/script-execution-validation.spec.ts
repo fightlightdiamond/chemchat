@@ -22,7 +22,7 @@ describe('Script Execution Validation', () => {
   describe('Build and Compilation Scripts', () => {
     it('should execute lint script successfully', async () => {
       expect(() => {
-        execSync('pnpm run lint', {
+        execSync('npm run lint', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -32,7 +32,7 @@ describe('Script Execution Validation', () => {
 
     it('should execute build script successfully', async () => {
       expect(() => {
-        execSync('pnpm run build', {
+        execSync('npm run build', {
           stdio: 'pipe',
           timeout: 120000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -42,7 +42,7 @@ describe('Script Execution Validation', () => {
 
     it('should execute prisma generate successfully', async () => {
       expect(() => {
-        execSync('pnpm run prisma:generate', {
+        execSync('npm run prisma:generate', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -78,7 +78,7 @@ describe('Script Execution Validation', () => {
 
     it('should execute db:validate script successfully', async () => {
       expect(() => {
-        execSync('pnpm run db:validate', {
+        execSync('npm run db:validate', {
           stdio: 'pipe',
           timeout: 30000,
           env: {
@@ -120,7 +120,7 @@ describe('Script Execution Validation', () => {
 
     it('should execute test:unit script successfully', async () => {
       expect(() => {
-        execSync('pnpm run test:unit -- --passWithNoTests', {
+        execSync('npm run test:unit -- --passWithNoTests', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -155,7 +155,7 @@ describe('Script Execution Validation', () => {
   describe('CI-specific Script Validation', () => {
     it('should execute format script successfully', async () => {
       expect(() => {
-        execSync('pnpm run format', {
+        execSync('npm run format', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -219,9 +219,9 @@ describe('Script Execution Validation', () => {
       }
     });
 
-    it('should have proper Node.js and pnpm engine requirements', () => {
+    it('should have proper Node.js and npm engine requirements', () => {
       expect(packageJson.engines.node).toBe('>=20.0.0');
-      expect(packageJson.engines.pnpm).toBe('>=8.0.0');
+      expect(packageJson.engines.npm).toBe('>=8.0.0');
     });
   });
 
@@ -232,7 +232,7 @@ describe('Script Execution Validation', () => {
       delete process.env.NODE_ENV;
 
       expect(() => {
-        execSync('pnpm run lint', {
+        execSync('npm run lint', {
           stdio: 'pipe',
           timeout: 30000,
         });

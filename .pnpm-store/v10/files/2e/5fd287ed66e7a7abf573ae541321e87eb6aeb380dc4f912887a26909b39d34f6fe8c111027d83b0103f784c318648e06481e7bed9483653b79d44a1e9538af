@@ -69,9 +69,9 @@
   "scripts": {
     "clean": "rimraf ./dist ./coverage ./node_modules",
     "lint": "biome check --write --error-on-warnings",
-    "test": "pnpm lint && vitest run --coverage",
+    "test": "npm lint && vitest run --coverage",
     "test:ci": "biome check --error-on-warnings && vitest run --coverage",
     "build": "rimraf ./dist && tsup src/index.ts --format cjs,esm --dts --clean",
-    "prepublish": "pnpm run build"
+    "prepublish": "npm run build"
   }
 }

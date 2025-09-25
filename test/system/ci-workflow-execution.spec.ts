@@ -71,9 +71,9 @@ describe('CI Workflow Execution Validation', () => {
         execSync('git rev-parse --git-dir', { stdio: 'pipe' });
       }).not.toThrow();
 
-      // Verify pnpm is available
+      // Verify npm is available
       expect(() => {
-        execSync('pnpm --version', { stdio: 'pipe' });
+        execSync('npm --version', { stdio: 'pipe' });
       }).not.toThrow();
 
       // Verify Node.js version
@@ -85,7 +85,7 @@ describe('CI Workflow Execution Validation', () => {
 
     it('should simulate dependency installation step', async () => {
       expect(() => {
-        execSync('pnpm install --frozen-lockfile', {
+        execSync('npm install --frozen-lockfile', {
           stdio: 'pipe',
           timeout: 120000,
           env: { ...process.env, ...testEnv },
@@ -95,7 +95,7 @@ describe('CI Workflow Execution Validation', () => {
 
     it('should simulate lint step execution', async () => {
       expect(() => {
-        execSync('pnpm run lint', {
+        execSync('npm run lint', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, ...testEnv },
@@ -105,7 +105,7 @@ describe('CI Workflow Execution Validation', () => {
 
     it('should simulate type check step execution', async () => {
       expect(() => {
-        execSync('pnpm run build', {
+        execSync('npm run build', {
           stdio: 'pipe',
           timeout: 120000,
           env: { ...process.env, ...testEnv },
@@ -130,7 +130,7 @@ describe('CI Workflow Execution Validation', () => {
 
     it('should simulate unit test execution', async () => {
       expect(() => {
-        execSync('pnpm run test:unit -- --passWithNoTests', {
+        execSync('npm run test:unit -- --passWithNoTests', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, ...testEnv },
@@ -142,7 +142,7 @@ describe('CI Workflow Execution Validation', () => {
   describe('Security Job Execution Simulation', () => {
     it('should simulate security audit execution', async () => {
       expect(() => {
-        execSync('pnpm audit --audit-level high', {
+        execSync('npm audit --audit-level high', {
           stdio: 'pipe',
           timeout: 60000,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -259,7 +259,7 @@ describe('CI Workflow Execution Validation', () => {
 
       const expectedOrder = [
         'Checkout code',
-        'Setup pnpm',
+        'Setup npm',
         'Setup Node.js',
         'Install dependencies',
         'Lint code',

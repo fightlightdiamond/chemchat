@@ -143,7 +143,7 @@ run_validation_tests() {
     print_status $BLUE "🧪 Running workflow validation tests..."
     
     # Run the comprehensive Docker-based integration tests
-    if docker-compose -f docker-compose.workflow-validation.yml exec -T chemchat-workflow-test pnpm run test:workflow; then
+    if docker-compose -f docker-compose.workflow-validation.yml exec -T chemchat-workflow-test npm run test:workflow; then
         print_status $GREEN "✅ Workflow validation tests passed"
     else
         print_status $RED "❌ Workflow validation tests failed"
@@ -156,10 +156,10 @@ run_script_validation() {
     print_status $BLUE "📜 Running script execution validation..."
     
     local scripts=(
-        "pnpm install --frozen-lockfile"
-        "pnpm run lint"
-        "pnpm run prisma:generate"
-        "pnpm run workflow:validate"
+        "npm install --frozen-lockfile"
+        "npm run lint"
+        "npm run prisma:generate"
+        "npm run workflow:validate"
     )
     
     for script in "${scripts[@]}"; do
@@ -182,7 +182,7 @@ run_load_test_validation() {
     
     # Start the application
     print_status $YELLOW "🔄 Starting application for load testing..."
-    docker-compose -f docker-compose.workflow-validation.yml exec -d chemchat-workflow-test pnpm run start:prod
+    docker-compose -f docker-compose.workflow-validation.yml exec -d chemchat-workflow-test npm run start:prod
     
     # Wait for application to start
     sleep 30
@@ -219,14 +219,14 @@ validate_nodejs_consistency() {
         return 1
     fi
     
-    # Check pnpm version
-    local pnpm_version
-    pnpm_version=$(docker-compose -f docker-compose.workflow-validation.yml exec -T chemchat-workflow-test pnpm --version)
+    # Check npm version
+    local npm_version
+    npm_version=$(docker-compose -f docker-compose.workflow-validation.yml exec -T chemchat-workflow-test npm --version)
     
-    if echo "$pnpm_version" | grep -qE "^([8-9]|[1-9][0-9])\."; then
-        print_status $GREEN "✅ pnpm version is correct: $pnpm_version"
+    if echo "$npm_version" | grep -qE "^([8-9]|[1-9][0-9])\."; then
+        print_status $GREEN "✅ npm version is correct: $npm_version"
     else
-        print_status $RED "❌ pnpm version is incorrect: $pnpm_version (expected 8.x or higher)"
+        print_status $RED "❌ npm version is incorrect: $npm_version (expected 8.x or higher)"
         return 1
     fi
 }

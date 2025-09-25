@@ -340,7 +340,7 @@ interface PackageJson {
          */
         access?: "public" | "restricted";
         /**
-         * **pnpm-only**
+         * **npm-only**
          *
          * By default, for portability reasons, no files except those listed in
          * the bin field will be marked as executable in the resulting package
@@ -350,7 +350,7 @@ interface PackageJson {
          */
         executableFiles?: string[];
         /**
-         * **pnpm-only**
+         * **npm-only**
          *
          * You also can use the field `publishConfig.directory` to customize
          * the published subdirectory relative to the current `package.json`.
@@ -360,7 +360,7 @@ interface PackageJson {
          */
         directory?: string;
         /**
-         * **pnpm-only**
+         * **npm-only**
          *
          * When set to `true`, the project will be symlinked from the
          * `publishConfig.directory` location during local development.
@@ -385,11 +385,11 @@ type PackageJsonScriptWithPreAndPost<S extends string> = S | `${"pre" | "post"}$
  */
 type PackageJsonNpmLifeCycleScripts = "dependencies" | "prepublishOnly" | PackageJsonScriptWithPreAndPost<"install" | "pack" | "prepare" | "publish" | "restart" | "start" | "stop" | "test" | "version">;
 /**
- * See: https://pnpm.io/scripts#lifecycle-scripts
+ * See: https://npm.io/scripts#lifecycle-scripts
  */
-type PackageJsonPnpmLifeCycleScripts = "pnpm:devPreinstall";
+type PackageJsonnpmLifeCycleScripts = "npm:devPreinstall";
 type PackageJsonCommonScripts = "build" | "coverage" | "deploy" | "dev" | "format" | "lint" | "preview" | "release" | "typecheck" | "watch";
-type PackageJsonScriptName = PackageJsonCommonScripts | PackageJsonNpmLifeCycleScripts | PackageJsonPnpmLifeCycleScripts | (string & {});
+type PackageJsonScriptName = PackageJsonCommonScripts | PackageJsonNpmLifeCycleScripts | PackageJsonnpmLifeCycleScripts | (string & {});
 type PackageJsonScripts = {
     [P in PackageJsonScriptName]?: string;
 };

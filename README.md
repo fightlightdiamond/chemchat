@@ -296,7 +296,7 @@ chemchat/
 
 ### Prerequisites
 
-- **Node.js 20+** and **pnpm**
+- **Node.js 20+** and **npm**
 - **Docker** and **Docker Compose**
 - **Git**
 
@@ -308,7 +308,7 @@ git clone <repository-url>
 cd chemchat
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Copy environment configuration
 cp .env.example .env
@@ -327,19 +327,19 @@ make dev-watch
 
 ```bash
 # Install dependencies
-pnpm install
+npm install
 
 # Generate Prisma client
-pnpm prisma generate
+npm prisma generate
 
 # Start infrastructure services
 docker-compose up -d postgres redis elasticsearch kafka
 
 # Run database migrations
-pnpm prisma migrate dev
+npm prisma migrate dev
 
 # Start the application
-pnpm start:dev
+npm start:dev
 ```
 
 ### Environment Configuration
@@ -648,13 +648,13 @@ CREATE TABLE tenant_quotas (
 
 ```bash
 # Create new migration
-pnpm prisma migrate dev --name add_new_feature
+npm prisma migrate dev --name add_new_feature
 
 # Apply migrations
-pnpm prisma migrate deploy
+npm prisma migrate deploy
 
 # Reset database (development only)
-pnpm prisma migrate reset
+npm prisma migrate reset
 ```
 
 ### Performance Optimizations

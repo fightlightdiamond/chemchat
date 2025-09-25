@@ -13,7 +13,7 @@ This feature addresses compatibility issues between the existing GitHub workflow
 #### Acceptance Criteria
 
 1. WHEN the CI workflow runs THEN all package.json scripts referenced in the workflow SHALL exist and execute successfully
-2. WHEN the CI workflow installs dependencies THEN it SHALL use the correct package manager (pnpm) consistently throughout all jobs
+2. WHEN the CI workflow installs dependencies THEN it SHALL use the correct package manager (npm) consistently throughout all jobs
 3. WHEN the CI workflow runs database operations THEN the migrate:reset and db:seed scripts SHALL be available and functional
 4. WHEN the CI workflow runs tests THEN all test configurations SHALL be properly set up with correct paths and coverage settings
 
@@ -33,7 +33,7 @@ This feature addresses compatibility issues between the existing GitHub workflow
 
 #### Acceptance Criteria
 
-1. WHEN the security workflow runs dependency scans THEN it SHALL use pnpm instead of npm for consistency
+1. WHEN the security workflow runs dependency scans THEN it SHALL use npm instead of npm for consistency
 2. WHEN the security workflow installs dependencies THEN it SHALL use the same lockfile and installation method as other workflows
 3. WHEN security scans complete THEN they SHALL generate proper reports without installation errors
 

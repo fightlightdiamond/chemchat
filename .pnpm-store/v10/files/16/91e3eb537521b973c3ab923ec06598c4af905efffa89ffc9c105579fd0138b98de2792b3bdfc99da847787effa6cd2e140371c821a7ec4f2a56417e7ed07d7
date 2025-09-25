@@ -38,8 +38,8 @@ your open source software supply chain meets enterprise standards now and into t
 # Install with npm
 npm install deepmerge-ts
 
-# Install with pnpm
-pnpm add deepmerge-ts
+# Install with npm
+npm add deepmerge-ts
 
 # Install with yarn
 yarn add deepmerge-ts

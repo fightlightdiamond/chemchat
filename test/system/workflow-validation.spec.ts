@@ -134,37 +134,37 @@ describe('Workflow Validation', () => {
       ).toBe('${{ env.NODE_VERSION }}');
     });
 
-    it('should have consistent pnpm usage across workflows', () => {
-      // Check CI workflow uses pnpm consistently
+    it('should have consistent npm usage across workflows', () => {
+      // Check CI workflow uses npm consistently
       const ciSteps = ciWorkflow.jobs.test.steps;
       const installStep = ciSteps.find(
         (step: any) => step.name === 'Install dependencies',
       );
-      expect(installStep.run).toBe('pnpm install --frozen-lockfile');
+      expect(installStep.run).toBe('npm install --frozen-lockfile');
 
-      // Check security workflow uses pnpm
+      // Check security workflow uses npm
       const securitySteps = ciWorkflow.jobs.security.steps;
       const securityInstallStep = securitySteps.find(
         (step: any) => step.name === 'Install dependencies',
       );
-      expect(securityInstallStep.run).toBe('pnpm install --frozen-lockfile');
+      expect(securityInstallStep.run).toBe('npm install --frozen-lockfile');
 
-      // Check all pnpm setup steps are present
-      const pnpmSetupSteps = ciSteps.filter(
-        (step: any) => step.name === 'Setup pnpm',
+      // Check all npm setup steps are present
+      const npmSetupSteps = ciSteps.filter(
+        (step: any) => step.name === 'Setup npm',
       );
-      expect(pnpmSetupSteps).toHaveLength(1);
-      expect(pnpmSetupSteps[0].with.version).toBe('8');
+      expect(npmSetupSteps).toHaveLength(1);
+      expect(npmSetupSteps[0].with.version).toBe('8');
     });
 
-    it('should have proper cache configuration for pnpm', () => {
+    it('should have proper cache configuration for npm', () => {
       const nodeSetupSteps = [
         ...ciWorkflow.jobs.test.steps,
         ...ciWorkflow.jobs.security.steps,
       ].filter((step: any) => step.name === 'Setup Node.js');
 
       for (const step of nodeSetupSteps) {
-        expect(step.with.cache).toBe('pnpm');
+        expect(step.with.cache).toBe('npm');
       }
     });
   });
@@ -200,7 +200,7 @@ describe('Workflow Validation', () => {
 
       const expectedOrder = [
         'Checkout code',
-        'Setup pnpm',
+        'Setup npm',
         'Setup Node.js',
         'Install dependencies',
         'Lint code',
@@ -307,11 +307,11 @@ describe('Workflow Validation', () => {
       expect(dockerfile).toContain('FROM base AS runner');
     });
 
-    it('should use pnpm consistently in Docker', () => {
-      expect(dockerfile).toContain('npm install -g pnpm');
-      expect(dockerfile).toContain('pnpm install --frozen-lockfile');
-      expect(dockerfile).toContain('pnpm exec prisma generate');
-      expect(dockerfile).toContain('pnpm run build');
+    it('should use npm consistently in Docker', () => {
+      expect(dockerfile).toContain('npm install -g npm');
+      expect(dockerfile).toContain('npm install --frozen-lockfile');
+      expect(dockerfile).toContain('npm exec prisma generate');
+      expect(dockerfile).toContain('npm run build');
     });
 
     it('should have proper health check configured', () => {

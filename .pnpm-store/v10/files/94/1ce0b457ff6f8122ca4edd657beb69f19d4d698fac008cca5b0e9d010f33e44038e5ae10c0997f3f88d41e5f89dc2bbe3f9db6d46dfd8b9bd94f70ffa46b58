@@ -48,17 +48,17 @@
     "register.cjs"
   ],
   "scripts": {
-    "build": "pnpm clean && NODE_ENV=production pnpm webpack",
+    "build": "npm clean && NODE_ENV=production npm webpack",
     "clean": "rm -rf dist",
-    "dev": "pnpm clean && pnpm webpack --watch",
+    "dev": "npm clean && npm webpack --watch",
     "jiti": "JITI_DEBUG=1 JITI_JSX=1 lib/jiti-cli.mjs",
     "lint": "eslint . && prettier -c src lib test stubs",
     "lint:fix": "eslint --fix . && prettier -w src lib test stubs",
-    "prepack": "pnpm build",
-    "release": "pnpm build && pnpm test && changelogen --release --push --publish",
-    "test": "pnpm lint && pnpm test:types && vitest run --coverage && pnpm test:node-register && pnpm test:bun && pnpm test:native",
+    "prepack": "npm build",
+    "release": "npm build && npm test && changelogen --release --push --publish",
+    "test": "npm lint && npm test:types && vitest run --coverage && npm test:node-register && npm test:bun && npm test:native",
     "test:bun": "bun --bun test test/bun",
-    "test:native": "pnpm test:native:bun && pnpm test:native:node && pnpm test:native:deno",
+    "test:native": "npm test:native:bun && npm test:native:node && npm test:native:deno",
     "test:native:bun": "bun --bun test test/native/bun.test.ts",
     "test:native:deno": "deno test -A --no-check test/native/deno.test.ts",
     "test:native:node": "node --test --experimental-strip-types test/native/node.test.ts",
@@ -130,5 +130,5 @@
     "yoctocolors": "^2.1.1",
     "zod": "^4.0.5"
   },
-  "packageManager": "pnpm@10.6.1"
+  "packageManager": "npm@10.6.1"
 }

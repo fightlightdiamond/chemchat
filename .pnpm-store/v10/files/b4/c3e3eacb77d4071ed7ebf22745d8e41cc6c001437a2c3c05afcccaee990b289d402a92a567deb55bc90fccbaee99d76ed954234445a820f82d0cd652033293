@@ -20,7 +20,7 @@ npm install @humanfs/node
 
 # or
 
-pnpm install @humanfs/node
+npm install @humanfs/node
 
 # or
 

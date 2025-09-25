@@ -144,6 +144,6 @@
     "integration-test": "vitest -c vitest.it-config.ts",
     "cypress": "cypress",
     "release": "commit-and-tag-version --commit-all",
-    "preflight": "pnpm install && run-s generate format lint build test:update-snapshots ts-check"
+    "preflight": "npm install && run-s generate format lint build test:update-snapshots ts-check"
   }
 }

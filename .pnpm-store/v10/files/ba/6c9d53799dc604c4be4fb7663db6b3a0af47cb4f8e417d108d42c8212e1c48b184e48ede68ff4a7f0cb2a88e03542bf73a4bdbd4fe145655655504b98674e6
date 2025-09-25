@@ -36,8 +36,8 @@ npm install confbox
 # yarn
 yarn add confbox
 
-# pnpm
-pnpm install confbox
+# npm
+npm install confbox
 
 # bun
 bun install confbox
@@ -152,7 +152,7 @@ Converts a JavaScript value to a [YAML](https://yaml.org/) string.
 
 <!-- /automd -->
 
-<!-- automd:fetch url="gh:unjs/.github/main/snippets/readme-contrib-node-pnpm.md" -->
+<!-- automd:fetch url="gh:unjs/.github/main/snippets/readme-contrib-node-npm.md" -->
 
 ## Contribution
 
@@ -162,8 +162,8 @@ Converts a JavaScript value to a [YAML](https://yaml.org/) string.
 - Clone this repository
 - Install the latest LTS version of [Node.js](https://nodejs.org/en/)
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run tests using `pnpm dev` or `pnpm test`
+- Install dependencies using `npm install`
+- Run tests using `npm dev` or `npm test`
 
 </details>
 

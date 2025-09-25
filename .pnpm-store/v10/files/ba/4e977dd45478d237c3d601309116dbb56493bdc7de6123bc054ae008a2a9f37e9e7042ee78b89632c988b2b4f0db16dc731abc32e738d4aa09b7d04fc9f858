@@ -98,9 +98,9 @@
       "optional": true
     }
   },
-  "packageManager": "pnpm@8.7.0",
+  "packageManager": "npm@8.7.0",
   "scripts": {
-    "build": "pnpm build:legacy && pnpm build:modern && pnpm build:types",
+    "build": "npm build:legacy && npm build:modern && npm build:types",
     "build:legacy": "BABEL_ENV=legacy babel src/dedent.ts --out-file dist/dedent.js",
     "build:modern": "BABEL_ENV=modern babel src/dedent.ts --out-file dist/dedent.mjs",
     "build:types": "tsup src/dedent.ts --dts-only",
@@ -109,7 +109,7 @@
     "lint:knip": "knip",
     "lint:md": "markdownlint \"**/*.md\" \".github/**/*.md\"",
     "lint:package-json": "npmPkgJsonLint .",
-    "lint:packages": "pnpm dedupe --check",
+    "lint:packages": "npm dedupe --check",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
     "should-semantic-release": "should-semantic-release --verbose",
     "test": "jest",

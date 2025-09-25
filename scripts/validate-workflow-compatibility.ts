@@ -237,12 +237,12 @@ class WorkflowValidator {
     }
   }
 
-  public validatePnpmConsistency(): void {
-    console.log('🔍 Validating pnpm Consistency...');
+  public validatenpmConsistency(): void {
+    console.log('🔍 Validating npm Consistency...');
 
-    // Check CI workflow uses pnpm
+    // Check CI workflow uses npm
     const jobs = Object.values(this.ciWorkflow.jobs) as any[];
-    let pnpmUsageCorrect = true;
+    let npmUsageCorrect = true;
 
     for (const job of jobs) {
       if (job.steps) {
@@ -251,10 +251,10 @@ class WorkflowValidator {
         );
 
         for (const step of installSteps) {
-          if (step.run !== 'pnpm install --frozen-lockfile') {
-            pnpmUsageCorrect = false;
+          if (step.run !== 'npm install --frozen-lockfile') {
+            npmUsageCorrect = false;
             this.addResult(
-              'pnpm',
+              'npm',
               'CI install command',
               'FAIL',
               `Incorrect install command: ${step.run}`,
@@ -264,49 +264,49 @@ class WorkflowValidator {
       }
     }
 
-    if (pnpmUsageCorrect) {
+    if (npmUsageCorrect) {
       this.addResult(
-        'pnpm',
+        'npm',
         'CI install commands',
         'PASS',
-        'All CI jobs use correct pnpm install command',
+        'All CI jobs use correct npm install command',
       );
     }
 
-    // Check Dockerfile uses pnpm
-    if (this.dockerfile.includes('pnpm install --frozen-lockfile')) {
+    // Check Dockerfile uses npm
+    if (this.dockerfile.includes('npm install --frozen-lockfile')) {
       this.addResult(
-        'pnpm',
+        'npm',
         'Dockerfile',
         'PASS',
-        'Dockerfile uses pnpm correctly',
+        'Dockerfile uses npm correctly',
       );
     } else {
       this.addResult(
-        'pnpm',
+        'npm',
         'Dockerfile',
         'FAIL',
-        'Dockerfile does not use pnpm correctly',
+        'Dockerfile does not use npm correctly',
       );
     }
 
-    // Check pnpm availability
+    // Check npm availability
     try {
-      const pnpmVersion = execSync('pnpm --version', {
+      const npmVersion = execSync('npm --version', {
         encoding: 'utf8',
       }).trim();
       this.addResult(
-        'pnpm',
+        'npm',
         'Runtime availability',
         'PASS',
-        `pnpm version: ${pnpmVersion}`,
+        `npm version: ${npmVersion}`,
       );
     } catch (error) {
       this.addResult(
-        'pnpm',
+        'npm',
         'Runtime availability',
         'FAIL',
-        'pnpm not available',
+        'npm not available',
       );
     }
   }
@@ -450,7 +450,7 @@ class WorkflowValidator {
 
     for (const script of scriptsToTest) {
       try {
-        execSync(`pnpm run ${script.name}`, {
+        execSync(`npm run ${script.name}`, {
           stdio: 'pipe',
           timeout: script.timeout,
           env: { ...process.env, NODE_ENV: 'test' },
@@ -548,7 +548,7 @@ class WorkflowValidator {
 
     this.validatePackageScripts();
     this.validateNodeVersionConsistency();
-    this.validatePnpmConsistency();
+    this.validatenpmConsistency();
     this.validateCIWorkflowConfiguration();
     this.validateKubernetesManifests();
     this.validateTestConfigurations();

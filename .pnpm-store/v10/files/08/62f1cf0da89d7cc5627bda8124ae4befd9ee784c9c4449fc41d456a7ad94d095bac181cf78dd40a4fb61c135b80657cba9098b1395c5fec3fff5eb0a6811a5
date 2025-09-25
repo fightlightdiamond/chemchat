@@ -106,7 +106,7 @@ async function resolveTSConfig(id = process.cwd(), options = {}) {
 const lockFiles = [
   "yarn.lock",
   "package-lock.json",
-  "pnpm-lock.yaml",
+  "npm-lock.yaml",
   "npm-shrinkwrap.json",
   "bun.lockb",
   "bun.lock",
@@ -114,7 +114,7 @@ const lockFiles = [
 ];
 const packageFiles = ["package.json", "package.json5", "package.yaml"];
 const workspaceFiles = [
-  "pnpm-workspace.yaml",
+  "npm-workspace.yaml",
   "lerna.json",
   "turbo.json",
   "rush.json",

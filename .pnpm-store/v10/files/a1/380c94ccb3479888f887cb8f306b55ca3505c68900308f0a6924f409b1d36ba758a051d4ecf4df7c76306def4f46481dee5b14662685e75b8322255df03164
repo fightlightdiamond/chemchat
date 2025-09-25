@@ -27,7 +27,7 @@ module.exports = __toCommonJS(chunk_RXM4EBGR_exports);
 var import_chunk_QGM4M3NI = require("./chunk-QGM4M3NI.js");
 var import_node_fs = require("node:fs");
 var require_ponyfill_es2018 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/web-streams-polyfill@3.2.1/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports, module2) {
+  "../../node_modules/.npm/web-streams-polyfill@3.2.1/node_modules/web-streams-polyfill/dist/ponyfill.es2018.js"(exports, module2) {
     "use strict";
     (function(global2, factory) {
       typeof exports === "object" && typeof module2 !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.WebStreamsPolyfill = {}));
@@ -3836,7 +3836,7 @@ var require_ponyfill_es2018 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_streams = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs"() {
+  "../../node_modules/.npm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs"() {
     "use strict";
     var POOL_SIZE2 = 65536;
     if (!globalThis.ReadableStream) {
@@ -3881,7 +3881,7 @@ var require_streams = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_node_domexception = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/node-domexception@1.0.0/node_modules/node-domexception/index.js"(exports, module2) {
+  "../../node_modules/.npm/node-domexception@1.0.0/node_modules/node-domexception/index.js"(exports, module2) {
     "use strict";
     if (!globalThis.DOMException) {
       try {

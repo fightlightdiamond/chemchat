@@ -223,9 +223,9 @@ See [`test/fixtures/jsx`](./test/fixtures/jsx) for framework integration example
 
 - Clone this repository
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run `pnpm dev`
-- Run `pnpm jiti ./test/path/to/file.ts`
+- Install dependencies using `npm install`
+- Run `npm dev`
+- Run `npm jiti ./test/path/to/file.ts`
 
 ## License
 

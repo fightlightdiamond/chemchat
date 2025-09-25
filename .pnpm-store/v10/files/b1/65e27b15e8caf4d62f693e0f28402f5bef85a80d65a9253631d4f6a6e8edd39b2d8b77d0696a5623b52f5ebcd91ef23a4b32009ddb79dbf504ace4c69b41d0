@@ -23,7 +23,7 @@ __export(chunk_MWVY55RY_exports, {
 module.exports = __toCommonJS(chunk_MWVY55RY_exports);
 var import_chunk_QGM4M3NI = require("./chunk-QGM4M3NI.js");
 var require_node_progress = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/progress@2.0.3/node_modules/progress/lib/node-progress.js"(exports, module2) {
+  "../../node_modules/.npm/progress@2.0.3/node_modules/progress/lib/node-progress.js"(exports, module2) {
     "use strict";
     exports = module2.exports = ProgressBar;
     function ProgressBar(fmt, options) {
@@ -133,7 +133,7 @@ var require_node_progress = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_progress = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/progress@2.0.3/node_modules/progress/index.js"(exports, module2) {
+  "../../node_modules/.npm/progress@2.0.3/node_modules/progress/index.js"(exports, module2) {
     "use strict";
     module2.exports = require_node_progress();
   }

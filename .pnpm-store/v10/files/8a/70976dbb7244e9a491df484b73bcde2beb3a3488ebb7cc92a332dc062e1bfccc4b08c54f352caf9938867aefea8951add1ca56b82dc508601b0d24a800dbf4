@@ -174,7 +174,7 @@
     "test": "dotenv -e ../../.db.env -- jest --silent",
     "test:e2e": "dotenv -e ../../.db.env -- tsx tests/e2e/_utils/run.ts",
     "test:functional": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts",
-    "test:functional:client": "pnpm run test:functional --client-runtime client --preview-features driverAdapters,queryCompiler --engine-type client --runInBand --json --outputFile tests/functional/results.json",
+    "test:functional:client": "npm run test:functional --client-runtime client --preview-features driverAdapters,queryCompiler --engine-type client --runInBand --json --outputFile tests/functional/results.json",
     "test:memory": "dotenv -e ../../.db.env -- tsx helpers/memory-tests.ts",
     "test:functional:code": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --types-only",
@@ -183,7 +183,7 @@
     "test-notypes": "dotenv -e ../../.db.env -- jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "npm run build",
     "new-test": "tsx ./helpers/new-test/new-test.ts"
   },
   "files": [

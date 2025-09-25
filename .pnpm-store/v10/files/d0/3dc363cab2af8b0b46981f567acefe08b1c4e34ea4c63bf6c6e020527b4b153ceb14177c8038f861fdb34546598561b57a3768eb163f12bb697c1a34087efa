@@ -15,7 +15,7 @@ using your favorite package manager:
 
 - `npm install @aws-sdk/client-s3`
 - `yarn add @aws-sdk/client-s3`
-- `pnpm add @aws-sdk/client-s3`
+- `npm add @aws-sdk/client-s3`
 
 ## Getting Started
 

@@ -30,7 +30,7 @@ If you'd like to try `fflate` for yourself without installing it, you can take a
 
 Install `fflate`:
 ```sh
-npm i fflate # or yarn add fflate, or pnpm add fflate
+npm i fflate # or yarn add fflate, or npm add fflate
 ```
 
 Import:

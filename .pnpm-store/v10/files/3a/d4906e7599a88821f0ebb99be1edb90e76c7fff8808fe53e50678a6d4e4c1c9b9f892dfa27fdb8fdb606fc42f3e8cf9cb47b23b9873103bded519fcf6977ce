@@ -107,7 +107,7 @@ const installPackages = async (options, dryRunMode, installDirectory) => {
     }
 };
 const askForPackageManager = async () => {
-    const question = (0, questions_1.generateSelect)('packageManager')(ui_1.MESSAGES.PACKAGE_MANAGER_QUESTION)([package_managers_1.PackageManager.NPM, package_managers_1.PackageManager.YARN, package_managers_1.PackageManager.PNPM]);
+    const question = (0, questions_1.generateSelect)('packageManager')(ui_1.MESSAGES.PACKAGE_MANAGER_QUESTION)([package_managers_1.PackageManager.NPM, package_managers_1.PackageManager.YARN, package_managers_1.PackageManager.npm]);
     return (0, prompts_1.select)(question).catch(gracefully_exit_on_prompt_error_1.gracefullyExitOnPromptError);
 };
 const initializeGitRepository = async (dir) => {

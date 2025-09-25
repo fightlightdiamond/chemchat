@@ -48,12 +48,12 @@
   "scripts": {
     "build": "unbuild",
     "dev": "vitest dev --coverage",
-    "bench": "pnpm build && node test/bench.mjs",
+    "bench": "npm build && node test/bench.mjs",
     "lint": "eslint && prettier -c src test",
     "lint:fix": "eslint --fix && prettier -c src test -w",
-    "prepack": "pnpm build",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
-    "test": "pnpm lint && pnpm test:types && vitest run --coverage",
+    "prepack": "npm build",
+    "release": "npm test && changelogen --release && npm publish && git push --follow-tags",
+    "test": "npm lint && npm test:types && vitest run --coverage",
     "test:types": "tsc --noEmit --skipLibCheck"
   },
   "devDependencies": {
@@ -81,5 +81,5 @@
     "vitest": "^3.1.1",
     "yaml": "^2.7.1"
   },
-  "packageManager": "pnpm@10.7.1"
+  "packageManager": "npm@10.7.1"
 }

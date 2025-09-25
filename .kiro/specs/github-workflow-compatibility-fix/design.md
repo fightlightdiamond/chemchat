@@ -13,7 +13,7 @@ GitHub Workflows Fix
 ├── Package Configuration Updates
 │   ├── package.json script additions
 │   ├── Node.js version standardization
-│   └── pnpm configuration consistency
+│   └── npm configuration consistency
 ├── Workflow File Updates
 │   ├── CI pipeline fixes
 │   ├── Security workflow updates
@@ -42,7 +42,7 @@ GitHub Workflows Fix
 **Key Changes**:
 
 - Add missing `migrate:reset` and `db:seed` scripts
-- Ensure consistent pnpm usage across all package operations
+- Ensure consistent npm usage across all package operations
 - Verify all test scripts have proper configurations
 
 **Interface**:
@@ -63,15 +63,15 @@ GitHub Workflows Fix
 
 **CI Workflow Updates**:
 
-- Standardize on pnpm throughout all jobs
+- Standardize on npm throughout all jobs
 - Ensure proper Node.js version consistency
 - Fix test script execution paths
 
 **Security Workflow Updates**:
 
-- Replace `npm ci` with `pnpm install --frozen-lockfile`
-- Maintain pnpm cache consistency
-- Ensure security tools work with pnpm lockfiles
+- Replace `npm ci` with `npm install --frozen-lockfile`
+- Maintain npm cache consistency
+- Ensure security tools work with npm lockfiles
 
 **CD Workflow Updates**:
 
@@ -127,13 +127,13 @@ jobs:
   test:
     strategy:
       node_version: '20'
-      package_manager: 'pnpm'
-      cache_key: 'pnpm'
+      package_manager: 'npm'
+      cache_key: 'npm'
     scripts:
-      - 'pnpm install --frozen-lockfile'
-      - 'pnpm run migrate:reset'
-      - 'pnpm run db:seed'
-      - 'pnpm run test:unit'
+      - 'npm install --frozen-lockfile'
+      - 'npm run migrate:reset'
+      - 'npm run db:seed'
+      - 'npm run test:unit'
 ```
 
 ### Package.json Script Schema
@@ -161,7 +161,7 @@ jobs:
 ### Version Compatibility Errors
 
 - **Node Version Mismatch**: Standardize on Node 20 across all environments
-- **Package Manager Conflicts**: Use pnpm consistently with proper lockfile handling
+- **Package Manager Conflicts**: Use npm consistently with proper lockfile handling
 - **Dependency Issues**: Ensure all dependencies are compatible with Node 20
 
 ### CI/CD Pipeline Errors

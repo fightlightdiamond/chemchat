@@ -13,32 +13,32 @@ RUN apk add --no-cache \
     procps
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json* ./
 
-# Install pnpm and all dependencies (including dev dependencies)
-RUN npm install -g pnpm && pnpm install
+# Install all dependencies (including dev dependencies)
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Generate Prisma client
-RUN pnpm exec prisma generate
+RUN npx prisma generate
 
 # Expose ports (3000 for app, 9229 for debugger)
 EXPOSE 3000 9229
 
 # Start development server with hot reload
-CMD ["pnpm", "run", "start:dev"]
+CMD ["npm", "run", "start:dev"]
 
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g npm && npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -49,10 +49,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
-RUN pnpm exec prisma generate
+RUN npx prisma generate
 
 # Build the application
-RUN pnpm run build
+RUN npm run build
 
 # Production image, copy all the files and run the app
 FROM base AS runner

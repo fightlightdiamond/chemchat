@@ -36,7 +36,7 @@ A cache module for nodejs that allows easy wrapping of functions in cache, tiere
 
 ## Installation
 
-    pnpm install cache-manager
+    npm install cache-manager
 
 ## Usage Examples
 
