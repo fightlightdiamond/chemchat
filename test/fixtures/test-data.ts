@@ -1,5 +1,12 @@
-import { faker } from 'faker';
-import { User, Tenant, Conversation, Message, ConversationType, MessageType } from '@prisma/client';
+import { faker } from '@faker-js/faker';
+import {
+  User,
+  Tenant,
+  Conversation,
+  Message,
+  ConversationType,
+  MessageType,
+} from '@prisma/client';
 
 export interface TestUser extends Partial<User> {
   id: string;
@@ -34,7 +41,7 @@ export interface TestMessage extends Partial<Message> {
 export class TestDataFactory {
   static createTenant(overrides: Partial<TestTenant> = {}): TestTenant {
     return {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       name: faker.company.name(),
       subdomain: faker.internet.domainWord(),
       subscriptionTier: 'FREE',
@@ -45,14 +52,17 @@ export class TestDataFactory {
     };
   }
 
-  static createUser(tenantId: string, overrides: Partial<TestUser> = {}): TestUser {
-    const firstName = faker.name.firstName();
-    const lastName = faker.name.lastName();
-    
+  static createUser(
+    tenantId: string,
+    overrides: Partial<TestUser> = {},
+  ): TestUser {
+    const firstName = faker.person.firstName();
+    const lastName = faker.person.lastName();
+
     return {
-      id: faker.datatype.uuid(),
-      email: faker.internet.email(firstName, lastName),
-      username: faker.internet.userName(firstName, lastName),
+      id: faker.string.uuid(),
+      email: faker.internet.email({ firstName, lastName }),
+      username: faker.internet.userName({ firstName, lastName }),
       displayName: `${firstName} ${lastName}`,
       tenantId,
       passwordHash: '$2b$10$example.hash.for.testing',
@@ -64,9 +74,12 @@ export class TestDataFactory {
     };
   }
 
-  static createConversation(tenantId: string, overrides: Partial<TestConversation> = {}): TestConversation {
+  static createConversation(
+    tenantId: string,
+    overrides: Partial<TestConversation> = {},
+  ): TestConversation {
     return {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       title: faker.lorem.words(3),
       type: 'DIRECT',
       tenantId,
@@ -81,16 +94,16 @@ export class TestDataFactory {
     conversationId: string,
     authorId: string,
     tenantId: string,
-    overrides: Partial<TestMessage> = {}
+    overrides: Partial<TestMessage> = {},
   ): TestMessage {
     return {
-      id: faker.datatype.uuid(),
+      id: faker.string.uuid(),
       content: faker.lorem.sentence(),
       type: 'TEXT',
       conversationId,
       authorId,
       tenantId,
-      sequenceNumber: BigInt(faker.datatype.number({ min: 1, max: 1000 })),
+      sequenceNumber: BigInt(faker.number.int({ min: 1, max: 1000 })),
       createdAt: new Date(),
       updatedAt: new Date(),
       ...overrides,
@@ -105,26 +118,26 @@ export class TestDataFactory {
     conversationId: string,
     authorId: string,
     tenantId: string,
-    count: number
+    count: number,
   ): TestMessage[] {
     return Array.from({ length: count }, (_, index) =>
       this.createMessage(conversationId, authorId, tenantId, {
         sequenceNumber: BigInt(index + 1),
-      })
+      }),
     );
   }
 
   static createConversationWithMessages(
     tenantId: string,
     authorId: string,
-    messageCount: number = 5
+    messageCount: number = 5,
   ): { conversation: TestConversation; messages: TestMessage[] } {
     const conversation = this.createConversation(tenantId);
     const messages = this.createBulkMessages(
       conversation.id,
       authorId,
       tenantId,
-      messageCount
+      messageCount,
     );
 
     return { conversation, messages };

@@ -162,15 +162,15 @@ setup_database() {
     
     # Run Prisma migrations
     print_status "Running database migrations..."
-    docker-compose exec chemchat-app npx prisma migrate deploy
+    docker-compose exec chemchat-app pnpm exec prisma migrate deploy
     
     # Generate Prisma client
     print_status "Generating Prisma client..."
-    docker-compose exec chemchat-app npx prisma generate
+    docker-compose exec chemchat-app pnpm exec prisma generate
     
     # Seed database with test data
     print_status "Seeding database with test data..."
-    docker-compose exec chemchat-app npx ts-node scripts/basic-seed.ts
+    docker-compose exec chemchat-app pnpm exec ts-node scripts/basic-seed.ts
     
     print_success "Database setup completed!"
 }
@@ -203,9 +203,9 @@ show_service_urls() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "📋 View logs:             docker-compose logs -f chemchat-app"
     echo "🔄 Restart app:           docker-compose restart chemchat-app"
-    echo "🛠️  Run migrations:        docker-compose exec chemchat-app npx prisma migrate dev"
-    echo "🌱 Seed database:         docker-compose exec chemchat-app npx ts-node scripts/basic-seed.ts"
-    echo "🧪 Run tests:             docker-compose exec chemchat-app npm test"
+    echo "🛠️  Run migrations:        docker-compose exec chemchat-app pnpm exec prisma migrate dev"
+    echo "🌱 Seed database:         docker-compose exec chemchat-app pnpm exec ts-node scripts/basic-seed.ts"
+    echo "🧪 Run tests:             docker-compose exec chemchat-app pnpm test"
     echo "🔍 Shell access:          docker-compose exec chemchat-app sh"
     echo ""
 }
@@ -266,11 +266,11 @@ main() {
             ;;
         "seed")
             print_status "Seeding database..."
-            docker-compose exec chemchat-app npx ts-node scripts/basic-seed.ts $2 $3 $4 $5
+            docker-compose exec chemchat-app pnpm exec ts-node scripts/basic-seed.ts $2 $3 $4 $5
             ;;
         "migrate")
             print_status "Running database migrations..."
-            docker-compose exec chemchat-app npx prisma migrate dev
+            docker-compose exec chemchat-app pnpm exec prisma migrate dev
             ;;
         "shell")
             docker-compose exec chemchat-app sh

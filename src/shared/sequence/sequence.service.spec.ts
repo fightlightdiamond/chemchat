@@ -2,18 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { SequenceService } from './sequence.service';
 import { RedisService } from '../redis/redis.service';
-import { PrismaService } from '../infrastructure/prisma/prisma.service';
+import { DatabaseService } from '../services/database.service';
 
 describe('SequenceService', () => {
   let service: SequenceService;
   let redisService: jest.Mocked<RedisService>;
-  let prismaService: jest.Mocked<PrismaService>;
+  let databaseService: jest.Mocked<DatabaseService>;
 
   const mockRedisService = {
     exec: jest.fn(),
   };
 
-  const mockPrismaService = {
+  const mockDatabaseService = {
     conversationState: {
       upsert: jest.fn(),
       findUnique: jest.fn(),
@@ -30,15 +30,15 @@ describe('SequenceService', () => {
           useValue: mockRedisService,
         },
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: DatabaseService,
+          useValue: mockDatabaseService,
         },
       ],
     }).compile();
 
     service = module.get<SequenceService>(SequenceService);
     redisService = module.get(RedisService);
-    prismaService = module.get(PrismaService);
+    databaseService = module.get(DatabaseService);
 
     // Mock logger to avoid console output during tests
     jest.spyOn(Logger.prototype, 'log').mockImplementation();
@@ -75,7 +75,7 @@ describe('SequenceService', () => {
       const expectedSequence = 3;
       redisService.exec.mockRejectedValue(new Error('Redis connection failed'));
 
-      mockPrismaService.conversationState.upsert.mockResolvedValue({
+      mockDatabaseService.conversationState.upsert.mockResolvedValue({
         id: 'state-id',
         conversationId,
         tenantId,
@@ -92,7 +92,7 @@ describe('SequenceService', () => {
 
       // Assert
       expect(result).toBe(expectedSequence);
-      expect(prismaService.conversationState.upsert).toHaveBeenCalledWith({
+      expect(databaseService.conversationState.upsert).toHaveBeenCalledWith({
         where: {
           conversationId_tenantId: {
             conversationId,
@@ -115,7 +115,7 @@ describe('SequenceService', () => {
     it('should handle database fallback failure', async () => {
       // Arrange
       redisService.exec.mockRejectedValue(new Error('Redis failed'));
-      mockPrismaService.conversationState.upsert.mockRejectedValue(
+      mockDatabaseService.conversationState.upsert.mockRejectedValue(
         new Error('Database failed'),
       );
 
@@ -152,7 +152,7 @@ describe('SequenceService', () => {
       // Arrange
       redisService.exec.mockRejectedValue(new Error('Redis failed'));
 
-      mockPrismaService.conversationState.upsert.mockResolvedValue({
+      mockDatabaseService.conversationState.upsert.mockResolvedValue({
         id: 'state-id',
         conversationId,
         tenantId,
@@ -170,7 +170,7 @@ describe('SequenceService', () => {
 
       // Assert
       expect(result).toEqual([5, 6, 7]);
-      expect(prismaService.conversationState.upsert).toHaveBeenCalledWith({
+      expect(databaseService.conversationState.upsert).toHaveBeenCalledWith({
         where: {
           conversationId_tenantId: {
             conversationId,
@@ -226,7 +226,7 @@ describe('SequenceService', () => {
       // Arrange
       redisService.exec.mockRejectedValue(new Error('Redis failed'));
 
-      mockPrismaService.conversationState.findUnique.mockResolvedValue({
+      mockDatabaseService.conversationState.findUnique.mockResolvedValue({
         id: 'state-id',
         conversationId,
         tenantId,
@@ -243,20 +243,22 @@ describe('SequenceService', () => {
 
       // Assert
       expect(result).toBe(8);
-      expect(prismaService.conversationState.findUnique).toHaveBeenCalledWith({
-        where: {
-          conversationId_tenantId: {
-            conversationId,
-            tenantId,
+      expect(databaseService.conversationState.findUnique).toHaveBeenCalledWith(
+        {
+          where: {
+            conversationId_tenantId: {
+              conversationId,
+              tenantId,
+            },
           },
         },
-      });
+      );
     });
 
     it('should return 0 when no sequence exists', async () => {
       // Arrange
       redisService.exec.mockRejectedValue(new Error('Redis failed'));
-      mockPrismaService.conversationState.findUnique.mockResolvedValue(null);
+      mockDatabaseService.conversationState.findUnique.mockResolvedValue(null);
 
       // Act
       const result = await service.getCurrentSequenceNumber(
@@ -276,7 +278,7 @@ describe('SequenceService', () => {
     it('should reset sequence number in both Redis and database', async () => {
       // Arrange
       redisService.exec.mockResolvedValue('OK');
-      mockPrismaService.conversationState.upsert.mockResolvedValue({
+      mockDatabaseService.conversationState.upsert.mockResolvedValue({
         id: 'state-id',
         conversationId,
         tenantId,
@@ -290,7 +292,7 @@ describe('SequenceService', () => {
 
       // Assert
       expect(redisService.exec).toHaveBeenCalledWith(expect.any(Function));
-      expect(prismaService.conversationState.upsert).toHaveBeenCalledWith({
+      expect(databaseService.conversationState.upsert).toHaveBeenCalledWith({
         where: {
           conversationId_tenantId: {
             conversationId,
@@ -311,7 +313,7 @@ describe('SequenceService', () => {
     it('should continue with database reset even if Redis fails', async () => {
       // Arrange
       redisService.exec.mockRejectedValue(new Error('Redis failed'));
-      mockPrismaService.conversationState.upsert.mockResolvedValue({
+      mockDatabaseService.conversationState.upsert.mockResolvedValue({
         id: 'state-id',
         conversationId,
         tenantId,
@@ -324,7 +326,7 @@ describe('SequenceService', () => {
       await service.resetSequenceNumber(conversationId, tenantId);
 
       // Assert
-      expect(prismaService.conversationState.upsert).toHaveBeenCalled();
+      expect(databaseService.conversationState.upsert).toHaveBeenCalled();
     });
   });
 });

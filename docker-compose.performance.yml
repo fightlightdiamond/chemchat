@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Extend the main docker-compose with performance testing specific configurations
+  chemchat-app:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn # Reduce logging during performance tests
+      - ENABLE_SWAGGER=false
+      - CORS_ORIGIN=*
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3000/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # k6 Load Testing Service
+  k6:
+    image: grafana/k6:latest
+    container_name: chemchat-k6
+    depends_on:
+      chemchat-app:
+        condition: service_healthy
+    volumes:
+      - ./test/load:/scripts
+      - ./test-results:/results
+    environment:
+      - BASE_URL=http://chemchat-app:3000
+      - WS_URL=ws://chemchat-app:3000
+    networks:
+      - default
+    profiles:
+      - performance # Only start when performance profile is used
+
+  # k6 Simple Load Testing Service (for basic validation)
+  k6-simple:
+    image: grafana/k6:latest
+    container_name: chemchat-k6-simple
+    depends_on:
+      chemchat-app:
+        condition: service_healthy
+    volumes:
+      - ./test/load:/scripts
+      - ./test-results:/results
+    environment:
+      - BASE_URL=http://chemchat-app:3000
+    networks:
+      - default
+    profiles:
+      - performance # Only start when performance profile is used
+
+networks:
+  default:
+    name: chemchat-network

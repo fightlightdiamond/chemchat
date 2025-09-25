@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # Main application for workflow validation
+  chemchat-workflow-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: chemchat-workflow-validation
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - DATABASE_URL=postgresql://test:test@postgres-test:5432/chemchat_test
+      - REDIS_HOST=redis-test
+      - REDIS_PORT=6379
+      - ELASTICSEARCH_NODE=http://elasticsearch-test:9200
+      - KAFKA_BROKERS=kafka-test:9092
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+    networks:
+      - workflow-validation-network
+    command: tail -f /dev/null
+
+  # PostgreSQL for testing
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: postgres-workflow-test
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: chemchat_test
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U test -d chemchat_test']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workflow-validation-network
+
+  # Redis for testing
+  redis-test:
+    image: redis:7-alpine
+    container_name: redis-workflow-test
+    ports:
+      - '6380:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - workflow-validation-network
+
+  # Elasticsearch for testing
+  elasticsearch-test:
+    image: elasticsearch:8.11.0
+    container_name: elasticsearch-workflow-test
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - '9201:9200'
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'curl -f http://localhost:9200/_cluster/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - workflow-validation-network
+
+  # Kafka for testing (optional, for complete CI simulation)
+  kafka-test:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-workflow-test
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-test:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper-test
+    ports:
+      - '9093:9092'
+    networks:
+      - workflow-validation-network
+
+  zookeeper-test:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper-workflow-test
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2182:2181'
+    networks:
+      - workflow-validation-network
+
+  # K6 for load testing validation
+  k6-test:
+    image: grafana/k6:latest
+    container_name: k6-workflow-test
+    volumes:
+      - ./test/load:/scripts
+      - ./test-results:/results
+    networks:
+      - workflow-validation-network
+    profiles:
+      - load-test
+
+networks:
+  workflow-validation-network:
+    driver: bridge
+
+volumes:
+  postgres-test-data:
+  redis-test-data:
+  elasticsearch-test-data:

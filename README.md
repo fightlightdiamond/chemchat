@@ -177,7 +177,7 @@ graph TB
 
 - **[NestJS](https://nestjs.com/)** - Progressive Node.js framework
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
-- **[Node.js 18+](https://nodejs.org/)** - Runtime environment
+- **[Node.js 20+](https://nodejs.org/)** - Runtime environment
 
 ### Database & Storage
 
@@ -296,7 +296,7 @@ chemchat/
 
 ### Prerequisites
 
-- **Node.js 18+** and **pnpm**
+- **Node.js 20+** and **pnpm**
 - **Docker** and **Docker Compose**
 - **Git**
 
