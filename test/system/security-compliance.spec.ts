@@ -134,7 +134,7 @@ describe('Security and Compliance Validation', () => {
   describe('Data Privacy and Encryption', () => {
     it('should not expose sensitive data in API responses', async () => {
       const response = await request(app.getHttpServer())
-        .get('/auth/profile')
+        .get('/auth/me')
         .set('Authorization', `Bearer ${validToken}`)
         .set('X-Tenant-ID', tenantId)
         .expect(200);
