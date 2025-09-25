@@ -495,19 +495,18 @@ describe('Final Integration Validation', () => {
 
   describe('Security Integration Validation', () => {
     it('should enforce authentication on protected endpoints', async () => {
-      const protectedEndpoints = [
-        '/conversations',
-        '/messages',
-        '/notifications',
-        '/search/messages',
-        '/media/upload/url',
-        '/sync/state/test-device',
+      const protectedRequests = [
+        { method: 'get', path: '/conversations' },
+        { method: 'post', path: '/messages', body: { conversationId: 'x', content: 'x', type: 'TEXT' } },
+        { method: 'get', path: '/notifications' },
+        { method: 'get', path: '/search/messages' },
+        { method: 'post', path: '/media/upload/url', body: { filename: 'x.txt', mimetype: 'text/plain', size: 1 } },
+        { method: 'get', path: '/sync/state/test-device' },
       ];
-
-      for (const endpoint of protectedEndpoints) {
-        await request(app.getHttpServer())
-          .get(endpoint)
-          .expect(401);
+      for (const req of protectedRequests) {
+        const agent = request(app.getHttpServer())[req.method](req.path);
+        const res = req.body ? await agent.send(req.body) : await agent;
+        expect(res.status).toBe(401);
       }
     });
 
