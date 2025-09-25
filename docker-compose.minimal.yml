@@ -33,9 +33,10 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a redis_password PING | grep PONG"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
 
   # ChemChat Application
