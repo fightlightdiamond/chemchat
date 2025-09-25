@@ -218,12 +218,13 @@ describe('Security and Compliance Validation', () => {
     it('should enforce API rate limits', async () => {
       const requests: Promise<any>[] = [];
       
-      // Send many requests rapidly
+      // Send many requests rapidly to a protected, rate-limited endpoint
       for (let i = 0; i < 150; i++) {
         requests.push(
           request(app.getHttpServer())
-            .get('/health')
+            .get('/conversations')
             .set('Authorization', `Bearer ${validToken}`)
+            .set('X-Tenant-ID', tenantId)
         );
       }
 
