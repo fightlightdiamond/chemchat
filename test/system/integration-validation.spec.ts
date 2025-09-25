@@ -248,7 +248,7 @@ describe('Final Integration Validation', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .set('X-Tenant-ID', tenantId)
         .send({
-          name: 'Event Propagation Test',
+          title: 'Event Propagation Test',
           type: 'GROUP',
           participants: [userId],
         })
