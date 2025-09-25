@@ -107,7 +107,7 @@ class DatabaseValidator {
 
     try {
       // Execute migrate:reset script
-      const output = execSync('pnpm run migrate:reset', {
+      const output = execSync('npm run migrate:reset', {
         encoding: 'utf8',
         stdio: 'pipe',
         env: { ...process.env },
@@ -169,7 +169,7 @@ class DatabaseValidator {
 
     try {
       // Execute db:seed script
-      const output = execSync('pnpm run db:seed', {
+      const output = execSync('npm run db:seed', {
         encoding: 'utf8',
         stdio: 'pipe',
         env: { ...process.env },

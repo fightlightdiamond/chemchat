@@ -72,7 +72,7 @@ describe('Database Operations Integration Tests', () => {
   describe('migrate:reset Script', () => {
     it('should execute migrate:reset script successfully', () => {
       expect(() => {
-        execSync('pnpm run migrate:reset', {
+        execSync('npm run migrate:reset', {
           stdio: 'pipe',
           env: { ...process.env },
         });
@@ -81,7 +81,7 @@ describe('Database Operations Integration Tests', () => {
 
     it('should create all required database tables', async () => {
       // Execute migrate:reset to ensure clean state
-      execSync('pnpm run migrate:reset', {
+      execSync('npm run migrate:reset', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -151,7 +151,7 @@ describe('Database Operations Integration Tests', () => {
   describe('db:seed Script', () => {
     beforeEach(async () => {
       // Reset database before each test
-      execSync('pnpm run migrate:reset', {
+      execSync('npm run migrate:reset', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -159,7 +159,7 @@ describe('Database Operations Integration Tests', () => {
 
     it('should execute db:seed script successfully', () => {
       expect(() => {
-        execSync('pnpm run db:seed', {
+        execSync('npm run db:seed', {
           stdio: 'pipe',
           env: { ...process.env },
         });
@@ -167,7 +167,7 @@ describe('Database Operations Integration Tests', () => {
     });
 
     it('should create test tenant data', async () => {
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -182,7 +182,7 @@ describe('Database Operations Integration Tests', () => {
     });
 
     it('should create test user data', async () => {
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -204,7 +204,7 @@ describe('Database Operations Integration Tests', () => {
     });
 
     it('should create test conversation data', async () => {
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -231,7 +231,7 @@ describe('Database Operations Integration Tests', () => {
     });
 
     it('should create test message data', async () => {
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -257,7 +257,7 @@ describe('Database Operations Integration Tests', () => {
 
     it('should be idempotent (can run multiple times)', async () => {
       // Run seed script twice
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -269,7 +269,7 @@ describe('Database Operations Integration Tests', () => {
         messages: await prisma.message.count(),
       };
 
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -288,11 +288,11 @@ describe('Database Operations Integration Tests', () => {
 
   describe('Data Integrity', () => {
     beforeEach(async () => {
-      execSync('pnpm run migrate:reset', {
+      execSync('npm run migrate:reset', {
         stdio: 'pipe',
         env: { ...process.env },
       });
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -357,11 +357,11 @@ describe('Database Operations Integration Tests', () => {
 
   describe('Database Performance', () => {
     beforeEach(async () => {
-      execSync('pnpm run migrate:reset', {
+      execSync('npm run migrate:reset', {
         stdio: 'pipe',
         env: { ...process.env },
       });
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });
@@ -405,11 +405,11 @@ describe('Database Operations Integration Tests', () => {
 
   describe('Comprehensive Validation', () => {
     beforeEach(async () => {
-      execSync('pnpm run migrate:reset', {
+      execSync('npm run migrate:reset', {
         stdio: 'pipe',
         env: { ...process.env },
       });
-      execSync('pnpm run db:seed', {
+      execSync('npm run db:seed', {
         stdio: 'pipe',
         env: { ...process.env },
       });

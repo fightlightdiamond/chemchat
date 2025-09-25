@@ -40,7 +40,7 @@ var import_chunk_2ESYSVXG = require("../chunk-2ESYSVXG.js");
 var import_path = __toESM(require("path"));
 var import_tty = require("tty");
 var require_js_tokens = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/js-tokens@9.0.1/node_modules/js-tokens/index.js"(exports, module2) {
+  "../../node_modules/.npm/js-tokens@9.0.1/node_modules/js-tokens/index.js"(exports, module2) {
     "use strict";
     var HashbangComment;
     var Identifier;
@@ -459,13 +459,13 @@ var require_js_tokens = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_branding = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/expect-type@1.2.2/node_modules/expect-type/dist/branding.js"(exports) {
+  "../../node_modules/.npm/expect-type@1.2.2/node_modules/expect-type/dist/branding.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
   }
 });
 var require_messages = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/expect-type@1.2.2/node_modules/expect-type/dist/messages.js"(exports) {
+  "../../node_modules/.npm/expect-type@1.2.2/node_modules/expect-type/dist/messages.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var inverted = Symbol("inverted");
@@ -487,13 +487,13 @@ var require_messages = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_overloads = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/expect-type@1.2.2/node_modules/expect-type/dist/overloads.js"(exports) {
+  "../../node_modules/.npm/expect-type@1.2.2/node_modules/expect-type/dist/overloads.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
   }
 });
 var require_utils = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/expect-type@1.2.2/node_modules/expect-type/dist/utils.js"(exports) {
+  "../../node_modules/.npm/expect-type@1.2.2/node_modules/expect-type/dist/utils.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var secret = Symbol("secret");
@@ -502,7 +502,7 @@ var require_utils = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_dist = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/expect-type@1.2.2/node_modules/expect-type/dist/index.js"(exports) {
+  "../../node_modules/.npm/expect-type@1.2.2/node_modules/expect-type/dist/index.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m2, k, k2) {
       if (k2 === void 0) k2 = k;

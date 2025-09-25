@@ -34,7 +34,7 @@ yarn add -D terser-webpack-plugin
 or
 
 ```console
-pnpm add -D terser-webpack-plugin
+npm add -D terser-webpack-plugin
 ```
 
 Then add the plugin to your `webpack` config. For example:

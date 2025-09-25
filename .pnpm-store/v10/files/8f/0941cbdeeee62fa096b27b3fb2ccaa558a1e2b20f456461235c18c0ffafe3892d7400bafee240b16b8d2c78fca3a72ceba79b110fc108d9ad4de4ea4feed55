@@ -50,8 +50,8 @@
     "dev": "vitest dev",
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "automd && eslint --fix . && prettier -w src test",
-    "release": "pnpm test && changelogen --release --push && pnpm publish",
-    "test": "pnpm lint && vitest run --coverage && pnpm test:types",
+    "release": "npm test && changelogen --release --push && npm publish",
+    "test": "npm lint && vitest run --coverage && npm test:types",
     "test:types": "tsc --noEmit"
   }
 }

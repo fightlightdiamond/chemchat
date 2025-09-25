@@ -11,6 +11,6 @@ var PackageManager;
     PackageManager["Bun"] = "bun";
     PackageManager["Cnpm"] = "cnpm";
     PackageManager["Npm"] = "npm";
-    PackageManager["Pnpm"] = "pnpm";
+    PackageManager["npm"] = "npm";
     PackageManager["Yarn"] = "yarn";
 })(PackageManager || (exports.PackageManager = PackageManager = {}));

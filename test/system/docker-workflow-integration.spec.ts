@@ -136,9 +136,9 @@ describe('Docker Workflow Integration Tests', () => {
       expect(nodeVersion).toMatch(/^v20\./);
     });
 
-    it('should have pnpm available in container', () => {
-      const pnpmVersion = execInContainer('pnpm --version').trim();
-      expect(pnpmVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    it('should have npm available in container', () => {
+      const npmVersion = execInContainer('npm --version').trim();
+      expect(npmVersion).toMatch(/^\d+\.\d+\.\d+$/);
     });
 
     it('should have correct environment variables set', () => {
@@ -180,25 +180,25 @@ describe('Docker Workflow Integration Tests', () => {
   describe('Package Script Execution in Docker', () => {
     it('should install dependencies successfully', async () => {
       expect(() => {
-        execInContainer('pnpm install --frozen-lockfile', 180000);
+        execInContainer('npm install --frozen-lockfile', 180000);
       }).not.toThrow();
     }, 200000);
 
     it('should execute lint script successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run lint', 90000);
+        execInContainer('npm run lint', 90000);
       }).not.toThrow();
     }, 100000);
 
     it('should execute build script successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run build', 180000);
+        execInContainer('npm run build', 180000);
       }).not.toThrow();
     }, 200000);
 
     it('should generate Prisma client successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run prisma:generate', 60000);
+        execInContainer('npm run prisma:generate', 60000);
       }).not.toThrow();
     }, 70000);
   });
@@ -206,19 +206,19 @@ describe('Docker Workflow Integration Tests', () => {
   describe('Database Operations in Docker', () => {
     it('should execute database migration successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run migrate:reset', 60000);
+        execInContainer('npm run migrate:reset', 60000);
       }).not.toThrow();
     }, 70000);
 
     it('should execute database seeding successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run db:seed', 45000);
+        execInContainer('npm run db:seed', 45000);
       }).not.toThrow();
     }, 50000);
 
     it('should validate database operations successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run db:validate', 30000);
+        execInContainer('npm run db:validate', 30000);
       }).not.toThrow();
     }, 35000);
   });
@@ -226,20 +226,20 @@ describe('Docker Workflow Integration Tests', () => {
   describe('Test Execution in Docker', () => {
     it('should execute unit tests successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run test:unit -- --passWithNoTests', 90000);
+        execInContainer('npm run test:unit -- --passWithNoTests', 90000);
       }).not.toThrow();
     }, 100000);
 
     it('should execute workflow validation tests successfully', async () => {
       expect(() => {
-        execInContainer('pnpm run test:workflow', 120000);
+        execInContainer('npm run test:workflow', 120000);
       }).not.toThrow();
     }, 130000);
 
     it('should execute integration tests successfully', async () => {
       expect(() => {
         execInContainer(
-          'pnpm run test:integration -- --passWithNoTests',
+          'npm run test:integration -- --passWithNoTests',
           120000,
         );
       }).not.toThrow();
@@ -251,19 +251,19 @@ describe('Docker Workflow Integration Tests', () => {
       const steps = [
         {
           name: 'Install dependencies',
-          command: 'pnpm install --frozen-lockfile',
+          command: 'npm install --frozen-lockfile',
           timeout: 180000,
         },
-        { name: 'Lint code', command: 'pnpm run lint', timeout: 90000 },
-        { name: 'Type check', command: 'pnpm run build', timeout: 180000 },
+        { name: 'Lint code', command: 'npm run lint', timeout: 90000 },
+        { name: 'Type check', command: 'npm run build', timeout: 180000 },
         {
           name: 'Setup database',
-          command: 'pnpm run migrate:reset && pnpm run db:seed',
+          command: 'npm run migrate:reset && npm run db:seed',
           timeout: 90000,
         },
         {
           name: 'Run unit tests',
-          command: 'pnpm run test:unit -- --passWithNoTests',
+          command: 'npm run test:unit -- --passWithNoTests',
           timeout: 90000,
         },
       ];
@@ -292,7 +292,7 @@ describe('Docker Workflow Integration Tests', () => {
 
     it('should start application for load testing', async () => {
       // Start the application in background
-      execInContainer('pnpm run start:prod > /tmp/app.log 2>&1 &', 10000);
+      execInContainer('npm run start:prod > /tmp/app.log 2>&1 &', 10000);
 
       // Wait for application to start
       await new Promise((resolve) => setTimeout(resolve, 30000));
@@ -315,7 +315,7 @@ describe('Docker Workflow Integration Tests', () => {
   describe('Security Validation in Docker', () => {
     it('should execute security audit successfully', async () => {
       expect(() => {
-        execInContainer('pnpm audit --audit-level high', 60000);
+        execInContainer('npm audit --audit-level high', 60000);
       }).not.toThrow();
     }, 70000);
 

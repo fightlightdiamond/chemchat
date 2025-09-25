@@ -109,8 +109,8 @@
     "dev": "vitest",
     "lint": "eslint . && prettier -c src examples test",
     "lint:fix": "eslint . --fix && prettier -w src examples test",
-    "release": "pnpm test && pnpm build && changelogen --release --push && npm publish",
-    "test": "pnpm lint && pnpm vitest run --coverage"
+    "release": "npm test && npm build && changelogen --release --push && npm publish",
+    "test": "npm lint && npm vitest run --coverage"
   },
   "devDependencies": {
     "@clack/prompts": "^0.10.0",
@@ -132,5 +132,5 @@
   "engines": {
     "node": "^14.18.0 || >=16.10.0"
   },
-  "packageManager": "pnpm@10.6.3"
+  "packageManager": "npm@10.6.3"
 }

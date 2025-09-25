@@ -24,7 +24,7 @@ npm install @humanfs/core
 
 # or
 
-pnpm install @humanfs/core
+npm install @humanfs/core
 
 # or
 

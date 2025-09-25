@@ -18,7 +18,7 @@ Task 7 of the GitHub workflow compatibility fix involves validating that databas
 A comprehensive TypeScript script that validates all database operations:
 
 ```bash
-pnpm run db:validate
+npm run db:validate
 ```
 
 **Features:**
@@ -35,7 +35,7 @@ pnpm run db:validate
 A bash script specifically designed for CI environment testing:
 
 ```bash
-pnpm run db:test-ci
+npm run db:test-ci
 ```
 
 **Features:**
@@ -52,7 +52,7 @@ pnpm run db:test-ci
 Jest-based integration tests that run in CI environment:
 
 ```bash
-pnpm run test:integration -- test/integration/database-operations.integration-spec.ts
+npm run test:integration -- test/integration/database-operations.integration-spec.ts
 ```
 
 **Test Coverage:**
@@ -69,7 +69,7 @@ pnpm run test:integration -- test/integration/database-operations.integration-sp
 Unit tests that validate script configuration:
 
 ```bash
-pnpm run test:unit -- test/unit/database-scripts.spec.ts
+npm run test:unit -- test/unit/database-scripts.spec.ts
 ```
 
 **Test Coverage:**
@@ -91,7 +91,7 @@ The CI environment must have:
    DATABASE_URL=postgresql://test:test@localhost:5432/chemchat_test
    NODE_ENV=test
    ```
-3. **Dependencies**: All npm/pnpm packages installed
+3. **Dependencies**: All npm/npm packages installed
 
 ### Running in CI
 
@@ -100,8 +100,8 @@ The GitHub CI workflow already includes database setup steps:
 ```yaml
 - name: Setup test database
   run: |
-    pnpm run migrate:reset
-    pnpm run db:seed
+    npm run migrate:reset
+    npm run db:seed
   env:
     DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
     NODE_ENV: test
@@ -112,18 +112,18 @@ The GitHub CI workflow already includes database setup steps:
 1. **Quick Validation**:
 
    ```bash
-   pnpm run db:test-ci
+   npm run db:test-ci
    ```
 
 2. **Comprehensive Validation**:
 
    ```bash
-   pnpm run db:validate
+   npm run db:validate
    ```
 
 3. **Integration Tests**:
    ```bash
-   pnpm run test:integration
+   npm run test:integration
    ```
 
 ## Expected Results
@@ -187,18 +187,18 @@ The seed script creates:
 1. **Check Database Connection**:
 
    ```bash
-   pnpm exec prisma db push --accept-data-loss --skip-generate
+   npm exec prisma db push --accept-data-loss --skip-generate
    ```
 
 2. **Verify Schema**:
 
    ```bash
-   pnpm exec prisma db execute --stdin <<< "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+   npm exec prisma db execute --stdin <<< "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
    ```
 
 3. **Check Seed Data**:
    ```bash
-   pnpm exec prisma db execute --stdin <<< "SELECT COUNT(*) FROM users;"
+   npm exec prisma db execute --stdin <<< "SELECT COUNT(*) FROM users;"
    ```
 
 ## Requirements Satisfied
@@ -217,8 +217,8 @@ The validation scripts are integrated into the existing CI workflow at `.github/
 ```yaml
 - name: Setup test database
   run: |
-    pnpm run migrate:reset
-    pnpm run db:seed
+    npm run migrate:reset
+    npm run db:seed
   env:
     DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
     NODE_ENV: test

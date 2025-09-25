@@ -35,7 +35,7 @@ var import_chunk_YVXCXD3A = require("./chunk-YVXCXD3A.js");
 var import_chunk_2ESYSVXG = require("./chunk-2ESYSVXG.js");
 var import_node_process = __toESM(require("node:process"));
 var require_has_flag = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag/index.js"(exports, module2) {
+  "../../node_modules/.npm/has-flag@4.0.0/node_modules/has-flag/index.js"(exports, module2) {
     "use strict";
     module2.exports = (flag, argv = process.argv) => {
       const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
@@ -46,7 +46,7 @@ var require_has_flag = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_supports_color = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js"(exports, module2) {
+  "../../node_modules/.npm/supports-color@7.2.0/node_modules/supports-color/index.js"(exports, module2) {
     "use strict";
     var os = (0, import_chunk_2ESYSVXG.__require)("os");
     var tty = (0, import_chunk_2ESYSVXG.__require)("tty");
@@ -146,7 +146,7 @@ var require_supports_color = (0, import_chunk_2ESYSVXG.__commonJS)({
   }
 });
 var require_supports_hyperlinks = (0, import_chunk_2ESYSVXG.__commonJS)({
-  "../../node_modules/.pnpm/supports-hyperlinks@3.2.0/node_modules/supports-hyperlinks/index.js"(exports, module2) {
+  "../../node_modules/.npm/supports-hyperlinks@3.2.0/node_modules/supports-hyperlinks/index.js"(exports, module2) {
     "use strict";
     var supportsColor = require_supports_color();
     var hasFlag = require_has_flag();

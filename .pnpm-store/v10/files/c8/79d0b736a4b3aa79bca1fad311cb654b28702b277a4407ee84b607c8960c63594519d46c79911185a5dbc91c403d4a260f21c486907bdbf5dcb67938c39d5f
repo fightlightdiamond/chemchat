@@ -40,8 +40,8 @@ npm i node-fetch-native
 # yarn
 yarn add node-fetch-native
 
-# pnpm
-pnpm i node-fetch-native
+# npm
+npm i node-fetch-native
 ```
 
 You can now either import or require the dependency:
@@ -190,14 +190,14 @@ Using yarn [selective dependency resolutions](https://classic.yarnpkg.com/lang/e
 }
 ```
 
-### pnpm
+### npm
 
-Using [pnpm.overrides](https://pnpm.io/package_json#pnpmoverrides):
+Using [npm.overrides](https://npm.io/package_json#npmoverrides):
 
 ```jsonc
 // package.json
 {
-  "pnpm": {
+  "npm": {
     "overrides": {
       "node-fetch": "npm:node-fetch-native@latest",
     },

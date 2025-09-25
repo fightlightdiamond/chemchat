@@ -26,8 +26,8 @@
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
     "prepack": "unbuild",
-    "release": "pnpm build && pnpm test && changelogen --release --push --publish",
-    "test": "pnpm lint && vitest run --coverage && pnpm test:types",
+    "release": "npm build && npm test && changelogen --release --push --publish",
+    "test": "npm lint && vitest run --coverage && npm test:types",
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
@@ -66,5 +66,5 @@
       "optional": true
     }
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "npm@10.13.1"
 }

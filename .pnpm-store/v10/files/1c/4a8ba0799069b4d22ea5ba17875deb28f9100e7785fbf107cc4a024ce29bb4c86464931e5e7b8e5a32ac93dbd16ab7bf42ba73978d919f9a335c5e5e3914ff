@@ -26,7 +26,7 @@ Install the `validator` package as:
 ```sh
 npm i validator
 yarn add validator
-pnpm i validator
+npm i validator
 ```
 
 #### No ES6

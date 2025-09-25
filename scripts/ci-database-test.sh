@@ -38,7 +38,7 @@ done
 # Test database connectivity
 echo ""
 echo "🔗 Testing Database Connectivity..."
-if pnpm exec prisma db push --accept-data-loss --skip-generate > /dev/null 2>&1; then
+if npm exec prisma db push --accept-data-loss --skip-generate > /dev/null 2>&1; then
     echo "✅ Database connection successful"
 else
     echo "❌ Database connection failed"
@@ -48,7 +48,7 @@ fi
 # Test migrate:reset script
 echo ""
 echo "🔄 Testing migrate:reset script..."
-if pnpm run migrate:reset > /dev/null 2>&1; then
+if npm run migrate:reset > /dev/null 2>&1; then
     echo "✅ migrate:reset script executed successfully"
 else
     echo "❌ migrate:reset script failed"
@@ -58,7 +58,7 @@ fi
 # Test db:seed script
 echo ""
 echo "🌱 Testing db:seed script..."
-if pnpm run db:seed > /dev/null 2>&1; then
+if npm run db:seed > /dev/null 2>&1; then
     echo "✅ db:seed script executed successfully"
 else
     echo "❌ db:seed script failed"
@@ -68,7 +68,7 @@ fi
 # Run comprehensive database validation
 echo ""
 echo "🔍 Running Comprehensive Database Validation..."
-if pnpm run db:validate; then
+if npm run db:validate; then
     echo "✅ All database validations passed"
 else
     echo "❌ Database validation failed"
@@ -80,7 +80,7 @@ echo ""
 echo "🧪 Testing Database Operations in Test Environment..."
 
 # Verify we can run a simple query
-if pnpm exec prisma db execute --stdin <<< "SELECT COUNT(*) FROM users;" > /dev/null 2>&1; then
+if npm exec prisma db execute --stdin <<< "SELECT COUNT(*) FROM users;" > /dev/null 2>&1; then
     echo "✅ Database query execution successful"
 else
     echo "❌ Database query execution failed"
@@ -92,7 +92,7 @@ echo ""
 echo "🔁 Testing Operation Idempotency..."
 for i in {1..2}; do
     echo "   Iteration $i..."
-    if ! (pnpm run migrate:reset > /dev/null 2>&1 && pnpm run db:seed > /dev/null 2>&1); then
+    if ! (npm run migrate:reset > /dev/null 2>&1 && npm run db:seed > /dev/null 2>&1); then
         echo "❌ Idempotency test failed on iteration $i"
         exit 1
     fi
@@ -103,7 +103,7 @@ echo "✅ Operations are idempotent"
 echo ""
 echo "⚡ Testing Database Performance..."
 start_time=$(date +%s%N)
-pnpm exec prisma db execute --stdin <<< "SELECT u.*, c.* FROM users u LEFT JOIN conversation_members cm ON u.id = cm.user_id LEFT JOIN conversations c ON cm.conversation_id = c.id LIMIT 100;" > /dev/null 2>&1
+npm exec prisma db execute --stdin <<< "SELECT u.*, c.* FROM users u LEFT JOIN conversation_members cm ON u.id = cm.user_id LEFT JOIN conversations c ON cm.conversation_id = c.id LIMIT 100;" > /dev/null 2>&1
 end_time=$(date +%s%N)
 duration=$(( (end_time - start_time) / 1000000 ))  # Convert to milliseconds
 

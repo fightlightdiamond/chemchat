@@ -43,9 +43,9 @@
     "typescript": "^5.6.2"
   },
   "scripts": {
-    "lint": "pnpm biome lint ./src",
-    "format": "pnpm biome format --write ./src",
-    "check": "pnpm biome check ./src",
+    "lint": "npm biome lint ./src",
+    "format": "npm biome format --write ./src",
+    "check": "npm biome check ./src",
     "build": "tsup"
   }
 }

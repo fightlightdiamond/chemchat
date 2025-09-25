@@ -13,7 +13,7 @@ npm install @eslint/plugin-kit
 # or
 yarn add @eslint/plugin-kit
 # or
-pnpm install @eslint/plugin-kit
+npm install @eslint/plugin-kit
 # or
 bun add @eslint/plugin-kit
 ```

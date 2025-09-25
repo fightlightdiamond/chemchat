@@ -1067,7 +1067,7 @@ For those upgrading from earlier versions, please refer to our [Migration Guide]
 
 ### Bug Fixes
 
-* forgot to run `pnpm run build`
+* forgot to run `npm run build`
 
 ## [6.1.0](https://github.com/faker-js/faker/compare/v6.0.0-alpha.6...v6.1.0) (2022-03-28)
 
@@ -1188,7 +1188,7 @@ For those upgrading from earlier versions, please refer to our [Migration Guide]
 
 ### Bug Fixes
 
-* revert pnpm only-allow ([#291](https://github.com/faker-js/faker/issues/291)) ([132e8c3](https://github.com/faker-js/faker/commit/132e8c3d7c173a6c9708f865e8c7d6c31f9c6e55))
+* revert npm only-allow ([#291](https://github.com/faker-js/faker/issues/291)) ([132e8c3](https://github.com/faker-js/faker/commit/132e8c3d7c173a6c9708f865e8c7d6c31f9c6e55))
 
 ## [6.0.0-alpha.4](https://github.com/faker-js/faker/compare/v6.0.0-alpha.3...v6.0.0-alpha.4) (2022-01-24)
 

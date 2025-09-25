@@ -30,7 +30,7 @@ using your favorite package manager:
 
 - `npm install @aws-sdk/client-sso`
 - `yarn add @aws-sdk/client-sso`
-- `pnpm add @aws-sdk/client-sso`
+- `npm add @aws-sdk/client-sso`
 
 ## Getting Started
 

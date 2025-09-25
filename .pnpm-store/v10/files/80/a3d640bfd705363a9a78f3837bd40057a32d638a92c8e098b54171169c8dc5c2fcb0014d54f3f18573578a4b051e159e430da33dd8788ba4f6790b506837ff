@@ -13,7 +13,7 @@ npm install @eslint/config-helpers
 # or
 yarn add @eslint/config-helpers
 # or
-pnpm install @eslint/config-helpers
+npm install @eslint/config-helpers
 # or
 bun add @eslint/config-helpers
 ```

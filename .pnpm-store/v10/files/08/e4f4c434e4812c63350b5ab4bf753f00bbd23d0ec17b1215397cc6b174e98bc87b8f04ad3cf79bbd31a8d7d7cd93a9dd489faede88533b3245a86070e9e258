@@ -85,9 +85,9 @@ const answer = await select({
       disabled: true,
     },
     {
-      name: 'pnpm',
-      value: 'pnpm',
-      disabled: '(pnpm is not available)',
+      name: 'npm',
+      value: 'npm',
+      disabled: '(npm is not available)',
     },
   ],
 });

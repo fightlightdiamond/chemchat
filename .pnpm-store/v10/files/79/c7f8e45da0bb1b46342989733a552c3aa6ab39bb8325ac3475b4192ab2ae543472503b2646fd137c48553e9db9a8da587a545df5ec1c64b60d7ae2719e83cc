@@ -17,8 +17,8 @@ Install package:
 yarn add defu
 # npm
 npm install defu
-# pnpm
-pnpm install defu
+# npm
+npm install defu
 ```
 
 ## Usage

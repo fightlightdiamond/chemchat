@@ -76,7 +76,7 @@ function getWorkspaceArgs(options) {
     return [];
   }
   const workspacePkg = typeof options.workspace === "string" && options.workspace !== "" ? options.workspace : void 0;
-  if (options.packageManager.name === "pnpm") {
+  if (options.packageManager.name === "npm") {
     return workspacePkg ? ["--filter", workspacePkg] : ["--workspace-root"];
   }
   if (options.packageManager.name === "npm") {
@@ -96,7 +96,7 @@ function getWorkspaceArgs2(options) {
     return [];
   }
   const workspacePkg = typeof options.workspace === "string" && options.workspace !== "" ? options.workspace : void 0;
-  if (options.packageManager === "pnpm") {
+  if (options.packageManager === "npm") {
     return workspacePkg ? ["--filter", workspacePkg] : ["--workspace-root"];
   }
   if (options.packageManager === "npm") {
@@ -150,10 +150,10 @@ const packageManagers = [
     lockFile: "package-lock.json"
   },
   {
-    name: "pnpm",
-    command: "pnpm",
-    lockFile: "pnpm-lock.yaml",
-    files: ["pnpm-workspace.yaml"]
+    name: "npm",
+    command: "npm",
+    lockFile: "npm-lock.yaml",
+    files: ["npm-workspace.yaml"]
   },
   {
     name: "bun",
@@ -251,7 +251,7 @@ async function installDependencies(options = {}) {
     npm: ["ci"],
     yarn: ["install", "--immutable"],
     bun: ["install", "--frozen-lockfile"],
-    pnpm: ["install", "--frozen-lockfile"],
+    npm: ["install", "--frozen-lockfile"],
     deno: ["install", "--frozen"]
   };
   const commandArgs = options.frozenLockFile ? pmToFrozenLockfileInstallCommand[resolvedOptions.packageManager.name] : ["install"];

@@ -25,8 +25,8 @@ npm i pathe
 # yarn
 yarn add pathe
 
-# pnpm
-pnpm i pathe
+# npm
+npm i pathe
 ```
 
 Import:

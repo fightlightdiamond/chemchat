@@ -36,10 +36,10 @@ Using yarn:
 yarn add consola
 ```
 
-Using pnpm:
+Using npm:
 
 ```bash
-pnpm i consola
+npm i consola
 ```
 
 ## Getting Started

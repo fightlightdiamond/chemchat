@@ -17,29 +17,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Run pnpm audit
-        run: pnpm audit --audit-level moderate --json > pnpm-audit.json
+      - name: Run npm audit
+        run: npm audit --audit-level moderate --json > npm-audit.json
         continue-on-error: true
 
-      - name: Upload pnpm audit results
+      - name: Upload npm audit results
         uses: actions/upload-artifact@v4
         with:
-          name: pnpm-audit-results
-          path: pnpm-audit.json
+          name: npm-audit-results
+          path: npm-audit.json
 
       - name: Run Snyk test
         uses: snyk/actions/node@master
@@ -209,7 +204,7 @@ jobs:
 
           echo "## Artifacts" >> security-report.md
           echo "The following security scan results are available as artifacts:" >> security-report.md
-          echo "- pnpm-audit-results" >> security-report.md
+          echo "- npm-audit-results" >> security-report.md
           echo "- snyk-results" >> security-report.md
           echo "- trivy-results" >> security-report.md
           echo "- grype-results" >> security-report.md

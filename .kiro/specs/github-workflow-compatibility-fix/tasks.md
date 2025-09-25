@@ -13,15 +13,15 @@
   - _Requirements: 2.1, 2.2, 2.3_
 
 - [x] 3. Fix package manager consistency in CI workflow
-  - Update CI workflow to use pnpm consistently throughout all jobs
-  - Ensure proper pnpm cache configuration
-  - Fix any remaining npm references to use pnpm
+  - Update CI workflow to use npm consistently throughout all jobs
+  - Ensure proper npm cache configuration
+  - Fix any remaining npm references to use npm
   - _Requirements: 1.2, 3.2_
 
 - [x] 4. Fix package manager consistency in security workflow
-  - Replace npm ci with pnpm install --frozen-lockfile in security workflow
-  - Update Node.js setup to use pnpm cache
-  - Ensure security tools work properly with pnpm lockfiles
+  - Replace npm ci with npm install --frozen-lockfile in security workflow
+  - Update Node.js setup to use npm cache
+  - Ensure security tools work properly with npm lockfiles
   - _Requirements: 3.1, 3.2_
 
 - [x] 5. Validate and fix test configurations

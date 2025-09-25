@@ -51,31 +51,31 @@
     "README.md"
   ],
   "scripts": {
-    "benchmark": "pnpm run build && cd benchmark && pnpm run benchmark; cd ..",
+    "benchmark": "npm run build && cd benchmark && npm run benchmark; cd ..",
     "build": "rimraf dist && rollup -c rollup.config.ts --configPlugin @rollup/plugin-typescript",
     "cz": "git-cz",
-    "lint": "eslint && pnpm run lint:md && pnpm run lint:spelling && pnpm run lint:knip && pnpm run lint:packages",
-    "lint-fix": "eslint --fix && pnpm run lint:md-fix && pnpm run lint:packages-fix",
+    "lint": "eslint && npm run lint:md && npm run lint:spelling && npm run lint:knip && npm run lint:packages",
+    "lint-fix": "eslint --fix && npm run lint:md-fix && npm run lint:packages-fix",
     "lint:js": "eslint \"**/*.?([cm])[jt]s?(x)\"",
     "lint:js-fix": "eslint \"**/*.?([cm])[jt]s?(x)\" --fix",
-    "lint:knip": "pnpm run lint:knip:development && pnpm run lint:knip:production",
+    "lint:knip": "npm run lint:knip:development && npm run lint:knip:production",
     "lint:knip:development": "knip --exclude exports,nsExports,types,nsTypes",
     "lint:knip:production": "knip --production --strict --exclude exports,nsExports,types,nsTypes",
     "lint:md": "markdownlint-cli2",
     "lint:md-fix": "markdownlint-cli2 --fix",
-    "lint:md-full": "pnpm run lint:md && eslint \"**/*.md\"",
-    "lint:md-full-fix": "pnpm run lint:md-fix && eslint \"**/*.md\" --fix",
-    "lint:packages": "pnpm dedupe --check",
-    "lint:packages-fix": "pnpm dedupe",
+    "lint:md-full": "npm run lint:md && eslint \"**/*.md\"",
+    "lint:md-full-fix": "npm run lint:md-fix && eslint \"**/*.md\" --fix",
+    "lint:packages": "npm dedupe --check",
+    "lint:packages-fix": "npm dedupe",
     "lint:spelling": "cspell \"**\" \".github/**/*\"",
     "lint:yaml": "eslint \"**/*.y?(a)ml\"",
     "lint:yaml-fix": "eslint \"**/*.y?(a)ml\" --fix",
     "prepare": "husky",
     "release": "semantic-release",
-    "test": "pnpm run test:js-run && pnpm run test:types",
+    "test": "npm run test:js-run && npm run test:types",
     "test:js": "vitest --coverage",
     "test:js-run": "vitest run --coverage",
-    "test:types": "pnpm run build && tsd -f 'tests/**/*.test-d.ts' -t 'dist/index.d.mts'",
+    "test:types": "npm run build && tsd -f 'tests/**/*.test-d.ts' -t 'dist/index.d.mts'",
     "typecheck": "tsc -p tsconfig.build.json --noEmit"
   },
   "resolutions": {
@@ -147,7 +147,7 @@
     "vitest": "2.1.2",
     "yaml-eslint-parser": "1.2.3"
   },
-  "packageManager": "pnpm@9.12.3",
+  "packageManager": "npm@9.12.3",
   "engines": {
     "node": ">=16.0.0"
   }

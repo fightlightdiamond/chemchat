@@ -24,8 +24,8 @@ npm install pkg-types
 # yarn
 yarn add pkg-types
 
-# pnpm
-pnpm install pkg-types
+# npm
+npm install pkg-types
 
 # bun
 bun install pkg-types
@@ -143,7 +143,7 @@ const filename = await resolveFile("README.md", {
 
 #### `resolveLockFile`
 
-Find path to the lock file (`yarn.lock`, `package-lock.json`, `pnpm-lock.yaml`, `npm-shrinkwrap.json`, `bun.lockb`, `bun.lock`, `deno.lock`) or throws an error.
+Find path to the lock file (`yarn.lock`, `package-lock.json`, `npm-lock.yaml`, `npm-shrinkwrap.json`, `bun.lockb`, `bun.lock`, `deno.lock`) or throws an error.
 
 ```js
 import { resolveLockFile } from "pkg-types";
@@ -154,7 +154,7 @@ const lockfile = await resolveLockFile(".");
 
 Try to detect workspace dir by in order:
 
-1. Farthest workspace file (`pnpm-workspace.yaml`, `lerna.json`, `turbo.json`, `rush.json`, `deno.json`, `deno.jsonc`)
+1. Farthest workspace file (`npm-workspace.yaml`, `lerna.json`, `turbo.json`, `rush.json`, `deno.json`, `deno.jsonc`)
 2. Closest `.git/config` file
 3. Farthest lockfile
 4. Farthest `package.json` file

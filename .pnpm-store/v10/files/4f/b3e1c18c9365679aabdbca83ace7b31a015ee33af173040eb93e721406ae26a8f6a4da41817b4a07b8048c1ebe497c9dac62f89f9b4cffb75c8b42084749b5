@@ -187,7 +187,7 @@ To get started, copy and paste the specification file into your project. Alterna
 ```sh
 npm install @standard-schema/spec       # npm
 yarn add @standard-schema/spec          # yarn
-pnpm add @standard-schema/spec          # pnpm
+npm add @standard-schema/spec          # npm
 bun add @standard-schema/spec           # bun
 deno add jsr:@standard-schema/spec      # deno
 ```

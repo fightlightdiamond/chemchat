@@ -27,8 +27,8 @@ npm install rc9
 # yarn
 yarn add rc9
 
-# pnpm
-pnpm install rc9
+# npm
+npm install rc9
 
 # bun
 bun install rc9

@@ -52,7 +52,7 @@ var import_fs = __toESM(require("fs"));
 var import_os = __toESM(require("os"));
 var import_path = __toESM(require("path"));
 var require_common_path_prefix = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/common-path-prefix@3.0.0/node_modules/common-path-prefix/index.js"(exports, module2) {
+  "../../node_modules/.npm/common-path-prefix@3.0.0/node_modules/common-path-prefix/index.js"(exports, module2) {
     "use strict";
     var { sep: DEFAULT_SEPARATOR } = (0, import_chunk_QGM4M3NI.__require)("path");
     var determineSeparator = (paths) => {
@@ -82,7 +82,7 @@ var require_common_path_prefix = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_universalify = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/universalify@2.0.1/node_modules/universalify/index.js"(exports) {
+  "../../node_modules/.npm/universalify@2.0.1/node_modules/universalify/index.js"(exports) {
     "use strict";
     exports.fromCallback = function(fn) {
       return Object.defineProperty(function(...args) {
@@ -108,7 +108,7 @@ var require_universalify = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_polyfills = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/graceful-fs@4.2.11/node_modules/graceful-fs/polyfills.js"(exports, module2) {
+  "../../node_modules/.npm/graceful-fs@4.2.11/node_modules/graceful-fs/polyfills.js"(exports, module2) {
     "use strict";
     var constants = (0, import_chunk_QGM4M3NI.__require)("constants");
     var origCwd = process.cwd;
@@ -395,7 +395,7 @@ var require_polyfills = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_legacy_streams = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/graceful-fs@4.2.11/node_modules/graceful-fs/legacy-streams.js"(exports, module2) {
+  "../../node_modules/.npm/graceful-fs@4.2.11/node_modules/graceful-fs/legacy-streams.js"(exports, module2) {
     "use strict";
     var Stream = (0, import_chunk_QGM4M3NI.__require)("stream").Stream;
     module2.exports = legacy;
@@ -490,7 +490,7 @@ var require_legacy_streams = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_clone = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/graceful-fs@4.2.11/node_modules/graceful-fs/clone.js"(exports, module2) {
+  "../../node_modules/.npm/graceful-fs@4.2.11/node_modules/graceful-fs/clone.js"(exports, module2) {
     "use strict";
     module2.exports = clone;
     var getPrototypeOf = Object.getPrototypeOf || function(obj) {
@@ -511,7 +511,7 @@ var require_clone = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_graceful_fs = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/graceful-fs@4.2.11/node_modules/graceful-fs/graceful-fs.js"(exports, module2) {
+  "../../node_modules/.npm/graceful-fs@4.2.11/node_modules/graceful-fs/graceful-fs.js"(exports, module2) {
     "use strict";
     var fs4 = (0, import_chunk_QGM4M3NI.__require)("fs");
     var polyfills = require_polyfills();
@@ -880,7 +880,7 @@ var require_graceful_fs = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_fs = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/fs/index.js"(exports) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/fs/index.js"(exports) {
     "use strict";
     var u = require_universalify().fromCallback;
     var fs4 = require_graceful_fs();
@@ -994,7 +994,7 @@ var require_fs = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_utils = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/utils.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/utils.js"(exports, module2) {
     "use strict";
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
     module2.exports.checkPath = function checkPath(pth) {
@@ -1010,7 +1010,7 @@ var require_utils = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_make_dir = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/make-dir.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/make-dir.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var { checkPath } = require_utils();
@@ -1036,7 +1036,7 @@ var require_make_dir = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_mkdirs = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/mkdirs/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var { makeDir: _makeDir, makeDirSync } = require_make_dir();
@@ -1053,7 +1053,7 @@ var require_mkdirs = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_path_exists = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/path-exists/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/path-exists/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var fs4 = require_fs();
@@ -1067,7 +1067,7 @@ var require_path_exists = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_utimes = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/util/utimes.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/util/utimes.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var u = require_universalify().fromPromise;
@@ -1099,7 +1099,7 @@ var require_utimes = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_stat = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/util/stat.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/util/stat.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1229,7 +1229,7 @@ var require_stat = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_copy = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/copy.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/copy.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1356,7 +1356,7 @@ var require_copy = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_copy_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/copy-sync.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/copy-sync.js"(exports, module2) {
     "use strict";
     var fs4 = require_graceful_fs();
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1490,7 +1490,7 @@ var require_copy_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_copy2 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/copy/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     module2.exports = {
@@ -1500,7 +1500,7 @@ var require_copy2 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_remove = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/remove/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/remove/index.js"(exports, module2) {
     "use strict";
     var fs4 = require_graceful_fs();
     var u = require_universalify().fromCallback;
@@ -1517,7 +1517,7 @@ var require_remove = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_empty = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/empty/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/empty/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var fs4 = require_fs();
@@ -1554,7 +1554,7 @@ var require_empty = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_file = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/file.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/file.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1611,7 +1611,7 @@ var require_file = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_link = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/link.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/link.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1666,7 +1666,7 @@ var require_link = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_symlink_paths = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink-paths.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink-paths.js"(exports, module2) {
     "use strict";
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
     var fs4 = require_fs();
@@ -1737,7 +1737,7 @@ var require_symlink_paths = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_symlink_type = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink-type.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink-type.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var u = require_universalify().fromPromise;
@@ -1768,7 +1768,7 @@ var require_symlink_type = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_symlink = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/symlink.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -1827,7 +1827,7 @@ var require_symlink = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_ensure = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/ensure/index.js"(exports, module2) {
     "use strict";
     var { createFile, createFileSync } = require_file();
     var { createLink, createLinkSync } = require_link();
@@ -1852,7 +1852,7 @@ var require_ensure = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_utils2 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/jsonfile@6.1.0/node_modules/jsonfile/utils.js"(exports, module2) {
+  "../../node_modules/.npm/jsonfile@6.1.0/node_modules/jsonfile/utils.js"(exports, module2) {
     "use strict";
     function stringify(obj, { EOL = "\n", finalEOL = true, replacer = null, spaces } = {}) {
       const EOF = finalEOL ? EOL : "";
@@ -1867,7 +1867,7 @@ var require_utils2 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_jsonfile = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/jsonfile@6.1.0/node_modules/jsonfile/index.js"(exports, module2) {
+  "../../node_modules/.npm/jsonfile@6.1.0/node_modules/jsonfile/index.js"(exports, module2) {
     "use strict";
     var _fs;
     try {
@@ -1939,7 +1939,7 @@ var require_jsonfile = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_jsonfile2 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/jsonfile.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/jsonfile.js"(exports, module2) {
     "use strict";
     var jsonFile = require_jsonfile();
     module2.exports = {
@@ -1952,7 +1952,7 @@ var require_jsonfile2 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_output_file = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/output-file/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/output-file/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var fs4 = require_fs();
@@ -1980,7 +1980,7 @@ var require_output_file = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_output_json = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/output-json.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/output-json.js"(exports, module2) {
     "use strict";
     var { stringify } = require_utils2();
     var { outputFile } = require_output_file();
@@ -1992,7 +1992,7 @@ var require_output_json = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_output_json_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/output-json-sync.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/output-json-sync.js"(exports, module2) {
     "use strict";
     var { stringify } = require_utils2();
     var { outputFileSync } = require_output_file();
@@ -2004,7 +2004,7 @@ var require_output_json_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_json = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/json/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     var jsonFile = require_jsonfile2();
@@ -2020,7 +2020,7 @@ var require_json = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_move = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/move.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/move.js"(exports, module2) {
     "use strict";
     var fs4 = require_fs();
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -2070,7 +2070,7 @@ var require_move = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_move_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/move-sync.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/move-sync.js"(exports, module2) {
     "use strict";
     var fs4 = require_graceful_fs();
     var path6 = (0, import_chunk_QGM4M3NI.__require)("path");
@@ -2121,7 +2121,7 @@ var require_move_sync = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_move2 = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/move/index.js"(exports, module2) {
     "use strict";
     var u = require_universalify().fromPromise;
     module2.exports = {
@@ -2131,7 +2131,7 @@ var require_move2 = (0, import_chunk_QGM4M3NI.__commonJS)({
   }
 });
 var require_lib = (0, import_chunk_QGM4M3NI.__commonJS)({
-  "../../node_modules/.pnpm/fs-extra@11.3.0/node_modules/fs-extra/lib/index.js"(exports, module2) {
+  "../../node_modules/.npm/fs-extra@11.3.0/node_modules/fs-extra/lib/index.js"(exports, module2) {
     "use strict";
     module2.exports = {
       // Export promiseified graceful-fs:

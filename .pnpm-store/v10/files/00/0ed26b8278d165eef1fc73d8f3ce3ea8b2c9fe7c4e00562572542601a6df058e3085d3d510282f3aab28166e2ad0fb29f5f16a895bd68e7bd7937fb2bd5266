@@ -32,7 +32,7 @@ function escapeStringRegexp(string) {
   return string.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&").replace(/-/g, "\\x2d");
 }
 var init_escape_string_regexp = (0, import_chunk_2ESYSVXG.__esm)({
-  "../../node_modules/.pnpm/escape-string-regexp@5.0.0/node_modules/escape-string-regexp/index.js"() {
+  "../../node_modules/.npm/escape-string-regexp@5.0.0/node_modules/escape-string-regexp/index.js"() {
     "use strict";
   }
 });

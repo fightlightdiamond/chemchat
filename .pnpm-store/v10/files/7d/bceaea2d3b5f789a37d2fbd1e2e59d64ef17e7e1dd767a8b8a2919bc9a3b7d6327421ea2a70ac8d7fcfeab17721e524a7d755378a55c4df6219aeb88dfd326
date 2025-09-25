@@ -26,9 +26,9 @@
     "lint": "eslint . && prettier -c src test",
     "lint:fix": "eslint . --fix && prettier -w src test",
     "prepack": "unbuild",
-    "play": "pnpm giget --force-clean --verbose unjs .tmp/clone",
-    "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
-    "test": "pnpm lint && vitest run --coverage"
+    "play": "npm giget --force-clean --verbose unjs .tmp/clone",
+    "release": "npm test && changelogen --release && npm publish && git push --follow-tags",
+    "test": "npm lint && vitest run --coverage"
   },
   "dependencies": {
     "citty": "^0.1.6",
@@ -53,8 +53,8 @@
     "unbuild": "^3.3.1",
     "vitest": "^3.0.7"
   },
-  "packageManager": "pnpm@10.5.0",
-  "pnpm": {
+  "packageManager": "npm@10.5.0",
+  "npm": {
     "patchedDependencies": {
       "tar": "patches/tar.patch"
     }

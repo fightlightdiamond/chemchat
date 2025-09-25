@@ -115,8 +115,8 @@ npm install giget
 # yarn
 yarn install giget
 
-# pnpm
-pnpm install giget
+# npm
+npm install giget
 ```
 
 Import:
@@ -229,8 +229,8 @@ Giget wouldn't be possible without inspiration from former projects. In comparis
 
 - Clone this repository
 - Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable` (use `npm i -g corepack` for Node.js < 16.10)
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+- Install dependencies using `npm install`
+- Run interactive tests using `npm dev`
 
 ## License
 

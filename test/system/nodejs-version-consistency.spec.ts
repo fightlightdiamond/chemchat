@@ -15,8 +15,8 @@ import * as yaml from 'js-yaml';
 describe('Node.js Version Consistency', () => {
   const expectedNodeVersion = '20';
   const expectedNodeVersionRange = '>=20.0.0';
-  const expectedPnpmVersion = '8';
-  const expectedPnpmVersionRange = '>=8.0.0';
+  const expectednpmVersion = '8';
+  const expectednpmVersionRange = '>=8.0.0';
 
   let packageJson: any;
   let ciWorkflow: any;
@@ -54,15 +54,15 @@ describe('Node.js Version Consistency', () => {
       expect(packageJson.engines.node).toBe(expectedNodeVersionRange);
     });
 
-    it('should specify correct pnpm version requirement', () => {
+    it('should specify correct npm version requirement', () => {
       expect(packageJson.engines).toBeDefined();
-      expect(packageJson.engines.pnpm).toBe(expectedPnpmVersionRange);
+      expect(packageJson.engines.npm).toBe(expectednpmVersionRange);
     });
 
     it('should have engines field properly configured', () => {
       expect(packageJson.engines).toEqual({
         node: expectedNodeVersionRange,
-        pnpm: expectedPnpmVersionRange
+        npm: expectednpmVersionRange
       });
     });
   });
@@ -80,15 +80,15 @@ describe('Node.js Version Consistency', () => {
       }
     });
 
-    it('should use pnpm consistently in Docker', () => {
-      expect(dockerfile).toContain('npm install -g pnpm');
-      expect(dockerfile).toContain('pnpm install --frozen-lockfile');
-      expect(dockerfile).toContain('pnpm exec prisma generate');
-      expect(dockerfile).toContain('pnpm run build');
+    it('should use npm consistently in Docker', () => {
+      expect(dockerfile).toContain('npm install -g npm');
+      expect(dockerfile).toContain('npm install --frozen-lockfile');
+      expect(dockerfile).toContain('npm exec prisma generate');
+      expect(dockerfile).toContain('npm run build');
     });
 
-    it('should not have any npm usage except for pnpm installation', () => {
-      const npmUsages = dockerfile.match(/npm (?!install -g pnpm)/g) || [];
+    it('should not have any npm usage except for npm installation', () => {
+      const npmUsages = dockerfile.match(/npm (?!install -g npm)/g) || [];
       expect(npmUsages).toHaveLength(0);
     });
   });
@@ -114,23 +114,23 @@ describe('Node.js Version Consistency', () => {
       }
     });
 
-    it('should use correct pnpm version in CI workflow', () => {
+    it('should use correct npm version in CI workflow', () => {
       const jobs = Object.values(ciWorkflow.jobs) as any[];
       
       for (const job of jobs) {
         if (job.steps) {
-          const pnpmSetupSteps = job.steps.filter((step: any) => 
-            step.name === 'Setup pnpm'
+          const npmSetupSteps = job.steps.filter((step: any) => 
+            step.name === 'Setup npm'
           );
           
-          for (const step of pnpmSetupSteps) {
-            expect(step.with.version).toBe(expectedPnpmVersion);
+          for (const step of npmSetupSteps) {
+            expect(step.with.version).toBe(expectednpmVersion);
           }
         }
       }
     });
 
-    it('should use pnpm cache consistently', () => {
+    it('should use npm cache consistently', () => {
       const jobs = Object.values(ciWorkflow.jobs) as any[];
       
       for (const job of jobs) {
@@ -140,13 +140,13 @@ describe('Node.js Version Consistency', () => {
           );
           
           for (const step of nodeSetupSteps) {
-            expect(step.with.cache).toBe('pnpm');
+            expect(step.with.cache).toBe('npm');
           }
         }
       }
     });
 
-    it('should use pnpm install consistently across all jobs', () => {
+    it('should use npm install consistently across all jobs', () => {
       const jobs = Object.values(ciWorkflow.jobs) as any[];
       
       for (const job of jobs) {
@@ -156,7 +156,7 @@ describe('Node.js Version Consistency', () => {
           );
           
           for (const step of installSteps) {
-            expect(step.run).toBe('pnpm install --frozen-lockfile');
+            expect(step.run).toBe('npm install --frozen-lockfile');
           }
         }
       }
@@ -203,7 +203,7 @@ describe('Node.js Version Consistency', () => {
       }
     });
 
-    it('should use pnpm consistently in security workflow', () => {
+    it('should use npm consistently in security workflow', () => {
       if (securityWorkflow) {
         const jobs = Object.values(securityWorkflow.jobs) as any[];
         
@@ -214,7 +214,7 @@ describe('Node.js Version Consistency', () => {
             );
             
             for (const step of installSteps) {
-              expect(step.run).toBe('pnpm install --frozen-lockfile');
+              expect(step.run).toBe('npm install --frozen-lockfile');
             }
           }
         }
@@ -230,14 +230,14 @@ describe('Node.js Version Consistency', () => {
       expect(majorVersion).toBeGreaterThanOrEqual(20);
     });
 
-    it('should validate pnpm is available and meets version requirements', () => {
+    it('should validate npm is available and meets version requirements', () => {
       try {
-        const pnpmVersion = execSync('pnpm --version', { encoding: 'utf8' }).trim();
-        const majorVersion = parseInt(pnpmVersion.split('.')[0]);
+        const npmVersion = execSync('npm --version', { encoding: 'utf8' }).trim();
+        const majorVersion = parseInt(npmVersion.split('.')[0]);
         
         expect(majorVersion).toBeGreaterThanOrEqual(8);
       } catch (error) {
-        fail('pnpm is not available in the environment');
+        fail('npm is not available in the environment');
       }
     });
 
@@ -276,9 +276,9 @@ describe('Node.js Version Consistency', () => {
       const scripts = Object.values(packageJson.scripts) as string[];
       
       for (const script of scripts) {
-        // Scripts should not use npm directly (except for global pnpm install)
-        if (script.includes('npm ') && !script.includes('npm install -g pnpm')) {
-          fail(`Script uses npm instead of pnpm: ${script}`);
+        // Scripts should not use npm directly (except for global npm install)
+        if (script.includes('npm ') && !script.includes('npm install -g npm')) {
+          fail(`Script uses npm instead of npm: ${script}`);
         }
       }
     });

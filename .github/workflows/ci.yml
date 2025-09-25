@@ -59,36 +59,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Lint code
-        run: pnpm run lint
+        run: npm run lint
 
       - name: Type check
-        run: pnpm run build
+        run: npm run build
 
       - name: Setup test database
         run: |
-          pnpm run migrate:reset
-          pnpm run db:seed
+          npm run migrate:reset
+          npm run db:seed
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
           NODE_ENV: test
 
       - name: Run unit tests
-        run: pnpm run test:unit
+        run: npm run test:unit
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
           REDIS_HOST: localhost
@@ -97,7 +93,7 @@ jobs:
           NODE_ENV: test
 
       - name: Run integration tests
-        run: pnpm run test:integration
+        run: npm run test:integration
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
           REDIS_HOST: localhost
@@ -106,7 +102,7 @@ jobs:
           NODE_ENV: test
 
       - name: Run E2E tests
-        run: pnpm run test:e2e
+        run: npm run test:e2e
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/chemchat_test
           REDIS_HOST: localhost
@@ -129,22 +125,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run security audit
-        run: pnpm audit --audit-level high
+        run: npm audit --audit-level high
 
       - name: Run Snyk security scan
         if: ${{ secrets.SNYK_TOKEN != '' }}
