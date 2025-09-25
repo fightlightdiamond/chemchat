@@ -10,7 +10,14 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "start:dev:ts": "nodemon --exec ts-node --transpile-only -r tsconfig-paths/register src/main.ts",
+  "devDependencies": {
+    "jest-extended": "^4.0.2",
+    "nock": "^13.4.0",
+    "prettier": "^3.4.2",
+    "prisma": "^6.15.0",
+    "nodemon": "^3.1.7",
+    "socket.io-client": "^4.8.1"
+  }
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "swagger": "ts-node scripts/swagger-only.ts",
