@@ -1,0 +1,26 @@
+{
+  "displayName": "Workflow Validation Tests",
+  "rootDir": "../",
+  "testMatch": [
+    "<rootDir>/test/system/workflow-validation.spec.ts",
+    "<rootDir>/test/system/script-execution-validation.spec.ts",
+    "<rootDir>/test/system/nodejs-version-consistency.spec.ts",
+    "<rootDir>/test/system/ci-workflow-execution.spec.ts",
+    "<rootDir>/test/system/docker-workflow-integration.spec.ts"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "testEnvironment": "node",
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "collectCoverageFrom": ["scripts/**/*.(t|j)s", "!scripts/node_modules/**"],
+  "coverageDirectory": "coverage/workflow-validation",
+  "testTimeout": 120000,
+  "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+  "moduleNameMapping": {
+    "^@/(.*)$": "<rootDir>/src/$1"
+  },
+  "verbose": true,
+  "forceExit": true,
+  "detectOpenHandles": true
+}

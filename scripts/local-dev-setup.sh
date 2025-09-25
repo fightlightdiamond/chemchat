@@ -32,13 +32,13 @@ print_error() {
 # Check if Node.js is installed
 check_node() {
     if ! command -v node &> /dev/null; then
-        print_error "Node.js is not installed. Please install Node.js 18+ and try again."
+        print_error "Node.js is not installed. Please install Node.js 20+ and try again."
         exit 1
     fi
     
     local node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-    if [ "$node_version" -lt 18 ]; then
-        print_error "Node.js version 18+ is required. Current version: $(node --version)"
+    if [ "$node_version" -lt 20 ]; then
+        print_error "Node.js version 20+ is required. Current version: $(node --version)"
         exit 1
     fi
     
@@ -221,7 +221,7 @@ start_application() {
     print_status "Application will be available at http://localhost:3000"
     print_status "Press Ctrl+C to stop the application"
     
-    npm run start:dev
+    pnpm run start:dev
 }
 
 # Show service URLs

@@ -104,7 +104,7 @@ describe('IdempotencyService', () => {
         isDuplicate: false,
         cachedResult: undefined,
       });
-       
+
       expect(messageIdService.isDuplicate).toHaveBeenCalledWith(
         mockCommand.messageId,
         mockCommand.tenantId,
@@ -191,7 +191,6 @@ describe('IdempotencyService', () => {
       await service.recordExecution(mockCommand, mockHandler);
 
       // Assert
-       
       expect(messageIdService.recordMessageId).toHaveBeenCalledWith(
         mockCommand.messageId,
         mockCommand.tenantId,

@@ -22,13 +22,13 @@ RUN npm install -g pnpm && pnpm install
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN pnpm exec prisma generate
 
 # Expose ports (3000 for app, 9229 for debugger)
 EXPOSE 3000 9229
 
 # Start development server with hot reload
-CMD ["npm", "run", "start:dev"]
+CMD ["pnpm", "run", "start:dev"]
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -49,10 +49,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN pnpm exec prisma generate
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Production image, copy all the files and run the app
 FROM base AS runner
