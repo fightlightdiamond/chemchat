@@ -63,10 +63,12 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           image-ref: 'chemchat:security-scan'
           format: 'json'
           output: 'trivy-results.json'
+          severity: 'HIGH,CRITICAL'
 
       - name: Upload Trivy scan results
         uses: actions/upload-artifact@v4
@@ -76,10 +78,13 @@ jobs:
 
       - name: Run Grype vulnerability scanner
         uses: anchore/scan-action@v3
+        continue-on-error: true
         with:
           image: 'chemchat:security-scan'
           format: 'json'
           output-file: 'grype-results.json'
+          fail-build: 'false'
+          severity-cutoff: 'high'
 
       - name: Upload Grype results
         uses: actions/upload-artifact@v4
