@@ -51,37 +51,37 @@ test_endpoint() {
     local headers=$4
     local data=$5
     local description=$6
-    
+
     ((TOTAL_TESTS++))
-    
+
     log_info "Testing: $description"
-    
-    local curl_cmd="curl -s -w '%{http_code}' -X $method"
-    
-    if [ ! -z "$headers" ]; then
-        curl_cmd="$curl_cmd $headers"
+
+    # Build curl command as an array to avoid eval injection issues
+    # shellcheck disable=SC2206
+    local -a cmd=(curl -sS -m 10 --connect-timeout 3 -w '%{http_code}' -X "$method")
+    if [ -n "$headers" ]; then
+        cmd+=($headers)
     fi
-    
-    if [ ! -z "$data" ]; then
-        curl_cmd="$curl_cmd -d '$data'"
+    if [ -n "$data" ]; then
+        cmd+=(-d "$data")
     fi
-    
-    curl_cmd="$curl_cmd $BASE_URL$endpoint"
-    
-    local response=$(eval $curl_cmd)
+    cmd+=("$BASE_URL$endpoint")
+
+    local response
+    response="$("${cmd[@]}")"
     local status_code="${response: -3}"
     local body="${response%???}"
-    
+
     if [ "$status_code" = "$expected_status" ]; then
         log_success "$method $endpoint - Status: $status_code"
-        if [ ! -z "$body" ] && [ "$body" != "null" ]; then
-            echo "Response: $(echo $body | jq . 2>/dev/null || echo $body)"
+        if [ -n "$body" ] && [ "$body" != "null" ]; then
+            echo "Response: $(echo "$body" | jq . 2>/dev/null || echo "$body")"
         fi
     else
         log_error "$method $endpoint - Expected: $expected_status, Got: $status_code"
         echo "Response: $body"
     fi
-    
+
     echo ""
 }
 
