@@ -105,7 +105,8 @@
     "speakeasy": "^2.0.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "escape-html": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
