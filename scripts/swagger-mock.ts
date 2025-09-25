@@ -1,8 +1,24 @@
 import { NestFactory } from '@nestjs/core';
+import escapeHtml from 'escape-html';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { Module, Controller, Get, Post, Put, Delete, Body, Query, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty } from '@nestjs/swagger';
+
+// Helper function to HTML-escape all string properties of an object (shallow)
+function escapeStringsInObject(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== 'object') return obj;
+  const escaped: any = {};
+  for (const key of Object.keys(obj)) {
+    if (typeof obj[key] === 'string') {
+      escaped[key] = escapeHtml(obj[key]);
+    } else {
+      escaped[key] = obj[key];
+    }
+  }
+  return escaped;
+}
 
 // Mock DTOs for Swagger documentation
 class LoginRequest {
@@ -182,7 +198,7 @@ class MockNotificationController {
   @ApiOperation({ summary: 'Send notification' })
   @ApiResponse({ status: 201, description: 'Notification sent' })
   async sendNotification(@Body() notification: NotificationRequest): Promise<any> {
-    return { id: 'notif-1', status: 'sent', ...notification };
+    return { id: 'notif-1', status: 'sent', ...escapeStringsInObject(notification) };
   }
 
   @Get()
