@@ -1,5 +1,5 @@
 # Multi-stage build for production optimization
-FROM node:20-alpine@sha256:2d07db07023cedc80d8990119e1a3667c68b7cdd134e75d8b7a7c0b0e6e7de8c AS base
+FROM node:20-alpine@sha256:eabac870db94f7342d6c33560d6613f188bbcf4bbe1f4eb47d5e2a08e1a37722 AS base
 
 # Development stage for hot-reload
 FROM base AS development
