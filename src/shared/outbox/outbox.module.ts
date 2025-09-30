@@ -10,7 +10,17 @@ import { OutboxEventPublisherService } from './services/outbox-event-publisher.s
 
 @Module({
   imports: [ConfigModule, CqrsModule, PrismaModule, KafkaModule.forRoot()],
-  providers: [OutboxService, OutboxWorkerService, EventSerializerService, OutboxEventPublisherService],
-  exports: [OutboxService, OutboxWorkerService, EventSerializerService, OutboxEventPublisherService],
+  providers: [
+    OutboxService,
+    OutboxWorkerService,
+    EventSerializerService,
+    OutboxEventPublisherService,
+  ],
+  exports: [
+    OutboxService,
+    OutboxWorkerService,
+    EventSerializerService,
+    OutboxEventPublisherService,
+  ],
 })
 export class OutboxModule {}

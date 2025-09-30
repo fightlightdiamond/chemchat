@@ -145,7 +145,7 @@ export class ChatGateway
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
-     
+
     (this.messageBroadcast as any).setServer(this.server);
   }
 
@@ -308,7 +308,7 @@ export class ChatGateway
       });
 
       // Execute command - CommandBus returns any by design
-       
+
       const result = await this.commandBus.execute(command);
 
       // Type guard to ensure result is a Message
@@ -356,7 +356,6 @@ export class ChatGateway
         tenantId,
       });
 
-       
       const result = await this.commandBus.execute(command);
 
       if (!isMessage(result)) {
@@ -364,7 +363,7 @@ export class ChatGateway
       }
 
       // Broadcast edit to room members
-       
+
       await (this.messageBroadcast as any).broadcastMessageEdit(result);
 
       // Send confirmation to sender
@@ -398,7 +397,6 @@ export class ChatGateway
         tenantId,
       });
 
-       
       const result = await this.commandBus.execute(command);
 
       if (!isMessage(result)) {
@@ -406,7 +404,7 @@ export class ChatGateway
       }
 
       // Broadcast deletion to room members
-       
+
       await (this.messageBroadcast as any).broadcastMessageDelete(result);
 
       // Send confirmation to sender
@@ -443,7 +441,6 @@ export class ChatGateway
         tenantId,
       });
 
-       
       const result = await this.queryBus.execute(query);
 
       if (!isPaginatedResult(result)) {

@@ -28,7 +28,8 @@ export class PaginationDto {
 
   @ApiProperty({
     description: 'Cursor for pagination (alternative to page-based)',
-    example: 'eyJpZCI6MTIzLCJ0aW1lc3RhbXAiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoifQ==',
+    example:
+      'eyJpZCI6MTIzLCJ0aW1lc3RhbXAiOiIyMDIzLTEyLTAxVDEwOjAwOjAwLjAwMFoifQ==',
     required: false,
   })
   @IsOptional()
@@ -52,9 +53,20 @@ export class PaginatedResponseDto<T> {
       limit: { type: 'number', description: 'Items per page' },
       totalPages: { type: 'number', description: 'Total number of pages' },
       hasNext: { type: 'boolean', description: 'Whether there is a next page' },
-      hasPrevious: { type: 'boolean', description: 'Whether there is a previous page' },
-      nextCursor: { type: 'string', description: 'Cursor for next page', nullable: true },
-      previousCursor: { type: 'string', description: 'Cursor for previous page', nullable: true },
+      hasPrevious: {
+        type: 'boolean',
+        description: 'Whether there is a previous page',
+      },
+      nextCursor: {
+        type: 'string',
+        description: 'Cursor for next page',
+        nullable: true,
+      },
+      previousCursor: {
+        type: 'string',
+        description: 'Cursor for previous page',
+        nullable: true,
+      },
     },
   })
   pagination: {

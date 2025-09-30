@@ -48,10 +48,7 @@ export abstract class BaseTenantRepository {
     }
 
     return {
-      AND: [
-        { tenantId },
-        where,
-      ],
+      AND: [{ tenantId }, where],
     };
   }
 
@@ -64,7 +61,9 @@ export abstract class BaseTenantRepository {
     }
 
     if (Array.isArray(result)) {
-      return result.every(item => !item.tenantId || item.tenantId === tenantId);
+      return result.every(
+        (item) => !item.tenantId || item.tenantId === tenantId,
+      );
     }
 
     return !result.tenantId || result.tenantId === tenantId;
@@ -83,10 +82,10 @@ export abstract class BaseTenantRepository {
       orderBy?: any;
       skip?: number;
       take?: number;
-    } = {}
+    } = {},
   ): Promise<TModel[]> {
     const { where, ...restOptions } = options;
-    
+
     const results = await model.findMany({
       ...restOptions,
       where: this.createTenantWhere(where, tenantId),
@@ -94,7 +93,9 @@ export abstract class BaseTenantRepository {
 
     // Validate tenant ownership
     if (!this.validateTenantOwnership(results, tenantId)) {
-      this.logger.error(`Tenant validation failed for findMany operation: ${tenantId}`);
+      this.logger.error(
+        `Tenant validation failed for findMany operation: ${tenantId}`,
+      );
       throw new Error('Tenant validation failed');
     }
 
@@ -111,10 +112,10 @@ export abstract class BaseTenantRepository {
       where: any;
       include?: any;
       select?: any;
-    }
+    },
   ): Promise<TModel | null> {
     const { where, ...restOptions } = options;
-    
+
     const result = await model.findFirst({
       ...restOptions,
       where: this.createTenantWhere(where, tenantId),
@@ -122,7 +123,9 @@ export abstract class BaseTenantRepository {
 
     // Validate tenant ownership
     if (!this.validateTenantOwnership(result, tenantId)) {
-      this.logger.error(`Tenant validation failed for findUnique operation: ${tenantId}`);
+      this.logger.error(
+        `Tenant validation failed for findUnique operation: ${tenantId}`,
+      );
       throw new Error('Tenant validation failed');
     }
 
@@ -139,7 +142,7 @@ export abstract class BaseTenantRepository {
     options: {
       include?: any;
       select?: any;
-    } = {}
+    } = {},
   ): Promise<TModel> {
     const tenantScopedData = {
       ...data,
@@ -163,7 +166,7 @@ export abstract class BaseTenantRepository {
     options: {
       include?: any;
       select?: any;
-    } = {}
+    } = {},
   ): Promise<TModel> {
     const result = await model.update({
       where: this.createTenantWhere(where, tenantId),
@@ -173,7 +176,9 @@ export abstract class BaseTenantRepository {
 
     // Validate tenant ownership
     if (!this.validateTenantOwnership(result, tenantId)) {
-      this.logger.error(`Tenant validation failed for update operation: ${tenantId}`);
+      this.logger.error(
+        `Tenant validation failed for update operation: ${tenantId}`,
+      );
       throw new Error('Tenant validation failed');
     }
 
@@ -186,7 +191,7 @@ export abstract class BaseTenantRepository {
   protected async deleteWithTenant<TModel>(
     model: any,
     tenantId: string,
-    where: any
+    where: any,
   ): Promise<TModel> {
     const result = await model.delete({
       where: this.createTenantWhere(where, tenantId),
@@ -194,7 +199,9 @@ export abstract class BaseTenantRepository {
 
     // Validate tenant ownership
     if (!this.validateTenantOwnership(result, tenantId)) {
-      this.logger.error(`Tenant validation failed for delete operation: ${tenantId}`);
+      this.logger.error(
+        `Tenant validation failed for delete operation: ${tenantId}`,
+      );
       throw new Error('Tenant validation failed');
     }
 
@@ -207,7 +214,7 @@ export abstract class BaseTenantRepository {
   protected async countWithTenant(
     model: any,
     tenantId: string,
-    where: any = {}
+    where: any = {},
   ): Promise<number> {
     return await model.count({
       where: this.createTenantWhere(where, tenantId),
@@ -227,7 +234,7 @@ export abstract class BaseTenantRepository {
       orderBy?: any;
       page?: number;
       limit?: number;
-    } = {}
+    } = {},
   ): Promise<PaginatedResult<TModel>> {
     const { where, page = 1, limit = 20, ...restOptions } = options;
     const skip = (page - 1) * limit;

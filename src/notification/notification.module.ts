@@ -11,19 +11,13 @@ import { PushNotificationWorker } from './workers/push-notification.worker';
 import { EmailNotificationWorker } from './workers/email-notification.worker';
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationIntegrationService } from './integration/notification-integration.service';
-import { 
+import {
   MessageCreatedNotificationHandler,
-  ConversationCreatedNotificationHandler 
+  ConversationCreatedNotificationHandler,
 } from './event-handlers/notification-event.handler';
 
 @Module({
-  imports: [
-    ConfigModule,
-    CqrsModule,
-    PrismaModule,
-    RedisModule,
-    AuthModule,
-  ],
+  imports: [ConfigModule, CqrsModule, PrismaModule, RedisModule, AuthModule],
   providers: [
     NotificationService,
     NotificationPreferenceService,
@@ -34,9 +28,7 @@ import {
     MessageCreatedNotificationHandler,
     ConversationCreatedNotificationHandler,
   ],
-  controllers: [
-    NotificationController,
-  ],
+  controllers: [NotificationController],
   exports: [
     NotificationService,
     NotificationPreferenceService,

@@ -69,12 +69,12 @@ export class IdempotencyMiddleware implements NestMiddleware {
       res.json = (body: unknown): Response => {
         statusCode = res.statusCode;
         chunks.push(body);
-         
+
         return originalJson.call(res, body);
       };
 
       // Override res.end to cache the response
-       
+
       const originalEnd = res.end.bind(res);
       res.end = (
         chunk?: unknown,
@@ -85,7 +85,6 @@ export class IdempotencyMiddleware implements NestMiddleware {
           chunks.push(chunk);
         }
 
-         
         const responseBody = chunks.length === 1 ? chunks[0] : chunks;
 
         // Only cache successful responses
@@ -100,7 +99,6 @@ export class IdempotencyMiddleware implements NestMiddleware {
           });
         }
 
-         
         return originalEnd.call(res, chunk, encoding, callback);
       };
 
@@ -115,7 +113,7 @@ export class IdempotencyMiddleware implements NestMiddleware {
 
   private getCacheKey(req: Request, idempotencyKey: string): string {
     const { method, originalUrl } = req;
-     
+
     const userId = (req as any).user?.id || 'anonymous';
     return `${this.PREFIX}${userId}:${method}:${originalUrl}:${idempotencyKey}`;
   }
@@ -129,10 +127,12 @@ export class IdempotencyMiddleware implements NestMiddleware {
     try {
       // Filter out sensitive headers
       const { 'set-cookie': setCookie, ...safeHeaders } = headers;
-      
+
       // Log if set-cookie was filtered for security audit
       if (setCookie) {
-        this.logger.debug('Filtered set-cookie header from idempotency cache for security');
+        this.logger.debug(
+          'Filtered set-cookie header from idempotency cache for security',
+        );
       }
 
       const responseData = {

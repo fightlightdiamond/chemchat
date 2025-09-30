@@ -30,20 +30,28 @@ export class NotificationIntegrationService {
     conversationName?: string;
     tenantId?: string;
   }): Promise<void> {
-    const { recipientIds, senderId, senderName, messageContent, conversationId, conversationName, tenantId } = params;
+    const {
+      recipientIds,
+      senderId,
+      senderName,
+      messageContent,
+      conversationId,
+      conversationName,
+      tenantId,
+    } = params;
 
     const notificationPromises = recipientIds
-      .filter(id => id !== senderId) // Don't notify sender
+      .filter((id) => id !== senderId) // Don't notify sender
       .map(async (recipientId) => {
         try {
           // Check if user mentioned
           const isMention = this.checkForMention(messageContent, recipientId);
-          
+
           await this.notificationService.sendNotification({
             userId: recipientId,
             tenantId,
             type: isMention ? 'MENTION' : 'NEW_MESSAGE',
-            title: isMention 
+            title: isMention
               ? `${senderName} mentioned you`
               : `New message from ${senderName}`,
             body: this.getMessagePreview(messageContent),
@@ -55,10 +63,14 @@ export class NotificationIntegrationService {
               messageContent,
               chatUrl: this.buildChatUrl(conversationId),
             },
-            priority: isMention ? NotificationPriority.HIGH : NotificationPriority.NORMAL,
+            priority: isMention
+              ? NotificationPriority.HIGH
+              : NotificationPriority.NORMAL,
           });
         } catch (error) {
-          this.logger.error(`Failed to send notification to user ${recipientId}: ${error.message}`);
+          this.logger.error(
+            `Failed to send notification to user ${recipientId}: ${error.message}`,
+          );
         }
       });
 
@@ -75,7 +87,13 @@ export class NotificationIntegrationService {
     conversationName: string;
     tenantId?: string;
   }): Promise<void> {
-    const { recipientId, inviterName, conversationId, conversationName, tenantId } = params;
+    const {
+      recipientId,
+      inviterName,
+      conversationId,
+      conversationName,
+      tenantId,
+    } = params;
 
     await this.notificationService.sendNotification({
       userId: recipientId,
@@ -104,10 +122,17 @@ export class NotificationIntegrationService {
     conversationName?: string;
     tenantId?: string;
   }): Promise<void> {
-    const { conversationMemberIds, joinedUserId, joinedUserName, conversationId, conversationName, tenantId } = params;
+    const {
+      conversationMemberIds,
+      joinedUserId,
+      joinedUserName,
+      conversationId,
+      conversationName,
+      tenantId,
+    } = params;
 
     const notificationPromises = conversationMemberIds
-      .filter(id => id !== joinedUserId) // Don't notify the user who joined
+      .filter((id) => id !== joinedUserId) // Don't notify the user who joined
       .map(async (memberId) => {
         try {
           await this.notificationService.sendNotification({
@@ -126,7 +151,9 @@ export class NotificationIntegrationService {
             priority: NotificationPriority.LOW,
           });
         } catch (error) {
-          this.logger.error(`Failed to send user joined notification to ${memberId}: ${error.message}`);
+          this.logger.error(
+            `Failed to send user joined notification to ${memberId}: ${error.message}`,
+          );
         }
       });
 
@@ -145,7 +172,15 @@ export class NotificationIntegrationService {
     conversationId: string;
     tenantId?: string;
   }): Promise<void> {
-    const { messageAuthorId, reactorId, reactorName, reaction, messageContent, conversationId, tenantId } = params;
+    const {
+      messageAuthorId,
+      reactorId,
+      reactorName,
+      reaction,
+      messageContent,
+      conversationId,
+      tenantId,
+    } = params;
 
     // Don't notify if user reacted to their own message
     if (messageAuthorId === reactorId) return;
@@ -178,7 +213,13 @@ export class NotificationIntegrationService {
     tenantId?: string;
     priority?: NotificationPriority;
   }): Promise<void> {
-    const { recipientIds, title, message, tenantId, priority = NotificationPriority.NORMAL } = params;
+    const {
+      recipientIds,
+      title,
+      message,
+      tenantId,
+      priority = NotificationPriority.NORMAL,
+    } = params;
 
     const notificationPromises = recipientIds.map(async (recipientId) => {
       try {
@@ -194,7 +235,9 @@ export class NotificationIntegrationService {
           priority,
         });
       } catch (error) {
-        this.logger.error(`Failed to send system announcement to ${recipientId}: ${error.message}`);
+        this.logger.error(
+          `Failed to send system announcement to ${recipientId}: ${error.message}`,
+        );
       }
     });
 
@@ -240,7 +283,11 @@ export class NotificationIntegrationService {
     },
     tenantId?: string,
   ): Promise<void> {
-    await this.preferenceService.updateUserPreferences(userId, preferences, tenantId);
+    await this.preferenceService.updateUserPreferences(
+      userId,
+      preferences,
+      tenantId,
+    );
   }
 
   /**

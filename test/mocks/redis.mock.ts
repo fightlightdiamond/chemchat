@@ -72,7 +72,7 @@ export class MockRedisService {
       this.store.set(key, set);
     }
     let added = 0;
-    members.forEach(member => {
+    members.forEach((member) => {
       if (!set.has(member)) {
         set.add(member);
         added++;
@@ -84,9 +84,9 @@ export class MockRedisService {
   async srem(key: string, ...members: string[]): Promise<number> {
     const set = this.store.get(key) as Set<string>;
     if (!set) return 0;
-    
+
     let removed = 0;
-    members.forEach(member => {
+    members.forEach((member) => {
       if (set.has(member)) {
         set.delete(member);
         removed++;
@@ -103,7 +103,7 @@ export class MockRedisService {
   async publish(channel: string, message: string): Promise<number> {
     const subscribers = this.pubsubChannels.get(channel);
     if (subscribers) {
-      subscribers.forEach(callback => callback(message));
+      subscribers.forEach((callback) => callback(message));
       return subscribers.size;
     }
     return 0;

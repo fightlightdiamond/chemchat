@@ -67,14 +67,17 @@ export class NotificationTemplateService {
         subject: template.subject || undefined,
         title: template.title,
         body: template.body,
-        variables: template.variables as Record<string, any> || undefined,
+        variables: (template.variables as Record<string, any>) || undefined,
       };
 
       // Cache the result
       await this.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(result));
       return result;
     } catch (error) {
-      this.logger.error(`Failed to get template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -109,10 +112,13 @@ export class NotificationTemplateService {
         subject: created.subject || undefined,
         title: created.title,
         body: created.body,
-        variables: created.variables as Record<string, any> || undefined,
+        variables: (created.variables as Record<string, any>) || undefined,
       };
     } catch (error) {
-      this.logger.error(`Failed to create template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -153,10 +159,13 @@ export class NotificationTemplateService {
         subject: updated.subject || undefined,
         title: updated.title,
         body: updated.body,
-        variables: updated.variables as Record<string, any> || undefined,
+        variables: (updated.variables as Record<string, any>) || undefined,
       };
     } catch (error) {
-      this.logger.error(`Failed to update template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -168,29 +177,33 @@ export class NotificationTemplateService {
     try {
       const title = this.interpolateTemplate(template.title, variables);
       const body = this.interpolateTemplate(template.body, variables);
-      const subject = template.subject ? this.interpolateTemplate(template.subject, variables) : undefined;
+      const subject = template.subject
+        ? this.interpolateTemplate(template.subject, variables)
+        : undefined;
 
       return { title, body, subject };
     } catch (error) {
-      this.logger.error(`Failed to render template: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to render template: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async getTemplatesByTenant(tenantId?: string): Promise<NotificationTemplate[]> {
+  async getTemplatesByTenant(
+    tenantId?: string,
+  ): Promise<NotificationTemplate[]> {
     try {
       const templates = await this.prisma.notificationTemplate.findMany({
         where: {
           tenantId: tenantId || null,
           isActive: true,
         },
-        orderBy: [
-          { type: 'asc' },
-          { channel: 'asc' },
-        ],
+        orderBy: [{ type: 'asc' }, { channel: 'asc' }],
       });
 
-      return templates.map(template => ({
+      return templates.map((template) => ({
         id: template.id,
         name: template.name,
         type: template.type,
@@ -198,15 +211,21 @@ export class NotificationTemplateService {
         subject: template.subject || undefined,
         title: template.title,
         body: template.body,
-        variables: template.variables as Record<string, any> || undefined,
+        variables: (template.variables as Record<string, any>) || undefined,
       }));
     } catch (error) {
-      this.logger.error(`Failed to get templates by tenant: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get templates by tenant: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  private interpolateTemplate(template: string, variables: Record<string, any>): string {
+  private interpolateTemplate(
+    template: string,
+    variables: Record<string, any>,
+  ): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       const value = variables[key];
       return value !== undefined ? String(value) : match;
@@ -235,7 +254,10 @@ export class NotificationTemplateService {
     });
   }
 
-  private getDefaultTemplateContent(type: NotificationType, channel: NotificationChannel) {
+  private getDefaultTemplateContent(
+    type: NotificationType,
+    channel: NotificationChannel,
+  ) {
     const templates = {
       [NotificationType.NEW_MESSAGE]: {
         [NotificationChannel.PUSH]: {
@@ -247,7 +269,12 @@ export class NotificationTemplateService {
           subject: 'New message from {{senderName}}',
           title: 'You have a new message',
           body: 'Hi {{recipientName}},\n\n{{senderName}} sent you a message:\n\n"{{messageContent}}"\n\nReply at {{chatUrl}}',
-          variables: { recipientName: 'string', senderName: 'string', messageContent: 'string', chatUrl: 'string' },
+          variables: {
+            recipientName: 'string',
+            senderName: 'string',
+            messageContent: 'string',
+            chatUrl: 'string',
+          },
         },
       },
       [NotificationType.MENTION]: {
@@ -260,7 +287,13 @@ export class NotificationTemplateService {
           subject: 'You were mentioned by {{senderName}}',
           title: 'You were mentioned in a conversation',
           body: 'Hi {{recipientName}},\n\n{{senderName}} mentioned you in {{conversationName}}:\n\n"{{messageContent}}"\n\nView conversation at {{chatUrl}}',
-          variables: { recipientName: 'string', senderName: 'string', conversationName: 'string', messageContent: 'string', chatUrl: 'string' },
+          variables: {
+            recipientName: 'string',
+            senderName: 'string',
+            conversationName: 'string',
+            messageContent: 'string',
+            chatUrl: 'string',
+          },
         },
       },
       [NotificationType.CONVERSATION_INVITE]: {
@@ -271,9 +304,14 @@ export class NotificationTemplateService {
         },
         [NotificationChannel.EMAIL]: {
           subject: 'Invitation to join {{conversationName}}',
-          title: 'You\'ve been invited to a conversation',
+          title: "You've been invited to a conversation",
           body: 'Hi {{recipientName}},\n\n{{inviterName}} has invited you to join "{{conversationName}}".\n\nJoin the conversation at {{chatUrl}}',
-          variables: { recipientName: 'string', inviterName: 'string', conversationName: 'string', chatUrl: 'string' },
+          variables: {
+            recipientName: 'string',
+            inviterName: 'string',
+            conversationName: 'string',
+            chatUrl: 'string',
+          },
         },
       },
       [NotificationType.USER_JOINED]: {
@@ -294,7 +332,11 @@ export class NotificationTemplateService {
         [NotificationChannel.PUSH]: {
           title: '{{userName}} reacted to your message',
           body: '{{reaction}} {{messagePreview}}',
-          variables: { userName: 'string', reaction: 'string', messagePreview: 'string' },
+          variables: {
+            userName: 'string',
+            reaction: 'string',
+            messagePreview: 'string',
+          },
         },
       },
       [NotificationType.SYSTEM_ANNOUNCEMENT]: {
@@ -325,11 +367,13 @@ export class NotificationTemplateService {
     if (!channelTemplate) {
       // Fallback to push template
       const fallback = typeTemplates[NotificationChannel.PUSH];
-      return fallback || {
-        title: 'Notification',
-        body: 'You have a new notification',
-        variables: {},
-      };
+      return (
+        fallback || {
+          title: 'Notification',
+          body: 'You have a new notification',
+          variables: {},
+        }
+      );
     }
 
     return channelTemplate;

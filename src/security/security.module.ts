@@ -81,13 +81,10 @@ export class SecurityModule implements NestModule {
   configure() {
     // Temporarily disable middleware to fix dependency injection issues
     // TODO: Re-enable after fixing middleware dependencies
-    
     // Apply security headers to all routes
     // consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
-
     // Apply DDoS protection to all routes
     // consumer.apply(DdosProtectionMiddleware).forRoutes('*');
-
     // Apply input sanitization to all POST, PUT, and PATCH routes
     // consumer
     //   .apply(InputSanitizationMiddleware)

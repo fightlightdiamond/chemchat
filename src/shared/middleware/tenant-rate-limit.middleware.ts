@@ -1,7 +1,15 @@
-import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response, NextFunction } from 'express';
 import { TenantRequest } from '../interfaces/tenant.interface';
-import { QuotaTrackingService, QuotaType } from '../services/quota-tracking.service';
+import {
+  QuotaTrackingService,
+  QuotaType,
+} from '../services/quota-tracking.service';
 import { Logger } from '@nestjs/common';
 
 @Injectable()
@@ -10,10 +18,14 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
 
   constructor(private readonly quotaTrackingService: QuotaTrackingService) {}
 
-  async use(req: TenantRequest, res: Response, next: NextFunction): Promise<void> {
+  async use(
+    req: TenantRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const tenantId = req.tenantId;
-      
+
       if (!tenantId) {
         // If no tenant context, skip rate limiting
         return next();
@@ -23,18 +35,21 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
       const quotaCheck = await this.quotaTrackingService.checkQuota(
         tenantId,
         QuotaType.API_REQUESTS,
-        1
+        1,
       );
 
       if (!quotaCheck.allowed) {
         this.logger.warn(`API rate limit exceeded for tenant: ${tenantId}`);
-        
+
         // Set rate limit headers
         res.set({
           'X-RateLimit-Limit': quotaCheck.limit?.toString() || '0',
           'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': quotaCheck.resetTime?.getTime().toString() || '0',
-          'Retry-After': this.getRetryAfterSeconds(quotaCheck.resetTime).toString(),
+          'X-RateLimit-Reset':
+            quotaCheck.resetTime?.getTime().toString() || '0',
+          'Retry-After': this.getRetryAfterSeconds(
+            quotaCheck.resetTime,
+          ).toString(),
         });
 
         throw new HttpException(
@@ -48,7 +63,7 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
               resetTime: quotaCheck.resetTime,
             },
           },
-          HttpStatus.TOO_MANY_REQUESTS
+          HttpStatus.TOO_MANY_REQUESTS,
         );
       }
 
@@ -60,7 +75,9 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
       });
 
       // Set rate limit headers for successful requests
-      const remaining = quotaCheck.limit ? quotaCheck.limit - (quotaCheck.currentUsage || 0) - 1 : 0;
+      const remaining = quotaCheck.limit
+        ? quotaCheck.limit - (quotaCheck.currentUsage || 0) - 1
+        : 0;
       res.set({
         'X-RateLimit-Limit': quotaCheck.limit?.toString() || '0',
         'X-RateLimit-Remaining': Math.max(0, remaining).toString(),
@@ -72,8 +89,11 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
       if (error instanceof HttpException) {
         throw error;
       }
-      
-      this.logger.error(`Rate limit middleware error: ${error.message}`, error.stack);
+
+      this.logger.error(
+        `Rate limit middleware error: ${error.message}`,
+        error.stack,
+      );
       next(error);
     }
   }
@@ -82,7 +102,7 @@ export class TenantRateLimitMiddleware implements NestMiddleware {
     if (!resetTime) {
       return 3600; // Default to 1 hour
     }
-    
+
     const now = new Date();
     const diffMs = resetTime.getTime() - now.getTime();
     return Math.max(1, Math.ceil(diffMs / 1000));

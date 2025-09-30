@@ -1,10 +1,18 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { RedisService } from '../../shared/redis/redis.service';
 import { NotificationService } from '../services/notification.service';
 import { NotificationTemplateService } from '../services/notification-template.service';
-import { EmailNotificationPayload, NotificationPriority } from '../interfaces/notification.interface';
+import {
+  EmailNotificationPayload,
+  NotificationPriority,
+} from '../interfaces/notification.interface';
 import { NotificationStatus, NotificationChannel } from '@prisma/client';
 import * as nodemailer from 'nodemailer';
 import * as handlebars from 'handlebars';
@@ -50,8 +58,14 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
         },
       };
 
-      if (!emailConfig.host || !emailConfig.auth.user || !emailConfig.auth.pass) {
-        this.logger.warn('SMTP configuration not found. Email notifications will be disabled.');
+      if (
+        !emailConfig.host ||
+        !emailConfig.auth.user ||
+        !emailConfig.auth.pass
+      ) {
+        this.logger.warn(
+          'SMTP configuration not found. Email notifications will be disabled.',
+        );
         return;
       }
 
@@ -61,7 +75,10 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
       await this.transporter?.verify();
       this.logger.log('Email transporter initialized successfully');
     } catch (error) {
-      this.logger.error(`Failed to initialize email transporter: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to initialize email transporter: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -86,7 +103,7 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
 
   private async stopWorker(): Promise<void> {
     this.isRunning = false;
-    
+
     if (this.workerInterval) {
       clearInterval(this.workerInterval);
       this.workerInterval = null;
@@ -95,12 +112,19 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Email notification worker stopped');
   }
 
-  private async processQueue(priority: NotificationPriority, batchSize: number): Promise<void> {
+  private async processQueue(
+    priority: NotificationPriority,
+    batchSize: number,
+  ): Promise<void> {
     const queueName = `notification:email:${priority}`;
-    
+
     try {
       // Get batch of notifications from queue
-      const notifications = await this.redis.lrange(queueName, 0, batchSize - 1);
+      const notifications = await this.redis.lrange(
+        queueName,
+        0,
+        batchSize - 1,
+      );
       if (notifications.length === 0) return;
 
       // Remove processed items from queue
@@ -109,17 +133,24 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
       // Process notifications sequentially to avoid overwhelming SMTP server
       for (const notificationData of notifications) {
         try {
-          const queuedNotification: QueuedNotification = JSON.parse(notificationData);
+          const queuedNotification: QueuedNotification =
+            JSON.parse(notificationData);
           await this.processNotification(queuedNotification.deliveryId);
-          
+
           // Small delay between emails to be respectful to SMTP server
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
-          this.logger.error(`Failed to process notification: ${error.message}`, error.stack);
+          this.logger.error(
+            `Failed to process notification: ${error.message}`,
+            error.stack,
+          );
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to process queue ${queueName}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to process queue ${queueName}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -146,7 +177,9 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
       }
 
       if (delivery.status !== NotificationStatus.PENDING) {
-        this.logger.debug(`Notification ${deliveryId} already processed with status ${delivery.status}`);
+        this.logger.debug(
+          `Notification ${deliveryId} already processed with status ${delivery.status}`,
+        );
         return;
       }
 
@@ -180,31 +213,47 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
       };
 
       // Render template
-      const rendered = await this.templateService.renderTemplate(template, templateVariables);
+      const rendered = await this.templateService.renderTemplate(
+        template,
+        templateVariables,
+      );
 
       // Send email
       const emailPayload: EmailNotificationPayload = {
         to: delivery.user.email,
         subject: rendered.subject || rendered.title,
-        html: this.renderHtmlEmail(rendered.title, rendered.body, templateVariables),
+        html: this.renderHtmlEmail(
+          rendered.title,
+          rendered.body,
+          templateVariables,
+        ),
         text: rendered.body,
       };
 
       const messageId = await this.sendEmail(emailPayload);
 
       if (messageId) {
-        await this.notificationService.markAsDelivered(deliveryId, messageId, new Date());
+        await this.notificationService.markAsDelivered(
+          deliveryId,
+          messageId,
+          new Date(),
+        );
         this.logger.debug(`Email sent successfully for delivery ${deliveryId}`);
       } else {
         await this.retryOrFail(deliveryId, 'Failed to send email');
       }
     } catch (error) {
-      this.logger.error(`Failed to process email notification ${deliveryId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to process email notification ${deliveryId}: ${error.message}`,
+        error.stack,
+      );
       await this.retryOrFail(deliveryId, error.message);
     }
   }
 
-  private async sendEmail(payload: EmailNotificationPayload): Promise<string | null> {
+  private async sendEmail(
+    payload: EmailNotificationPayload,
+  ): Promise<string | null> {
     if (!this.transporter) {
       this.logger.error('Email transporter not initialized');
       return null;
@@ -214,7 +263,10 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
       const mailOptions = {
         from: {
           name: this.configService.get('SMTP_FROM_NAME', 'ChemChat'),
-          address: this.configService.get('SMTP_FROM_EMAIL', 'noreply@chemchat.com'),
+          address: this.configService.get(
+            'SMTP_FROM_EMAIL',
+            'noreply@chemchat.com',
+          ),
         },
         to: payload.to,
         subject: payload.subject,
@@ -234,7 +286,11 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private renderHtmlEmail(title: string, body: string, variables: Record<string, any>): string {
+  private renderHtmlEmail(
+    title: string,
+    body: string,
+    variables: Record<string, any>,
+  ): string {
     const template = `
 <!DOCTYPE html>
 <html lang="en">
@@ -343,17 +399,22 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
 </html>`;
 
     const compiledTemplate = handlebars.compile(template);
-    
+
     return compiledTemplate({
       title,
       body,
       ...variables,
-      chatUrl: variables.chatUrl || this.configService.get('APP_URL', 'https://chemchat.com'),
+      chatUrl:
+        variables.chatUrl ||
+        this.configService.get('APP_URL', 'https://chemchat.com'),
       unsubscribeUrl: `${this.configService.get('APP_URL', 'https://chemchat.com')}/settings/notifications`,
     });
   }
 
-  private async retryOrFail(deliveryId: string, errorMessage: string): Promise<void> {
+  private async retryOrFail(
+    deliveryId: string,
+    errorMessage: string,
+  ): Promise<void> {
     try {
       const delivery = await this.prisma.notificationDelivery.findUnique({
         where: { id: deliveryId },
@@ -385,14 +446,25 @@ export class EmailNotificationWorker implements OnModuleInit, OnModuleDestroy {
           );
         }, delay);
 
-        this.logger.debug(`Retrying email notification ${deliveryId} (attempt ${newRetryCount}/${maxRetries})`);
+        this.logger.debug(
+          `Retrying email notification ${deliveryId} (attempt ${newRetryCount}/${maxRetries})`,
+        );
       } else {
         // Mark as failed after max retries
-        await this.notificationService.markAsFailed(deliveryId, errorMessage, newRetryCount);
-        this.logger.warn(`Email notification ${deliveryId} failed after ${maxRetries} retries: ${errorMessage}`);
+        await this.notificationService.markAsFailed(
+          deliveryId,
+          errorMessage,
+          newRetryCount,
+        );
+        this.logger.warn(
+          `Email notification ${deliveryId} failed after ${maxRetries} retries: ${errorMessage}`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to handle retry for ${deliveryId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to handle retry for ${deliveryId}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

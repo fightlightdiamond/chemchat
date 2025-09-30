@@ -34,7 +34,7 @@ beforeAll(async () => {
 
   // Clean up database before tests
   await cleanupDatabase(prisma);
-  
+
   // Clean up Redis before tests
   await redis.flushall();
 });
@@ -67,7 +67,9 @@ async function cleanupDatabase(prisma: PrismaService) {
 
 export function getTestContext(): TestContext {
   if (!testContext) {
-    throw new Error('Test context not initialized. Make sure to run tests with proper setup.');
+    throw new Error(
+      'Test context not initialized. Make sure to run tests with proper setup.',
+    );
   }
   return testContext;
 }

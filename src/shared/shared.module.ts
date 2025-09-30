@@ -11,8 +11,8 @@ import databaseConfig from './config/database.config';
 @Module({
   imports: [ConfigModule.forFeature(databaseConfig), PrismaModule],
   providers: [
-    GlobalExceptionFilter, 
-    CorrelationIdMiddleware, 
+    GlobalExceptionFilter,
+    CorrelationIdMiddleware,
     DatabaseService,
     {
       provide: 'UserRepository',
@@ -24,8 +24,8 @@ import databaseConfig from './config/database.config';
     },
   ],
   exports: [
-    GlobalExceptionFilter, 
-    CorrelationIdMiddleware, 
+    GlobalExceptionFilter,
+    CorrelationIdMiddleware,
     DatabaseService,
     'UserRepository',
     'ConversationMemberRepository',

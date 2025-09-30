@@ -4,7 +4,8 @@ import { INestApplication } from '@nestjs/common';
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('ChemChat API')
-    .setDescription(`
+    .setDescription(
+      `
 # ChemChat Real-time Chat System API
 
 A comprehensive real-time chat system with advanced features including:
@@ -92,7 +93,8 @@ List endpoints support cursor-based pagination:
   }
 }
 \`\`\`
-    `)
+    `,
+    )
     .setVersion('1.0.0')
     .setContact('ChemChat Team', 'https://chemchat.com', 'support@chemchat.com')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
@@ -118,7 +120,10 @@ List endpoints support cursor-based pagination:
       },
       'tenant-auth',
     )
-    .addTag('auth-hot-reload-test', 'Authentication and authorization endpoints')
+    .addTag(
+      'auth-hot-reload-test',
+      'Authentication and authorization endpoints',
+    )
     .addTag('Health', 'System health checks and status')
     .addTag('tenant', 'Multi-tenant management')
     .build();

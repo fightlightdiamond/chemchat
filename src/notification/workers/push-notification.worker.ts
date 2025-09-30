@@ -1,10 +1,18 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { RedisService } from '../../shared/redis/redis.service';
 import { NotificationService } from '../services/notification.service';
 import { NotificationPreferenceService } from '../services/notification-preference.service';
-import { PushNotificationPayload, NotificationPriority } from '../interfaces/notification.interface';
+import {
+  PushNotificationPayload,
+  NotificationPriority,
+} from '../interfaces/notification.interface';
 import { NotificationStatus, DevicePlatform } from '@prisma/client';
 import * as admin from 'firebase-admin';
 
@@ -43,20 +51,28 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       const projectId = this.configService.get('FIREBASE_PROJECT_ID');
 
       if (!firebaseConfig || !projectId) {
-        this.logger.warn('Firebase configuration not found. Push notifications will be disabled.');
+        this.logger.warn(
+          'Firebase configuration not found. Push notifications will be disabled.',
+        );
         return;
       }
 
       const serviceAccount = JSON.parse(firebaseConfig);
 
-      this.firebaseApp = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId,
-      }, 'chemchat-notifications');
+      this.firebaseApp = admin.initializeApp(
+        {
+          credential: admin.credential.cert(serviceAccount),
+          projectId,
+        },
+        'chemchat-notifications',
+      );
 
       this.logger.log('Firebase Admin SDK initialized successfully');
     } catch (error) {
-      this.logger.error(`Failed to initialize Firebase: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to initialize Firebase: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -81,7 +97,7 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
 
   private async stopWorker(): Promise<void> {
     this.isRunning = false;
-    
+
     if (this.workerInterval) {
       clearInterval(this.workerInterval);
       this.workerInterval = null;
@@ -90,12 +106,19 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Push notification worker stopped');
   }
 
-  private async processQueue(priority: NotificationPriority, batchSize: number): Promise<void> {
+  private async processQueue(
+    priority: NotificationPriority,
+    batchSize: number,
+  ): Promise<void> {
     const queueName = `notification:push:${priority}`;
-    
+
     try {
       // Get batch of notifications from queue
-      const notifications = await this.redis.lrange(queueName, 0, batchSize - 1);
+      const notifications = await this.redis.lrange(
+        queueName,
+        0,
+        batchSize - 1,
+      );
       if (notifications.length === 0) return;
 
       // Remove processed items from queue
@@ -104,23 +127,32 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       // Process notifications in parallel
       const promises = notifications.map(async (notificationData) => {
         try {
-          const queuedNotification: QueuedNotification = JSON.parse(notificationData);
+          const queuedNotification: QueuedNotification =
+            JSON.parse(notificationData);
           await this.processNotification(queuedNotification.deliveryId);
         } catch (error) {
-          this.logger.error(`Failed to process notification: ${error.message}`, error.stack);
+          this.logger.error(
+            `Failed to process notification: ${error.message}`,
+            error.stack,
+          );
         }
       });
 
       await Promise.allSettled(promises);
     } catch (error) {
-      this.logger.error(`Failed to process queue ${queueName}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to process queue ${queueName}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   private async processNotification(deliveryId: string): Promise<void> {
     try {
       // Get notification delivery record
-      const delivery = await (this.prisma as any).notificationDelivery.findUnique({
+      const delivery = await (
+        this.prisma as any
+      ).notificationDelivery.findUnique({
         where: { id: deliveryId },
         include: {
           user: {
@@ -139,7 +171,9 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       }
 
       if (delivery.status !== NotificationStatus.PENDING) {
-        this.logger.debug(`Notification ${deliveryId} already processed with status ${delivery.status}`);
+        this.logger.debug(
+          `Notification ${deliveryId} already processed with status ${delivery.status}`,
+        );
         return;
       }
 
@@ -167,20 +201,32 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       ]);
 
       // Check if any delivery succeeded
-      const hasSuccess = results.some(result => result.status === 'fulfilled' && result.value);
+      const hasSuccess = results.some(
+        (result) => result.status === 'fulfilled' && result.value,
+      );
 
       if (hasSuccess) {
-        await this.notificationService.markAsDelivered(deliveryId, undefined, new Date());
+        await this.notificationService.markAsDelivered(
+          deliveryId,
+          undefined,
+          new Date(),
+        );
       } else {
         const errors = results
-          .filter(result => result.status === 'rejected')
-          .map(result => (result as PromiseRejectedResult).reason)
+          .filter((result) => result.status === 'rejected')
+          .map((result) => (result as PromiseRejectedResult).reason)
           .join('; ');
-        
-        await this.retryOrFail(deliveryId, errors || 'All platform deliveries failed');
+
+        await this.retryOrFail(
+          deliveryId,
+          errors || 'All platform deliveries failed',
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to process notification ${deliveryId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to process notification ${deliveryId}: ${error.message}`,
+        error.stack,
+      );
       await this.retryOrFail(deliveryId, error.message);
     }
   }
@@ -189,7 +235,7 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
     const firebase: string[] = [];
     const apns: string[] = [];
 
-    deviceTokens.forEach(token => {
+    deviceTokens.forEach((token) => {
       switch (token.platform) {
         case DevicePlatform.ANDROID:
         case DevicePlatform.WEB:
@@ -204,12 +250,15 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
     return { firebase, apns };
   }
 
-  private async sendToFirebase(delivery: any, tokens: string[]): Promise<boolean> {
+  private async sendToFirebase(
+    delivery: any,
+    tokens: string[],
+  ): Promise<boolean> {
     if (!this.firebaseApp || tokens.length === 0) return false;
 
     try {
       const messaging = admin.messaging(this.firebaseApp);
-      
+
       const payload: PushNotificationPayload = {
         deviceTokens: tokens,
         title: delivery.title,
@@ -243,16 +292,21 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       };
 
       const response = await (messaging as any).sendMulticast(message);
-      
+
       // Handle failed tokens
       if (response.failureCount > 0) {
         await this.handleFailedTokens(tokens, response.responses);
       }
 
-      this.logger.debug(`Firebase delivery: ${response.successCount}/${tokens.length} successful`);
+      this.logger.debug(
+        `Firebase delivery: ${response.successCount}/${tokens.length} successful`,
+      );
       return response.successCount > 0;
     } catch (error) {
-      this.logger.error(`Firebase delivery failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Firebase delivery failed: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }
@@ -262,7 +316,7 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
 
     try {
       const messaging = admin.messaging(this.firebaseApp);
-      
+
       const payload: PushNotificationPayload = {
         deviceTokens: tokens,
         title: delivery.title,
@@ -298,13 +352,15 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
       };
 
       const response = await (messaging as any).sendMulticast(message);
-      
+
       // Handle failed tokens
       if (response.failureCount > 0) {
         await this.handleFailedTokens(tokens, response.responses);
       }
 
-      this.logger.debug(`APNs delivery: ${response.successCount}/${tokens.length} successful`);
+      this.logger.debug(
+        `APNs delivery: ${response.successCount}/${tokens.length} successful`,
+      );
       return response.successCount > 0;
     } catch (error) {
       this.logger.error(`APNs delivery failed: ${error.message}`, error.stack);
@@ -324,8 +380,10 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
         const error = response.error;
 
         // Check if token is invalid and should be removed
-        if (error?.code === 'messaging/registration-token-not-registered' ||
-            error?.code === 'messaging/invalid-registration-token') {
+        if (
+          error?.code === 'messaging/registration-token-not-registered' ||
+          error?.code === 'messaging/invalid-registration-token'
+        ) {
           failedTokens.push(token);
         }
       }
@@ -342,31 +400,45 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      this.logger.log(`Deactivated ${failedTokens.length} invalid device tokens`);
+      this.logger.log(
+        `Deactivated ${failedTokens.length} invalid device tokens`,
+      );
     }
   }
 
   private getPushPriority(notificationType: string): 'high' | 'normal' {
-    const highPriorityTypes = ['mention', 'conversation_invite', 'system_announcement'];
+    const highPriorityTypes = [
+      'mention',
+      'conversation_invite',
+      'system_announcement',
+    ];
     return highPriorityTypes.includes(notificationType) ? 'high' : 'normal';
   }
 
-  private sanitizeData(data: Record<string, any> | undefined): Record<string, string> {
+  private sanitizeData(
+    data: Record<string, any> | undefined,
+  ): Record<string, string> {
     const sanitized: Record<string, string> = {};
-    
+
     if (!data) return sanitized;
 
     Object.entries(data).forEach(([key, value]) => {
       // FCM requires all data values to be strings
-      sanitized[key] = typeof value === 'string' ? value : JSON.stringify(value);
+      sanitized[key] =
+        typeof value === 'string' ? value : JSON.stringify(value);
     });
 
     return sanitized;
   }
 
-  private async retryOrFail(deliveryId: string, errorMessage: string): Promise<void> {
+  private async retryOrFail(
+    deliveryId: string,
+    errorMessage: string,
+  ): Promise<void> {
     try {
-      const retryCount = await (this.prisma as any).notificationDelivery.findUnique({
+      const retryCount = await (
+        this.prisma as any
+      ).notificationDelivery.findUnique({
         where: { id: deliveryId },
       });
 
@@ -396,14 +468,25 @@ export class PushNotificationWorker implements OnModuleInit, OnModuleDestroy {
           );
         }, delay);
 
-        this.logger.debug(`Retrying notification ${deliveryId} (attempt ${newRetryCount}/${maxRetries})`);
+        this.logger.debug(
+          `Retrying notification ${deliveryId} (attempt ${newRetryCount}/${maxRetries})`,
+        );
       } else {
         // Mark as failed after max retries
-        await this.notificationService.markAsFailed(deliveryId, errorMessage, newRetryCount);
-        this.logger.warn(`Notification ${deliveryId} failed after ${maxRetries} retries: ${errorMessage}`);
+        await this.notificationService.markAsFailed(
+          deliveryId,
+          errorMessage,
+          newRetryCount,
+        );
+        this.logger.warn(
+          `Notification ${deliveryId} failed after ${maxRetries} retries: ${errorMessage}`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to handle retry for ${deliveryId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to handle retry for ${deliveryId}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

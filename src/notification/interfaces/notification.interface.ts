@@ -1,4 +1,9 @@
-import { NotificationType, NotificationChannel, NotificationStatus, DevicePlatform } from '@prisma/client';
+import {
+  NotificationType,
+  NotificationChannel,
+  NotificationStatus,
+  DevicePlatform,
+} from '@prisma/client';
 
 export interface NotificationPayload {
   userId: string;
@@ -78,7 +83,7 @@ export enum NotificationPriority {
   LOW = 'low',
   NORMAL = 'normal',
   HIGH = 'high',
-  URGENT = 'urgent'
+  URGENT = 'urgent',
 }
 
 export interface NotificationFilter {
@@ -99,9 +104,12 @@ export interface NotificationStats {
   totalFailed: number;
   deliveryRate: number;
   averageDeliveryTime: number;
-  byChannel: Record<NotificationChannel, {
-    sent: number;
-    delivered: number;
-    failed: number;
-  }>;
+  byChannel: Record<
+    NotificationChannel,
+    {
+      sent: number;
+      delivered: number;
+      failed: number;
+    }
+  >;
 }

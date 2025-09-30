@@ -8,12 +8,21 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { SearchMessagesQuery } from '../queries/search-messages.query';
 import { GetSearchSuggestionsQuery } from '../queries/get-search-suggestions.query';
-import { SearchMessageResult, SearchSuggestion } from '../services/search.service';
+import {
+  SearchMessageResult,
+  SearchSuggestion,
+} from '../services/search.service';
 
 interface AuthenticatedUser {
   id: string;
@@ -31,9 +40,11 @@ export class SearchController {
   constructor(private readonly queryBus: QueryBus) {}
 
   @Get('messages')
-  @ApiOperation({ summary: 'Search messages with full-text search and filtering' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiOperation({
+    summary: 'Search messages with full-text search and filtering',
+  })
+  @ApiResponse({
+    status: 200,
     description: 'Search results with pagination and metadata',
     schema: {
       type: 'object',
@@ -50,7 +61,10 @@ export class SearchController {
               authorName: { type: 'string' },
               createdAt: { type: 'string', format: 'date-time' },
               updatedAt: { type: 'string', format: 'date-time' },
-              messageType: { type: 'string', enum: ['text', 'media', 'system'] },
+              messageType: {
+                type: 'string',
+                enum: ['text', 'media', 'system'],
+              },
               sequenceNumber: { type: 'string' },
               isEdited: { type: 'boolean' },
               isDeleted: { type: 'boolean' },
@@ -88,17 +102,56 @@ export class SearchController {
     },
   })
   @ApiQuery({ name: 'q', required: false, description: 'Search query text' })
-  @ApiQuery({ name: 'conversationId', required: false, description: 'Filter by conversation ID' })
-  @ApiQuery({ name: 'authorId', required: false, description: 'Filter by author ID' })
-  @ApiQuery({ name: 'messageType', required: false, enum: ['text', 'media', 'system'] })
-  @ApiQuery({ name: 'fromDate', required: false, description: 'Filter messages from date (ISO string)' })
-  @ApiQuery({ name: 'toDate', required: false, description: 'Filter messages to date (ISO string)' })
-  @ApiQuery({ name: 'page', required: false, type: 'number', description: 'Page number (1-based)' })
-  @ApiQuery({ name: 'limit', required: false, type: 'number', description: 'Results per page (1-100)' })
-  @ApiQuery({ name: 'sortBy', required: false, enum: ['relevance', 'date', 'sequence'] })
+  @ApiQuery({
+    name: 'conversationId',
+    required: false,
+    description: 'Filter by conversation ID',
+  })
+  @ApiQuery({
+    name: 'authorId',
+    required: false,
+    description: 'Filter by author ID',
+  })
+  @ApiQuery({
+    name: 'messageType',
+    required: false,
+    enum: ['text', 'media', 'system'],
+  })
+  @ApiQuery({
+    name: 'fromDate',
+    required: false,
+    description: 'Filter messages from date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'toDate',
+    required: false,
+    description: 'Filter messages to date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: 'number',
+    description: 'Page number (1-based)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: 'number',
+    description: 'Results per page (1-100)',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['relevance', 'date', 'sequence'],
+  })
   @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'] })
   @ApiQuery({ name: 'includeDeleted', required: false, type: 'boolean' })
-  @ApiQuery({ name: 'highlights', required: false, type: 'boolean', description: 'Include search highlights' })
+  @ApiQuery({
+    name: 'highlights',
+    required: false,
+    type: 'boolean',
+    description: 'Include search highlights',
+  })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async searchMessages(
     @CurrentUser() user: AuthenticatedUser,
@@ -115,7 +168,9 @@ export class SearchController {
     @Query('includeDeleted') includeDeleted?: boolean,
     @Query('highlights') highlights?: boolean,
   ): Promise<SearchMessageResult> {
-    this.logger.debug(`Search request from user ${user.id}: "${query || 'empty'}"`);
+    this.logger.debug(
+      `Search request from user ${user.id}: "${query || 'empty'}"`,
+    );
 
     const searchQuery = new SearchMessagesQuery({
       query,
@@ -140,8 +195,8 @@ export class SearchController {
 
   @Get('suggestions')
   @ApiOperation({ summary: 'Get search suggestions based on partial query' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'List of search suggestions',
     schema: {
       type: 'array',
@@ -156,7 +211,12 @@ export class SearchController {
     },
   })
   @ApiQuery({ name: 'q', required: true, description: 'Partial search query' })
-  @ApiQuery({ name: 'limit', required: false, type: 'number', description: 'Maximum suggestions (1-20)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: 'number',
+    description: 'Maximum suggestions (1-20)',
+  })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async getSearchSuggestions(
     @CurrentUser() user: AuthenticatedUser,
@@ -178,8 +238,8 @@ export class SearchController {
 
   @Get('health')
   @ApiOperation({ summary: 'Check search service health' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Search service health status',
     schema: {
       type: 'object',

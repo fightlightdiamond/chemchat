@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../../shared/redis/redis.service';
-import { 
-  ClientState, 
-  PendingOperation, 
+import {
+  ClientState,
+  PendingOperation,
   ConflictResolution,
-  OperationType 
+  OperationType,
 } from '../interfaces/sync.interfaces';
 
 @Injectable()
@@ -13,9 +13,7 @@ export class ClientStateService {
   private readonly STATE_TTL = 86400 * 7; // 7 days
   private readonly OPERATION_TTL = 86400; // 24 hours
 
-  constructor(
-    private readonly redis: RedisService,
-  ) {}
+  constructor(private readonly redis: RedisService) {}
 
   async getClientState(
     userId: string,
@@ -23,7 +21,7 @@ export class ClientStateService {
     deviceId: string,
   ): Promise<ClientState | null> {
     const key = `sync:state:${tenantId}:${userId}:${deviceId}`;
-    
+
     try {
       const stateData = await this.redis.get(key);
       if (!stateData) {
@@ -31,24 +29,23 @@ export class ClientStateService {
       }
 
       const state: ClientState = JSON.parse(stateData);
-      
+
       // Convert string dates back to Date objects
       state.lastSyncTimestamp = new Date(state.lastSyncTimestamp);
       state.lastSequenceNumber = BigInt(state.lastSequenceNumber);
-      
-      state.pendingOperations = state.pendingOperations.map(op => ({
+
+      state.pendingOperations = state.pendingOperations.map((op) => ({
         ...op,
         timestamp: new Date(op.timestamp),
         ttl: new Date(op.ttl),
       }));
 
-      state.conflictResolutions = state.conflictResolutions.map(cr => ({
+      state.conflictResolutions = state.conflictResolutions.map((cr) => ({
         ...cr,
         timestamp: new Date(cr.timestamp),
       }));
 
       return state;
-
     } catch (error) {
       this.logger.warn(`Failed to get client state for ${deviceId}:`, error);
       return null;
@@ -62,10 +59,14 @@ export class ClientStateService {
     updates: Partial<ClientState>,
   ): Promise<void> {
     const key = `sync:state:${tenantId}:${userId}:${deviceId}`;
-    
+
     try {
-      const currentState = await this.getClientState(userId, tenantId, deviceId);
-      
+      const currentState = await this.getClientState(
+        userId,
+        tenantId,
+        deviceId,
+      );
+
       const newState: ClientState = {
         deviceId,
         userId,
@@ -79,11 +80,13 @@ export class ClientStateService {
       };
 
       await this.redis.setex(key, this.STATE_TTL, JSON.stringify(newState));
-      
-      this.logger.debug(`Updated client state for device ${deviceId}`);
 
+      this.logger.debug(`Updated client state for device ${deviceId}`);
     } catch (error) {
-      this.logger.error(`Failed to update client state for ${deviceId}:`, error);
+      this.logger.error(
+        `Failed to update client state for ${deviceId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -97,11 +100,13 @@ export class ClientStateService {
     try {
       const state = await this.getClientState(userId, tenantId, deviceId);
       const pendingOperations = state?.pendingOperations || [];
-      
+
       // Remove expired operations
       const now = new Date();
-      const validOperations = pendingOperations.filter(op => new Date(op.ttl) > now);
-      
+      const validOperations = pendingOperations.filter(
+        (op) => new Date(op.ttl) > now,
+      );
+
       // Add new operation
       validOperations.push(operation);
 
@@ -109,8 +114,9 @@ export class ClientStateService {
         pendingOperations: validOperations,
       });
 
-      this.logger.debug(`Added pending operation ${operation.id} for device ${deviceId}`);
-
+      this.logger.debug(
+        `Added pending operation ${operation.id} for device ${deviceId}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to add pending operation:`, error);
       throw error;
@@ -130,15 +136,16 @@ export class ClientStateService {
       }
 
       const pendingOperations = state.pendingOperations.filter(
-        op => op.id !== operationId
+        (op) => op.id !== operationId,
       );
 
       await this.updateClientState(userId, tenantId, deviceId, {
         pendingOperations,
       });
 
-      this.logger.debug(`Removed pending operation ${operationId} for device ${deviceId}`);
-
+      this.logger.debug(
+        `Removed pending operation ${operationId} for device ${deviceId}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to remove pending operation:`, error);
       throw error;
@@ -157,7 +164,7 @@ export class ClientStateService {
 
     // Filter out expired operations
     const now = new Date();
-    return state.pendingOperations.filter(op => new Date(op.ttl) > now);
+    return state.pendingOperations.filter((op) => new Date(op.ttl) > now);
   }
 
   async reconcileState(
@@ -209,21 +216,28 @@ export class ClientStateService {
         lastSyncTimestamp: new Date(),
       });
 
-      this.logger.log(`State reconciliation for device ${deviceId}: ${validOperations.length} valid, ${staleOperations.length} stale operations`);
+      this.logger.log(
+        `State reconciliation for device ${deviceId}: ${validOperations.length} valid, ${staleOperations.length} stale operations`,
+      );
 
       return {
         pendingOperations: validOperations,
         conflictsDetected,
         staleOperations,
       };
-
     } catch (error) {
-      this.logger.error(`Failed to reconcile state for device ${deviceId}:`, error);
+      this.logger.error(
+        `Failed to reconcile state for device ${deviceId}:`,
+        error,
+      );
       throw error;
     }
   }
 
-  private isOperationStale(operation: PendingOperation, serverSequenceNumber: bigint): boolean {
+  private isOperationStale(
+    operation: PendingOperation,
+    serverSequenceNumber: bigint,
+  ): boolean {
     // Check if operation is based on outdated sequence number
     if (operation.data.baseSequenceNumber) {
       const baseSequence = BigInt(operation.data.baseSequenceNumber);
@@ -248,7 +262,7 @@ export class ClientStateService {
     try {
       const state = await this.getClientState(userId, tenantId, deviceId);
       const conflictResolutions = state?.conflictResolutions || [];
-      
+
       // Keep only recent resolutions (last 100)
       conflictResolutions.push(resolution);
       if (conflictResolutions.length > 100) {
@@ -259,8 +273,9 @@ export class ClientStateService {
         conflictResolutions,
       });
 
-      this.logger.debug(`Added conflict resolution for message ${resolution.messageId}`);
-
+      this.logger.debug(
+        `Added conflict resolution for message ${resolution.messageId}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to add conflict resolution:`, error);
       throw error;
@@ -289,21 +304,23 @@ export class ClientStateService {
 
       const now = new Date();
       const validOperations = state.pendingOperations.filter(
-        op => new Date(op.ttl) > now
+        (op) => new Date(op.ttl) > now,
       );
 
-      const expiredCount = state.pendingOperations.length - validOperations.length;
+      const expiredCount =
+        state.pendingOperations.length - validOperations.length;
 
       if (expiredCount > 0) {
         await this.updateClientState(userId, tenantId, deviceId, {
           pendingOperations: validOperations,
         });
 
-        this.logger.debug(`Cleared ${expiredCount} expired operations for device ${deviceId}`);
+        this.logger.debug(
+          `Cleared ${expiredCount} expired operations for device ${deviceId}`,
+        );
       }
 
       return expiredCount;
-
     } catch (error) {
       this.logger.error(`Failed to clear expired operations:`, error);
       return 0;
@@ -316,7 +333,7 @@ export class ClientStateService {
     deviceId: string,
   ): Promise<void> {
     const key = `sync:state:${tenantId}:${userId}:${deviceId}`;
-    
+
     try {
       await this.redis.del(key);
       this.logger.log(`Reset client state for device ${deviceId}`);
@@ -326,12 +343,9 @@ export class ClientStateService {
     }
   }
 
-  async clearUserState(
-    userId: string,
-    tenantId: string,
-  ): Promise<void> {
+  async clearUserState(userId: string, tenantId: string): Promise<void> {
     const pattern = `sync:state:${tenantId}:${userId}:*`;
-    
+
     try {
       const keys = await this.redis.scanKeys(pattern);
       if (keys.length > 0) {
@@ -339,8 +353,10 @@ export class ClientStateService {
           await client.del(...keys);
         });
       }
-      
-      this.logger.log(`Cleared sync state for user ${userId} in tenant ${tenantId}`);
+
+      this.logger.log(
+        `Cleared sync state for user ${userId} in tenant ${tenantId}`,
+      );
     } catch (error) {
       this.logger.error(`Failed to clear user state for ${userId}:`, error);
       throw error;
@@ -352,7 +368,7 @@ export class ClientStateService {
     tenantId: string,
   ): Promise<ClientState[]> {
     const pattern = `sync:state:${tenantId}:${userId}:*`;
-    
+
     try {
       const keys = await this.redis.scanKeys(pattern);
       const states: ClientState[] = [];
@@ -368,7 +384,6 @@ export class ClientStateService {
       }
 
       return states;
-
     } catch (error) {
       this.logger.error(`Failed to get device states:`, error);
       return [];
@@ -379,7 +394,7 @@ export class ClientStateService {
     try {
       const pattern = 'sync:state:*';
       const keys = await this.redis.scanKeys(pattern);
-      
+
       let cleanedCount = 0;
       const now = new Date();
       const staleThreshold = new Date(now.getTime() - this.STATE_TTL * 1000);
@@ -389,7 +404,7 @@ export class ClientStateService {
         if (stateData) {
           const state: ClientState = JSON.parse(stateData);
           const lastSync = new Date(state.lastSyncTimestamp);
-          
+
           if (lastSync < staleThreshold) {
             await this.redis.del(key);
             cleanedCount++;
@@ -400,7 +415,6 @@ export class ClientStateService {
       if (cleanedCount > 0) {
         this.logger.log(`Cleaned up ${cleanedCount} stale client states`);
       }
-
     } catch (error) {
       this.logger.error('Failed to cleanup stale states:', error);
     }

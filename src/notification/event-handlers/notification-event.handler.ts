@@ -9,7 +9,9 @@ import { ConversationCreatedEvent } from '../../chat/events/conversation-created
 
 @EventsHandler(MessageCreatedEvent)
 @Injectable()
-export class MessageCreatedNotificationHandler implements IEventHandler<MessageCreatedEvent> {
+export class MessageCreatedNotificationHandler
+  implements IEventHandler<MessageCreatedEvent>
+{
   private readonly logger = new Logger(MessageCreatedNotificationHandler.name);
 
   constructor(private readonly notificationService: NotificationService) {}
@@ -25,11 +27,14 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
       // Get conversation members to send notifications
       // For now, we'll use a placeholder approach since we need the conversation service
       // In a real implementation, this would fetch conversation members
-      const conversationMembers = await this.getConversationMembers(conversationId, tenantId);
+      const conversationMembers = await this.getConversationMembers(
+        conversationId,
+        tenantId,
+      );
 
       // Send notifications to all members except the sender
       const notificationPromises = conversationMembers
-        .filter(member => member.userId !== userId)
+        .filter((member) => member.userId !== userId)
         .map(async (member) => {
           // Determine notification type based on message content
           const isMention = this.isMentioned(message.content, member.username);
@@ -39,7 +44,7 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
             userId: member.userId,
             tenantId,
             type: notificationType as any,
-            title: isMention 
+            title: isMention
               ? `${message.senderName} mentioned you`
               : `New message from ${message.senderName}`,
             body: await this.getMessagePreview(message.content),
@@ -51,28 +56,47 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
               messageContent: message.content,
               chatUrl: `${process.env.APP_URL || 'https://chemchat.com'}/chat/${conversationId}`,
             },
-            priority: isMention ? NotificationPriority.HIGH : NotificationPriority.NORMAL,
+            priority: isMention
+              ? NotificationPriority.HIGH
+              : NotificationPriority.NORMAL,
           });
         });
 
       await Promise.allSettled(notificationPromises);
-      
-      this.logger.debug(`Sent notifications for message ${message.id} in conversation ${conversationId}`);
+
+      this.logger.debug(
+        `Sent notifications for message ${message.id} in conversation ${conversationId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to handle message created notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to handle message created notification: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
-  private async getConversationMembers(conversationId: string, tenantId?: string): Promise<any[]> {
+  private async getConversationMembers(
+    conversationId: string,
+    tenantId?: string,
+  ): Promise<any[]> {
     // Placeholder implementation - in real scenario, this would use ConversationService
-    this.logger.debug(`Getting conversation members for ${conversationId} in tenant ${tenantId}`);
+    this.logger.debug(
+      `Getting conversation members for ${conversationId} in tenant ${tenantId}`,
+    );
     // For now, return empty array to avoid errors
     return [];
   }
 
-  private async handleMessageCreated(event: MessageCreatedEvent, conversationId: string, tenantId?: string): Promise<void> {
+  private async handleMessageCreated(
+    event: MessageCreatedEvent,
+    conversationId: string,
+    tenantId?: string,
+  ): Promise<void> {
     // Placeholder implementation - in real scenario, this would use ConversationService
-    this.logger.debug(`Handling message created event for conversation ${conversationId} in tenant ${tenantId}`, { event });
+    this.logger.debug(
+      `Handling message created event for conversation ${conversationId} in tenant ${tenantId}`,
+      { event },
+    );
     // For now, do nothing to avoid errors
   }
 
@@ -81,7 +105,10 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
     return mentionPattern.test(content);
   }
 
-  private async getMessagePreview(content: string, maxLength = 100): Promise<string> {
+  private async getMessagePreview(
+    content: string,
+    maxLength = 100,
+  ): Promise<string> {
     if (content.length <= maxLength) {
       return content;
     }
@@ -91,8 +118,12 @@ export class MessageCreatedNotificationHandler implements IEventHandler<MessageC
 
 @EventsHandler(ConversationCreatedEvent)
 @Injectable()
-export class ConversationCreatedNotificationHandler implements IEventHandler<ConversationCreatedEvent> {
-  private readonly logger = new Logger(ConversationCreatedNotificationHandler.name);
+export class ConversationCreatedNotificationHandler
+  implements IEventHandler<ConversationCreatedEvent>
+{
+  private readonly logger = new Logger(
+    ConversationCreatedNotificationHandler.name,
+  );
 
   constructor(private readonly notificationService: NotificationService) {}
 
@@ -118,9 +149,14 @@ export class ConversationCreatedNotificationHandler implements IEventHandler<Con
         priority: NotificationPriority.LOW,
       });
 
-      this.logger.debug(`Sent conversation created notification for ${conversation.id}`);
+      this.logger.debug(
+        `Sent conversation created notification for ${conversation.id}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to handle conversation created notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to handle conversation created notification: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

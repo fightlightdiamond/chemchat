@@ -14,9 +14,18 @@ export class MessageIndexService implements OnModuleInit {
     private readonly elasticsearchService: ElasticsearchService,
     private readonly configService: ConfigService,
   ) {
-    this.indexPrefix = this.configService.get<string>('ELASTICSEARCH_INDEX_PREFIX', 'chemchat');
-    this.defaultShards = this.configService.get<number>('ELASTICSEARCH_DEFAULT_SHARDS', 1);
-    this.defaultReplicas = this.configService.get<number>('ELASTICSEARCH_DEFAULT_REPLICAS', 1);
+    this.indexPrefix = this.configService.get<string>(
+      'ELASTICSEARCH_INDEX_PREFIX',
+      'chemchat',
+    );
+    this.defaultShards = this.configService.get<number>(
+      'ELASTICSEARCH_DEFAULT_SHARDS',
+      1,
+    );
+    this.defaultReplicas = this.configService.get<number>(
+      'ELASTICSEARCH_DEFAULT_REPLICAS',
+      1,
+    );
   }
 
   async onModuleInit(): Promise<void> {
@@ -110,12 +119,7 @@ export class MessageIndexService implements OnModuleInit {
             multilang_analyzer: {
               type: 'custom',
               tokenizer: 'standard',
-              filter: [
-                'lowercase',
-                'stop',
-                'snowball',
-                'asciifolding',
-              ],
+              filter: ['lowercase', 'stop', 'snowball', 'asciifolding'],
             },
           },
           normalizer: {
@@ -135,7 +139,10 @@ export class MessageIndexService implements OnModuleInit {
     const mapping = this.getMessageIndexMapping();
 
     try {
-      const success = await this.elasticsearchService.createIndex(indexName, mapping);
+      const success = await this.elasticsearchService.createIndex(
+        indexName,
+        mapping,
+      );
       if (success) {
         this.logger.log(`Message index created: ${indexName}`);
       }
@@ -148,7 +155,7 @@ export class MessageIndexService implements OnModuleInit {
 
   async deleteMessageIndex(tenantId?: string): Promise<boolean> {
     const indexName = this.getMessageIndexName(tenantId);
-    
+
     try {
       const success = await this.elasticsearchService.deleteIndex(indexName);
       if (success) {
@@ -163,20 +170,20 @@ export class MessageIndexService implements OnModuleInit {
 
   async reindexMessages(tenantId?: string): Promise<boolean> {
     const indexName = this.getMessageIndexName(tenantId);
-    
+
     try {
       // Delete existing index
       await this.deleteMessageIndex(tenantId);
-      
+
       // Recreate index with updated mapping
       const success = await this.createMessageIndex(tenantId);
-      
+
       if (success) {
         this.logger.log(`Message index reindexed: ${indexName}`);
         // Note: Actual data reindexing would be handled by the message indexing worker
         // by processing all messages from the database
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error(`Failed to reindex messages for ${indexName}`, error);
@@ -186,13 +193,13 @@ export class MessageIndexService implements OnModuleInit {
 
   async getIndexHealth(tenantId?: string): Promise<any> {
     const indexName = this.getMessageIndexName(tenantId);
-    
+
     try {
       const client = this.elasticsearchService.getClient();
       const response = await client.indices.stats({
         index: indexName,
       });
-      
+
       return {
         indexName,
         health: response.indices?.[indexName] || null,

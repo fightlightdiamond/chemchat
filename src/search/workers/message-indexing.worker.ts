@@ -1,6 +1,14 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { KafkaConsumerService, EventHandler } from '../../shared/kafka/services/kafka-consumer.service';
+import {
+  KafkaConsumerService,
+  EventHandler,
+} from '../../shared/kafka/services/kafka-consumer.service';
 import { ElasticsearchService } from '../services/elasticsearch.service';
 import { MessageIndexService } from '../services/message-index.service';
 import { SearchDocument } from '../interfaces/elasticsearch.interface';
@@ -36,12 +44,14 @@ interface MessageDeletedEvent {
 }
 
 @Injectable()
-export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, EventHandler {
+export class MessageIndexingWorker
+  implements OnModuleInit, OnModuleDestroy, EventHandler
+{
   private readonly logger = new Logger(MessageIndexingWorker.name);
   private isRunning = false;
   private readonly batchSize: number;
   private readonly batchTimeout: number;
-  
+
   readonly eventType = 'message.created';
 
   constructor(
@@ -51,17 +61,23 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.batchSize = this.configService.get<number>('SEARCH_INDEXING_BATCH_SIZE', 100);
-    this.batchTimeout = this.configService.get<number>('SEARCH_INDEXING_BATCH_TIMEOUT', 5000);
+    this.batchSize = this.configService.get<number>(
+      'SEARCH_INDEXING_BATCH_SIZE',
+      100,
+    );
+    this.batchTimeout = this.configService.get<number>(
+      'SEARCH_INDEXING_BATCH_TIMEOUT',
+      5000,
+    );
   }
 
   async onModuleInit() {
     try {
       this.logger.log('Initializing Message Indexing Worker');
-      
+
       // Register this worker as an event handler
       this.kafkaConsumerService.registerEventHandler(this);
-      
+
       this.isRunning = true;
       this.logger.log('Message Indexing Worker started successfully');
     } catch (error) {
@@ -74,10 +90,10 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
     try {
       this.logger.log('Shutting down Message Indexing Worker');
       this.isRunning = false;
-      
+
       // Unregister the event handler
       this.kafkaConsumerService.unregisterEventHandler(this.eventType, this);
-      
+
       this.logger.log('Message Indexing Worker shut down successfully');
     } catch (error) {
       this.logger.error('Error during Message Indexing Worker shutdown', error);
@@ -105,7 +121,7 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
 
   private async processEvent(event: SerializedEvent): Promise<void> {
     const { metadata, data } = event;
-    
+
     switch (metadata.eventType) {
       case 'message.created':
         await this.handleMessageCreated(data as MessageCreatedEvent);
@@ -121,8 +137,9 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
     }
   }
 
-
-  private async handleMessageCreated(event: MessageCreatedEvent): Promise<void> {
+  private async handleMessageCreated(
+    event: MessageCreatedEvent,
+  ): Promise<void> {
     try {
       // Get additional message details from database
       const message = await this.prismaService.message.findUnique({
@@ -150,7 +167,10 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
         messageId: event.messageId,
         content: event.content,
         authorId: event.authorId,
-        authorName: message.sender?.displayName || message.sender?.username || 'Unknown User',
+        authorName:
+          message.sender?.displayName ||
+          message.sender?.username ||
+          'Unknown User',
         createdAt: new Date(event.createdAt),
         messageType: event.messageType,
         sequenceNumber: BigInt(event.sequenceNumber),
@@ -159,16 +179,27 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
         metadata: event.metadata,
       };
 
-      const indexName = this.messageIndexService.getMessageIndexName(event.tenantId);
-      const result = await this.elasticsearchService.indexDocument(indexName, searchDocument);
+      const indexName = this.messageIndexService.getMessageIndexName(
+        event.tenantId,
+      );
+      const result = await this.elasticsearchService.indexDocument(
+        indexName,
+        searchDocument,
+      );
 
       if (result.success) {
         this.logger.debug(`Indexed message: ${event.messageId}`);
       } else {
-        this.logger.error(`Failed to index message: ${event.messageId}`, result.error);
+        this.logger.error(
+          `Failed to index message: ${event.messageId}`,
+          result.error,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to handle message created event: ${event.messageId}`, error);
+      this.logger.error(
+        `Failed to handle message created event: ${event.messageId}`,
+        error,
+      );
       throw error;
     }
   }
@@ -202,58 +233,88 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
         sequenceNumber: BigInt(event.sequenceNumber),
       };
 
-      const indexName = this.messageIndexService.getMessageIndexName(event.tenantId);
-      const result = await this.elasticsearchService.updateDocument(indexName, documentId, updateDoc);
+      const indexName = this.messageIndexService.getMessageIndexName(
+        event.tenantId,
+      );
+      const result = await this.elasticsearchService.updateDocument(
+        indexName,
+        documentId,
+        updateDoc,
+      );
 
       if (result.success) {
         this.logger.debug(`Updated indexed message: ${event.messageId}`);
       } else {
-        this.logger.error(`Failed to update indexed message: ${event.messageId}`, result.error);
+        this.logger.error(
+          `Failed to update indexed message: ${event.messageId}`,
+          result.error,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to handle message edited event: ${event.messageId}`, error);
+      this.logger.error(
+        `Failed to handle message edited event: ${event.messageId}`,
+        error,
+      );
       throw error;
     }
   }
 
-  private async handleMessageDeleted(event: MessageDeletedEvent): Promise<void> {
+  private async handleMessageDeleted(
+    event: MessageDeletedEvent,
+  ): Promise<void> {
     try {
       const documentId = `${event.tenantId}_${event.messageId}`;
-      const indexName = this.messageIndexService.getMessageIndexName(event.tenantId);
-      
+      const indexName = this.messageIndexService.getMessageIndexName(
+        event.tenantId,
+      );
+
       // Mark as deleted instead of removing from index for audit purposes
       const updateDoc: Partial<SearchDocument> = {
         isDeleted: true,
         updatedAt: new Date(event.deletedAt),
       };
 
-      const result = await this.elasticsearchService.updateDocument(indexName, documentId, updateDoc);
+      const result = await this.elasticsearchService.updateDocument(
+        indexName,
+        documentId,
+        updateDoc,
+      );
 
       if (result.success) {
-        this.logger.debug(`Marked message as deleted in index: ${event.messageId}`);
+        this.logger.debug(
+          `Marked message as deleted in index: ${event.messageId}`,
+        );
       } else {
-        this.logger.error(`Failed to mark message as deleted in index: ${event.messageId}`, result.error);
+        this.logger.error(
+          `Failed to mark message as deleted in index: ${event.messageId}`,
+          result.error,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to handle message deleted event: ${event.messageId}`, error);
+      this.logger.error(
+        `Failed to handle message deleted event: ${event.messageId}`,
+        error,
+      );
       throw error;
     }
   }
 
   async reindexAllMessages(tenantId?: string): Promise<void> {
-    this.logger.log(`Starting reindexing of all messages${tenantId ? ` for tenant ${tenantId}` : ''}`);
-    
+    this.logger.log(
+      `Starting reindexing of all messages${tenantId ? ` for tenant ${tenantId}` : ''}`,
+    );
+
     try {
       // Create or recreate the index
       await this.messageIndexService.createMessageIndex(tenantId);
-      
+
       const batchSize = 1000;
       let skip = 0;
       let processedCount = 0;
 
       while (true) {
         const whereClause = tenantId ? { tenantId } : {};
-        
+
         const messages = await this.prismaService.message.findMany({
           where: {
             ...whereClause,
@@ -284,28 +345,52 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
           tenantId: tenantId || 'default',
           conversationId: message.conversationId,
           messageId: message.id,
-          content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content),
+          content:
+            typeof message.content === 'string'
+              ? message.content
+              : JSON.stringify(message.content),
           authorId: message.senderId || 'system',
-          authorName: message.sender?.displayName || message.sender?.username || 'Unknown User',
+          authorName:
+            message.sender?.displayName ||
+            message.sender?.username ||
+            'Unknown User',
           createdAt: message.createdAt,
           updatedAt: message.editedAt || undefined,
-          messageType: message.messageType.toLowerCase() as 'text' | 'media' | 'system',
+          messageType: message.messageType.toLowerCase() as
+            | 'text'
+            | 'media'
+            | 'system',
           sequenceNumber: message.sequenceNumber,
           isEdited: message.editedAt !== null,
           isDeleted: false,
-          metadata: (message.content && typeof message.content === 'object' && message.content !== null) ? message.content as Record<string, any> : undefined,
+          metadata:
+            message.content &&
+            typeof message.content === 'object' &&
+            message.content !== null
+              ? (message.content as Record<string, any>)
+              : undefined,
         }));
 
-        const indexName = this.messageIndexService.getMessageIndexName(tenantId);
-        const result = await this.elasticsearchService.bulkIndex(indexName, searchDocuments);
+        const indexName =
+          this.messageIndexService.getMessageIndexName(tenantId);
+        const result = await this.elasticsearchService.bulkIndex(
+          indexName,
+          searchDocuments,
+        );
 
         if (result.success) {
           processedCount += result.indexed;
-          this.logger.log(`Reindexed batch: ${result.indexed} messages (total: ${processedCount})`);
+          this.logger.log(
+            `Reindexed batch: ${result.indexed} messages (total: ${processedCount})`,
+          );
         } else {
-          this.logger.error(`Failed to reindex batch: ${result.errors.length} errors`);
+          this.logger.error(
+            `Failed to reindex batch: ${result.errors.length} errors`,
+          );
           result.errors.forEach((error) => {
-            this.logger.error(`Reindex error for document ${error.documentId}: ${error.error}`);
+            this.logger.error(
+              `Reindex error for document ${error.documentId}: ${error.error}`,
+            );
           });
         }
 
@@ -316,7 +401,9 @@ export class MessageIndexingWorker implements OnModuleInit, OnModuleDestroy, Eve
       const indexName = this.messageIndexService.getMessageIndexName(tenantId);
       await this.elasticsearchService.refreshIndex(indexName);
 
-      this.logger.log(`Completed reindexing: ${processedCount} messages processed`);
+      this.logger.log(
+        `Completed reindexing: ${processedCount} messages processed`,
+      );
     } catch (error) {
       this.logger.error('Failed to reindex all messages', error);
       throw error;

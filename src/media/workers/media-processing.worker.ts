@@ -1,15 +1,24 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { RedisService } from '../../shared/redis/redis.service';
-import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3';
 
 // Temporary enum definitions until Prisma client is updated
 enum ProcessingPriority {
   LOW = 'LOW',
-  NORMAL = 'NORMAL', 
+  NORMAL = 'NORMAL',
   HIGH = 'HIGH',
-  URGENT = 'URGENT'
+  URGENT = 'URGENT',
 }
 
 enum MediaProcessingType {
@@ -19,7 +28,7 @@ enum MediaProcessingType {
   AUDIO_TRANSCODE = 'AUDIO_TRANSCODE',
   VIRUS_SCAN = 'VIRUS_SCAN',
   CONTENT_MODERATION = 'CONTENT_MODERATION',
-  EXIF_STRIP = 'EXIF_STRIP'
+  EXIF_STRIP = 'EXIF_STRIP',
 }
 
 interface MediaProcessingResult {
@@ -36,9 +45,9 @@ interface MediaProcessingResult {
 
 enum MediaProcessingStatus {
   PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING', 
+  PROCESSING = 'PROCESSING',
   COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 import { MediaValidationService } from '../services/media-validation.service';
 import sharp from 'sharp';
@@ -72,10 +81,12 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     this.s3Client = new S3Client({
       region: this.storageConfig.region,
       endpoint: this.storageConfig.endpoint,
-      credentials: this.storageConfig.accessKeyId ? {
-        accessKeyId: this.storageConfig.accessKeyId,
-        secretAccessKey: this.storageConfig.secretAccessKey,
-      } : undefined,
+      credentials: this.storageConfig.accessKeyId
+        ? {
+            accessKeyId: this.storageConfig.accessKeyId,
+            secretAccessKey: this.storageConfig.secretAccessKey,
+          }
+        : undefined,
       forcePathStyle: this.config.get('MEDIA_STORAGE_PROVIDER') === 'minio',
     });
 
@@ -97,8 +108,11 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
   }
 
   private startProcessing() {
-    const intervalMs = parseInt(this.config.get('MEDIA_PROCESSING_INTERVAL', '5000'), 10);
-    
+    const intervalMs = parseInt(
+      this.config.get('MEDIA_PROCESSING_INTERVAL', '5000'),
+      10,
+    );
+
     this.processingInterval = setInterval(async () => {
       if (!this.isProcessing) {
         await this.processQueues();
@@ -115,10 +129,18 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
 
   private async processQueues() {
     this.isProcessing = true;
-    
+
     try {
-      const priorities = [ProcessingPriority.URGENT, ProcessingPriority.HIGH, ProcessingPriority.NORMAL, ProcessingPriority.LOW];
-      const batchSize = parseInt(this.config.get('MEDIA_PROCESSING_BATCH_SIZE', '5'), 10);
+      const priorities = [
+        ProcessingPriority.URGENT,
+        ProcessingPriority.HIGH,
+        ProcessingPriority.NORMAL,
+        ProcessingPriority.LOW,
+      ];
+      const batchSize = parseInt(
+        this.config.get('MEDIA_PROCESSING_BATCH_SIZE', '5'),
+        10,
+      );
 
       for (const priority of priorities) {
         await this.processQueue(priority, batchSize);
@@ -130,11 +152,18 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async processQueue(priority: ProcessingPriority, batchSize: number): Promise<void> {
+  private async processQueue(
+    priority: ProcessingPriority,
+    batchSize: number,
+  ): Promise<void> {
     const queueName = `media:processing:${priority.toLowerCase()}`;
-    
+
     try {
-      const jobs = await (this.redis as any).lrange(queueName, 0, batchSize - 1);
+      const jobs = await (this.redis as any).lrange(
+        queueName,
+        0,
+        batchSize - 1,
+      );
       if (jobs.length === 0) return;
 
       // Remove processed jobs from queue
@@ -158,7 +187,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
 
   private async processJob(jobData: any): Promise<void> {
     const { attachmentId, type, options } = jobData;
-    
+
     this.logger.log(`Processing job: ${type} for attachment ${attachmentId}`);
 
     // Get attachment from database
@@ -177,7 +206,9 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     });
 
     if (existingJobs.length > 0) {
-      this.logger.log(`Skipping job: ${type} for attachment ${attachmentId} due to existing jobs`);
+      this.logger.log(
+        `Skipping job: ${type} for attachment ${attachmentId} due to existing jobs`,
+      );
       return;
     }
 
@@ -238,9 +269,11 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
       await this.updateAttachmentWithResults(attachmentId, type, result);
 
       this.logger.log(`Completed job: ${type} for attachment ${attachmentId}`);
-
     } catch (error) {
-      this.logger.error(`Job failed: ${type} for attachment ${attachmentId}`, error);
+      this.logger.error(
+        `Job failed: ${type} for attachment ${attachmentId}`,
+        error,
+      );
 
       // Update processing record with error
       await (this.prisma as any).mediaProcessing.update({
@@ -264,18 +297,26 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
         setTimeout(async () => {
           await (this.redis as any).lpush(
             `media:processing:${existingJob.priority.toLowerCase()}`,
-            JSON.stringify(jobData)
+            JSON.stringify(jobData),
           );
         }, delay);
       }
     }
   }
 
-  private async generateThumbnail(attachment: any, _options?: any): Promise<MediaProcessingResult> {
+  private async generateThumbnail(
+    attachment: any,
+    _options?: any,
+  ): Promise<MediaProcessingResult> {
     const { width = 300, height = 300, quality = 80 } = _options || {};
 
-    if (!attachment.mimeType.startsWith('image/') && !attachment.mimeType.startsWith('video/')) {
-      throw new Error('Thumbnail generation only supported for images and videos');
+    if (
+      !attachment.mimeType.startsWith('image/') &&
+      !attachment.mimeType.startsWith('video/')
+    ) {
+      throw new Error(
+        'Thumbnail generation only supported for images and videos',
+      );
     }
 
     const inputBuffer = await this.downloadFile(attachment.storageUrl);
@@ -289,12 +330,20 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
         .toBuffer();
     } else {
       // Generate video thumbnail using FFmpeg
-      thumbnailBuffer = await this.generateVideoThumbnail(inputBuffer, width, height);
+      thumbnailBuffer = await this.generateVideoThumbnail(
+        inputBuffer,
+        width,
+        height,
+      );
     }
 
     // Upload thumbnail
     const thumbnailKey = this.generateThumbnailKey(attachment.storageUrl);
-    const thumbnailUrl = await this.uploadFile(thumbnailKey, thumbnailBuffer, 'image/jpeg');
+    const thumbnailUrl = await this.uploadFile(
+      thumbnailKey,
+      thumbnailBuffer,
+      'image/jpeg',
+    );
 
     return {
       success: true,
@@ -308,7 +357,10 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async resizeImage(attachment: any, options: any): Promise<MediaProcessingResult> {
+  private async resizeImage(
+    attachment: any,
+    options: any,
+  ): Promise<MediaProcessingResult> {
     const { targetWidth, targetHeight, quality = 85, format } = options;
 
     if (!attachment.mimeType.startsWith('image/')) {
@@ -316,9 +368,9 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     }
 
     const inputBuffer = await this.downloadFile(attachment.storageUrl);
-    
+
     let sharpInstance = sharp(inputBuffer);
-    
+
     if (targetWidth || targetHeight) {
       sharpInstance = sharpInstance.resize(targetWidth, targetHeight, {
         fit: 'inside',
@@ -346,8 +398,15 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     const metadata = await sharp(outputBuffer).metadata();
 
     // Upload resized image
-    const outputKey = this.generateProcessedKey(attachment.storageUrl, 'resized');
-    const outputUrl = await this.uploadFile(outputKey, outputBuffer, `image/${format || 'jpeg'}`);
+    const outputKey = this.generateProcessedKey(
+      attachment.storageUrl,
+      'resized',
+    );
+    const outputUrl = await this.uploadFile(
+      outputKey,
+      outputBuffer,
+      `image/${format || 'jpeg'}`,
+    );
 
     return {
       success: true,
@@ -367,7 +426,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     }
 
     const inputBuffer = await this.downloadFile(attachment.storageUrl);
-    
+
     // Extract EXIF data before stripping
     let exifData = null;
     try {
@@ -385,7 +444,11 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
 
     // Upload cleaned image
     const outputKey = this.generateProcessedKey(attachment.storageUrl, 'clean');
-    const outputUrl = await this.uploadFile(outputKey, outputBuffer, attachment.mimeType);
+    const outputUrl = await this.uploadFile(
+      outputKey,
+      outputBuffer,
+      attachment.mimeType,
+    );
 
     return {
       success: true,
@@ -397,7 +460,10 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async transcodeVideo(attachment: any, options: any): Promise<MediaProcessingResult> {
+  private async transcodeVideo(
+    attachment: any,
+    options: any,
+  ): Promise<MediaProcessingResult> {
     if (!attachment.mimeType.startsWith('video/')) {
       throw new Error('Video transcoding only supported for videos');
     }
@@ -405,9 +471,11 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     // Use options to configure transcoding parameters
     const quality = options?.quality || 'medium';
     const format = options?.format || 'mp4';
-    
-    this.logger.log(`Transcoding video with quality: ${quality}, format: ${format}`);
-    
+
+    this.logger.log(
+      `Transcoding video with quality: ${quality}, format: ${format}`,
+    );
+
     // For now, return a placeholder result
     // In a real implementation, you would use FFmpeg to transcode the video
     return {
@@ -421,8 +489,12 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async transcodeAudio(attachment: any, options: any): Promise<MediaProcessingResult> {
-    const { /* codec = 'mp3', */ bitrate = '128k', sampleRate = 44100 } = options;
+  private async transcodeAudio(
+    attachment: any,
+    options: any,
+  ): Promise<MediaProcessingResult> {
+    const { /* codec = 'mp3', */ bitrate = '128k', sampleRate = 44100 } =
+      options;
 
     if (!attachment.mimeType.startsWith('audio/')) {
       throw new Error('Audio transcoding only supported for audio files');
@@ -441,9 +513,14 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async scanForViruses(attachment: any): Promise<MediaProcessingResult> {
+  private async scanForViruses(
+    attachment: any,
+  ): Promise<MediaProcessingResult> {
     const inputBuffer = await this.downloadFile(attachment.storageUrl);
-    const scanResult = await this.validationService.scanFileContent(inputBuffer, attachment.filename);
+    const scanResult = await this.validationService.scanFileContent(
+      inputBuffer,
+      attachment.filename,
+    );
 
     return {
       success: true,
@@ -451,9 +528,14 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async moderateContent(attachment: any): Promise<MediaProcessingResult> {
+  private async moderateContent(
+    attachment: any,
+  ): Promise<MediaProcessingResult> {
     const inputBuffer = await this.downloadFile(attachment.storageUrl);
-    const moderationResult = await this.validationService.moderateContent(inputBuffer, attachment.mimeType);
+    const moderationResult = await this.validationService.moderateContent(
+      inputBuffer,
+      attachment.mimeType,
+    );
 
     return {
       success: true,
@@ -463,7 +545,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
 
   private async downloadFile(storageUrl: string): Promise<Buffer> {
     const key = this.extractStorageKey(storageUrl);
-    
+
     const command = new GetObjectCommand({
       Bucket: this.storageConfig.bucket,
       Key: key,
@@ -471,16 +553,20 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
 
     const response = await this.s3Client.send(command);
     const stream = response.Body as Readable;
-    
+
     const chunks: Buffer[] = [];
     for await (const chunk of stream) {
       chunks.push(chunk);
     }
-    
+
     return Buffer.concat(chunks);
   }
 
-  private async uploadFile(key: string, buffer: Buffer, mimeType: string): Promise<string> {
+  private async uploadFile(
+    key: string,
+    buffer: Buffer,
+    mimeType: string,
+  ): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.storageConfig.bucket,
       Key: key,
@@ -489,14 +575,18 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
     });
 
     await this.s3Client.send(command);
-    
+
     if (this.storageConfig.endpoint) {
       return `${this.storageConfig.endpoint}/${this.storageConfig.bucket}/${key}`;
     }
     return `https://${this.storageConfig.bucket}.s3.${this.storageConfig.region}.amazonaws.com/${key}`;
   }
 
-  private async generateVideoThumbnail(videoBuffer: Buffer, width: number, height: number): Promise<Buffer> {
+  private async generateVideoThumbnail(
+    videoBuffer: Buffer,
+    width: number,
+    height: number,
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       // Create a temporary readable stream from buffer
       const stream = new Readable();
@@ -504,7 +594,7 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
       stream.push(null);
 
       const chunks: Buffer[] = [];
-      
+
       ffmpeg(stream)
         .screenshots({
           count: 1,
@@ -525,9 +615,9 @@ export class MediaProcessingWorker implements OnModuleInit, OnModuleDestroy {
   }
 
   private async updateAttachmentWithResults(
-    attachmentId: string, 
-    jobType: string, 
-    result: MediaProcessingResult
+    attachmentId: string,
+    jobType: string,
+    result: MediaProcessingResult,
   ): Promise<void> {
     const updateData: any = {};
 

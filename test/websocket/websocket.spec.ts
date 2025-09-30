@@ -91,10 +91,13 @@ describe('WebSocket Tests', () => {
     });
 
     it('should reject connection with invalid token', (done) => {
-      const invalidSocket = io(`http://localhost:${app.getHttpServer().address()?.port}`, {
-        auth: { token: 'invalid-token' },
-        query: { tenantId: testTenant.id },
-      });
+      const invalidSocket = io(
+        `http://localhost:${app.getHttpServer().address()?.port}`,
+        {
+          auth: { token: 'invalid-token' },
+          query: { tenantId: testTenant.id },
+        },
+      );
 
       invalidSocket.on('connect_error', (error) => {
         expect(error.message).toContain('Authentication failed');
@@ -140,9 +143,12 @@ describe('WebSocket Tests', () => {
     });
 
     it('should handle unauthorized room access', (done) => {
-      const unauthorizedConversation = TestDataFactory.createConversation('other-tenant');
-      
-      clientSocket.emit('join_room', { conversationId: unauthorizedConversation.id });
+      const unauthorizedConversation =
+        TestDataFactory.createConversation('other-tenant');
+
+      clientSocket.emit('join_room', {
+        conversationId: unauthorizedConversation.id,
+      });
 
       clientSocket.on('error', (error) => {
         expect(error.message).toContain('Unauthorized');
@@ -185,7 +191,11 @@ describe('WebSocket Tests', () => {
 
     it('should edit message via WebSocket', async () => {
       // First create a message
-      const message = TestDataFactory.createMessage(conversationId, testUser.id, testTenant.id);
+      const message = TestDataFactory.createMessage(
+        conversationId,
+        testUser.id,
+        testTenant.id,
+      );
       await testContext.prisma.message.create({ data: message });
 
       return new Promise<void>((done) => {
@@ -207,7 +217,11 @@ describe('WebSocket Tests', () => {
 
     it('should delete message via WebSocket', async () => {
       // First create a message
-      const message = TestDataFactory.createMessage(conversationId, testUser.id, testTenant.id);
+      const message = TestDataFactory.createMessage(
+        conversationId,
+        testUser.id,
+        testTenant.id,
+      );
       await testContext.prisma.message.create({ data: message });
 
       return new Promise<void>((done) => {
@@ -223,18 +237,24 @@ describe('WebSocket Tests', () => {
 
     it('should get conversation history via WebSocket', (done) => {
       // Create some test messages
-      const messages = TestDataFactory.createBulkMessages(conversationId, testUser.id, testTenant.id, 3);
-      
-      Promise.all(messages.map(msg => testContext.prisma.message.create({ data: msg })))
-        .then(() => {
-          clientSocket.emit('get_history', { conversationId, limit: 10 });
+      const messages = TestDataFactory.createBulkMessages(
+        conversationId,
+        testUser.id,
+        testTenant.id,
+        3,
+      );
 
-          clientSocket.on('history_retrieved', (data) => {
-            expect(Array.isArray(data.messages)).toBe(true);
-            expect(data.messages.length).toBe(3);
-            done();
-          });
+      Promise.all(
+        messages.map((msg) => testContext.prisma.message.create({ data: msg })),
+      ).then(() => {
+        clientSocket.emit('get_history', { conversationId, limit: 10 });
+
+        clientSocket.on('history_retrieved', (data) => {
+          expect(Array.isArray(data.messages)).toBe(true);
+          expect(data.messages.length).toBe(3);
+          done();
         });
+      });
     });
   });
 
@@ -330,7 +350,7 @@ describe('WebSocket Tests', () => {
       clientSocket.on('presence_updated', (data) => {
         expect(data.userId).toBe(testUser.id);
         expect(statuses).toContain(data.status);
-        
+
         if (statusIndex < statuses.length) {
           setTimeout(testNextStatus, 50);
         } else {

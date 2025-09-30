@@ -31,7 +31,11 @@ import {
   DeviceTokenInfo,
   NotificationFilter,
 } from '../interfaces/notification.interface';
-import { NotificationType, NotificationChannel, NotificationStatus } from '@prisma/client';
+import {
+  NotificationType,
+  NotificationChannel,
+  NotificationStatus,
+} from '@prisma/client';
 
 interface AuthenticatedUser {
   id: string;
@@ -50,8 +54,21 @@ export class NotificationController {
     private readonly templateService: NotificationTemplateService,
   ) {}
 
-  @ApiOperation({ summary: 'Send notification', description: 'Send a notification to users' })
-  @ApiBody({ schema: { type: 'object', properties: { type: { type: 'string' }, title: { type: 'string' }, message: { type: 'string' }, channels: { type: 'array', items: { type: 'string' } } } } })
+  @ApiOperation({
+    summary: 'Send notification',
+    description: 'Send a notification to users',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        type: { type: 'string' },
+        title: { type: 'string' },
+        message: { type: 'string' },
+        channels: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  })
   @ApiResponse({ status: 201, description: 'Notification sent successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
@@ -66,8 +83,9 @@ export class NotificationController {
       tenantId: user.tenantId,
     };
 
-    const results = await this.notificationService.sendNotification(fullPayload);
-    
+    const results =
+      await this.notificationService.sendNotification(fullPayload);
+
     return {
       success: true,
       data: results,
@@ -75,15 +93,49 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Get notifications', description: 'Get user notifications with optional filters' })
-  @ApiQuery({ name: 'type', required: false, description: 'Filter by notification type' })
-  @ApiQuery({ name: 'status', required: false, description: 'Filter by notification status' })
-  @ApiQuery({ name: 'channel', required: false, description: 'Filter by notification channel' })
-  @ApiQuery({ name: 'startDate', required: false, description: 'Filter from start date' })
-  @ApiQuery({ name: 'endDate', required: false, description: 'Filter to end date' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Limit number of results' })
-  @ApiQuery({ name: 'offset', required: false, description: 'Offset for pagination' })
-  @ApiResponse({ status: 200, description: 'Notifications retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get notifications',
+    description: 'Get user notifications with optional filters',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filter by notification type',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    description: 'Filter by notification status',
+  })
+  @ApiQuery({
+    name: 'channel',
+    required: false,
+    description: 'Filter by notification channel',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Filter from start date',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'Filter to end date',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Limit number of results',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    description: 'Offset for pagination',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
   async getNotifications(
@@ -108,8 +160,9 @@ export class NotificationController {
       offset: offset ? parseInt(offset, 10) : undefined,
     };
 
-    const notifications = await this.notificationService.getNotifications(filter);
-    
+    const notifications =
+      await this.notificationService.getNotifications(filter);
+
     return {
       success: true,
       data: notifications,
@@ -117,7 +170,10 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Mark as read', description: 'Mark a notification as read' })
+  @ApiOperation({
+    summary: 'Mark as read',
+    description: 'Mark a notification as read',
+  })
   @ApiParam({ name: 'id', description: 'Notification ID' })
   @ApiResponse({ status: 200, description: 'Notification marked as read' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -128,17 +184,31 @@ export class NotificationController {
     @Param('id') notificationId: string,
   ) {
     await this.notificationService.markAsRead(notificationId);
-    
+
     return {
       success: true,
       message: 'Notification marked as read',
     };
   }
 
-  @ApiOperation({ summary: 'Get notification stats', description: 'Get notification statistics for user' })
-  @ApiQuery({ name: 'startDate', required: false, description: 'Stats from start date' })
-  @ApiQuery({ name: 'endDate', required: false, description: 'Stats to end date' })
-  @ApiResponse({ status: 200, description: 'Notification statistics retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get notification stats',
+    description: 'Get notification statistics for user',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    description: 'Stats from start date',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    description: 'Stats to end date',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification statistics retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('stats')
   async getNotificationStats(
@@ -152,7 +222,7 @@ export class NotificationController {
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
-    
+
     return {
       success: true,
       data: stats,
@@ -160,8 +230,14 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Get preferences', description: 'Get user notification preferences' })
-  @ApiResponse({ status: 200, description: 'Notification preferences retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get preferences',
+    description: 'Get user notification preferences',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification preferences retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('preferences')
   async getPreferences(@CurrentUser() user: AuthenticatedUser) {
@@ -169,7 +245,7 @@ export class NotificationController {
       user.id,
       user.tenantId,
     );
-    
+
     return {
       success: true,
       data: preferences,
@@ -177,9 +253,24 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Update preferences', description: 'Update user notification preferences' })
-  @ApiBody({ schema: { type: 'object', properties: { emailEnabled: { type: 'boolean' }, pushEnabled: { type: 'boolean' }, smsEnabled: { type: 'boolean' } } } })
-  @ApiResponse({ status: 200, description: 'Notification preferences updated successfully' })
+  @ApiOperation({
+    summary: 'Update preferences',
+    description: 'Update user notification preferences',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        emailEnabled: { type: 'boolean' },
+        pushEnabled: { type: 'boolean' },
+        smsEnabled: { type: 'boolean' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification preferences updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put('preferences')
   @HttpCode(HttpStatus.OK)
@@ -192,7 +283,7 @@ export class NotificationController {
       preferences,
       user.tenantId,
     );
-    
+
     return {
       success: true,
       data: updated,
@@ -200,9 +291,24 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Register device', description: 'Register device token for push notifications' })
-  @ApiBody({ schema: { type: 'object', properties: { token: { type: 'string' }, platform: { type: 'string' }, deviceId: { type: 'string' } } } })
-  @ApiResponse({ status: 201, description: 'Device token registered successfully' })
+  @ApiOperation({
+    summary: 'Register device',
+    description: 'Register device token for push notifications',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        token: { type: 'string' },
+        platform: { type: 'string' },
+        deviceId: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Device token registered successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('devices')
   @HttpCode(HttpStatus.CREATED)
@@ -216,8 +322,9 @@ export class NotificationController {
       tenantId: user.tenantId,
     };
 
-    const deviceToken = await this.preferenceService.registerDeviceToken(fullDeviceInfo);
-    
+    const deviceToken =
+      await this.preferenceService.registerDeviceToken(fullDeviceInfo);
+
     return {
       success: true,
       data: deviceToken,
@@ -225,8 +332,14 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Get devices', description: 'Get registered device tokens' })
-  @ApiResponse({ status: 200, description: 'Device tokens retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get devices',
+    description: 'Get registered device tokens',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Device tokens retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('devices')
   async getDevices(@CurrentUser() user: AuthenticatedUser) {
@@ -234,7 +347,7 @@ export class NotificationController {
       user.id,
       user.tenantId,
     );
-    
+
     return {
       success: true,
       data: devices,
@@ -242,9 +355,15 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Deactivate device', description: 'Deactivate a device token' })
+  @ApiOperation({
+    summary: 'Deactivate device',
+    description: 'Deactivate a device token',
+  })
   @ApiParam({ name: 'deviceId', description: 'Device ID to deactivate' })
-  @ApiResponse({ status: 200, description: 'Device token deactivated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Device token deactivated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Delete('devices/:deviceId')
   @HttpCode(HttpStatus.OK)
@@ -257,20 +376,28 @@ export class NotificationController {
       deviceId,
       user.tenantId,
     );
-    
+
     return {
       success: true,
       message: 'Device token deactivated successfully',
     };
   }
 
-  @ApiOperation({ summary: 'Get templates', description: 'Get notification templates for tenant' })
-  @ApiResponse({ status: 200, description: 'Notification templates retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get templates',
+    description: 'Get notification templates for tenant',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification templates retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('templates')
   async getTemplates(@CurrentUser() user: AuthenticatedUser) {
-    const templates = await this.templateService.getTemplatesByTenant(user.tenantId);
-    
+    const templates = await this.templateService.getTemplatesByTenant(
+      user.tenantId,
+    );
+
     return {
       success: true,
       data: templates,
@@ -278,9 +405,25 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Create template', description: 'Create a new notification template' })
-  @ApiBody({ schema: { type: 'object', properties: { name: { type: 'string' }, subject: { type: 'string' }, body: { type: 'string' }, type: { type: 'string' } } } })
-  @ApiResponse({ status: 201, description: 'Notification template created successfully' })
+  @ApiOperation({
+    summary: 'Create template',
+    description: 'Create a new notification template',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        subject: { type: 'string' },
+        body: { type: 'string' },
+        type: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Notification template created successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post('templates')
   @HttpCode(HttpStatus.CREATED)
@@ -292,7 +435,7 @@ export class NotificationController {
       ...template,
       tenantId: user.tenantId,
     });
-    
+
     return {
       success: true,
       data: created,
@@ -300,19 +443,34 @@ export class NotificationController {
     };
   }
 
-  @ApiOperation({ summary: 'Update template', description: 'Update a notification template' })
+  @ApiOperation({
+    summary: 'Update template',
+    description: 'Update a notification template',
+  })
   @ApiParam({ name: 'id', description: 'Template ID' })
-  @ApiBody({ schema: { type: 'object', properties: { name: { type: 'string' }, subject: { type: 'string' }, body: { type: 'string' } } } })
-  @ApiResponse({ status: 200, description: 'Notification template updated successfully' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        subject: { type: 'string' },
+        body: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification template updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Put('templates/:id')
   @HttpCode(HttpStatus.OK)
-  async updateTemplate(
-    @Param('id') templateId: string,
-    @Body() updates: any,
-  ) {
-    const updated = await this.templateService.updateTemplate(templateId, updates);
-    
+  async updateTemplate(@Param('id') templateId: string, @Body() updates: any) {
+    const updated = await this.templateService.updateTemplate(
+      templateId,
+      updates,
+    );
+
     return {
       success: true,
       data: updated,

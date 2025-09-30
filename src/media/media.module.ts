@@ -9,21 +9,9 @@ import { RedisModule } from '../shared/redis/redis.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    ConfigModule,
-    PrismaModule,
-    RedisModule,
-    AuthModule,
-  ],
-  providers: [
-    MediaService,
-    MediaValidationService,
-    MediaProcessingWorker,
-  ],
+  imports: [ConfigModule, PrismaModule, RedisModule, AuthModule],
+  providers: [MediaService, MediaValidationService, MediaProcessingWorker],
   controllers: [MediaController],
-  exports: [
-    MediaService,
-    MediaValidationService,
-  ],
+  exports: [MediaService, MediaValidationService],
 })
 export class MediaModule {}

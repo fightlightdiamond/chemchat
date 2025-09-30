@@ -1,4 +1,9 @@
-import { Injectable, NestMiddleware, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { TenantRequest } from '../interfaces/tenant.interface';
 import { TenantService } from '../services/tenant.service';
@@ -10,11 +15,15 @@ export class TenantContextMiddleware implements NestMiddleware {
 
   constructor(private readonly tenantService: TenantService) {}
 
-  async use(req: TenantRequest, res: Response, next: NextFunction): Promise<void> {
+  async use(
+    req: TenantRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       // Extract tenant ID from various sources
       const tenantId = this.extractTenantId(req);
-      
+
       if (!tenantId) {
         this.logger.warn('No tenant ID found in request');
         throw new UnauthorizedException('Tenant ID is required');
@@ -22,7 +31,7 @@ export class TenantContextMiddleware implements NestMiddleware {
 
       // Validate and fetch tenant context
       const tenant = await this.tenantService.getTenant(tenantId);
-      
+
       if (!tenant) {
         this.logger.warn(`Tenant not found: ${tenantId}`);
         throw new UnauthorizedException('Invalid tenant');
@@ -38,11 +47,16 @@ export class TenantContextMiddleware implements NestMiddleware {
       req.tenantId = tenantId;
 
       // Log tenant access for audit
-      this.logger.debug(`Tenant context set: ${tenantId} (${tenant.tenantName})`);
+      this.logger.debug(
+        `Tenant context set: ${tenantId} (${tenant.tenantName})`,
+      );
 
       next();
     } catch (error) {
-      this.logger.error(`Tenant context middleware error: ${error.message}`, error.stack);
+      this.logger.error(
+        `Tenant context middleware error: ${error.message}`,
+        error.stack,
+      );
       next(error);
     }
   }

@@ -5,10 +5,10 @@ import { SearchService, SearchSuggestion } from '../services/search.service';
 import { BaseQueryHandler } from '../../shared/cqrs/base-query-handler';
 
 @QueryHandler(GetSearchSuggestionsQuery)
-export class GetSearchSuggestionsHandler 
+export class GetSearchSuggestionsHandler
   extends BaseQueryHandler<GetSearchSuggestionsQuery, SearchSuggestion[]>
-  implements IQueryHandler<GetSearchSuggestionsQuery, SearchSuggestion[]> {
-  
+  implements IQueryHandler<GetSearchSuggestionsQuery, SearchSuggestion[]>
+{
   protected readonly logger = new Logger(GetSearchSuggestionsHandler.name);
 
   constructor(private readonly searchService: SearchService) {
@@ -26,7 +26,7 @@ export class GetSearchSuggestionsHandler
       );
 
       this.logger.debug(`Found ${suggestions.length} suggestions`);
-      
+
       return suggestions;
     } catch (error) {
       this.logger.error('Failed to get search suggestions', error);

@@ -1,4 +1,10 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  Logger,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { TracingService } from './tracing.service';
@@ -19,7 +25,7 @@ export class WebSocketTracingInterceptor implements NestInterceptor {
 
     // Extract correlation ID from client or data
     const correlationId = this.extractCorrelationId(client, data);
-    
+
     // Extract user and tenant context
     const userId = client.user?.id || client.userId;
     const tenantId = client.tenant?.id || client.tenantId;
@@ -34,35 +40,56 @@ export class WebSocketTracingInterceptor implements NestInterceptor {
         eventType: data?.type || 'unknown',
         clientId: client.id,
         roomId: data?.roomId,
-      }
+      },
     );
 
     const startTime = Date.now();
-    const spanId = this.tracingService.createSpan(operationName, tracingContext, {
-      'websocket.event_type': data?.type || 'unknown',
-      'websocket.client_id': client.id || 'unknown',
-      'websocket.room_id': data?.roomId || 'none',
-      'websocket.handler': `${className}.${methodName}`,
-      'user.id': userId || 'anonymous',
-      'tenant.id': tenantId || 'unknown',
-    });
+    const spanId = this.tracingService.createSpan(
+      operationName,
+      tracingContext,
+      {
+        'websocket.event_type': data?.type || 'unknown',
+        'websocket.client_id': client.id || 'unknown',
+        'websocket.room_id': data?.roomId || 'none',
+        'websocket.handler': `${className}.${methodName}`,
+        'user.id': userId || 'anonymous',
+        'tenant.id': tenantId || 'unknown',
+      },
+    );
 
     // Add data attributes (safely)
     if (data && typeof data === 'object') {
       Object.entries(data).forEach(([key, value]) => {
         if (key !== 'password' && key !== 'token' && key !== 'secret') {
-          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-            this.tracingService.setAttribute(spanId, `websocket.data.${key}`, value);
+          if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean'
+          ) {
+            this.tracingService.setAttribute(
+              spanId,
+              `websocket.data.${key}`,
+              value,
+            );
           } else if (value !== null && value !== undefined) {
             try {
               const stringified = JSON.stringify(value);
               if (stringified) {
-                this.tracingService.setAttribute(spanId, `websocket.data.${key}`, stringified.substring(0, 100));
+                this.tracingService.setAttribute(
+                  spanId,
+                  `websocket.data.${key}`,
+                  stringified.substring(0, 100),
+                );
               }
             } catch (error) {
               // Handle circular references and other JSON.stringify errors
-              const errorMsg = error instanceof Error ? error.message : 'serialization error';
-              this.tracingService.setAttribute(spanId, `websocket.data.${key}`, `[${typeof value}: ${errorMsg}]`);
+              const errorMsg =
+                error instanceof Error ? error.message : 'serialization error';
+              this.tracingService.setAttribute(
+                spanId,
+                `websocket.data.${key}`,
+                `[${typeof value}: ${errorMsg}]`,
+              );
             }
           }
         }
@@ -70,52 +97,66 @@ export class WebSocketTracingInterceptor implements NestInterceptor {
     }
 
     return next.handle().pipe(
-      tap(result => {
+      tap((result) => {
         const duration = Date.now() - startTime;
-        
+
         // Add result information
         if (result !== null && result !== undefined) {
-          this.tracingService.setAttribute(spanId, 'websocket.result_type', typeof result);
+          this.tracingService.setAttribute(
+            spanId,
+            'websocket.result_type',
+            typeof result,
+          );
           if (typeof result === 'object' && result.constructor) {
-            this.tracingService.setAttribute(spanId, 'websocket.result_constructor', result.constructor.name);
+            this.tracingService.setAttribute(
+              spanId,
+              'websocket.result_constructor',
+              result.constructor.name,
+            );
           }
         }
 
         this.tracingService.setAttribute(spanId, 'duration_ms', duration);
         this.tracingService.finishSpan(spanId, 'ok');
 
-        this.logger.debug(`WebSocket operation completed: ${operationName} (${duration}ms)`, {
-          correlationId,
-          userId,
-          tenantId,
-          eventType: data?.type,
-          duration,
-        });
+        this.logger.debug(
+          `WebSocket operation completed: ${operationName} (${duration}ms)`,
+          {
+            correlationId,
+            userId,
+            tenantId,
+            eventType: data?.type,
+            duration,
+          },
+        );
       }),
-      catchError(error => {
+      catchError((error) => {
         const duration = Date.now() - startTime;
-        
+
         this.tracingService.recordException(spanId, error as Error);
         this.tracingService.setAttribute(spanId, 'duration_ms', duration);
         this.tracingService.finishSpan(spanId, 'error');
-        
-        this.logger.error(`WebSocket operation failed: ${operationName} (${duration}ms)`, {
-          correlationId,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-          tenantId,
-          eventType: data?.type,
-          duration,
-        });
+
+        this.logger.error(
+          `WebSocket operation failed: ${operationName} (${duration}ms)`,
+          {
+            correlationId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            userId,
+            tenantId,
+            eventType: data?.type,
+            duration,
+          },
+        );
 
         throw error;
-      })
+      }),
     );
   }
 
   private extractCorrelationId(client: any, data: any): string {
     // Try to extract correlation ID from various sources
-    const correlationId = 
+    const correlationId =
       data?.correlationId ||
       data?.correlation_id ||
       client.handshake?.headers['x-correlation-id'] ||

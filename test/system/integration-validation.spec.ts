@@ -134,7 +134,7 @@ describe('Final Integration Validation', () => {
       const messageId = messageResponse.body.id;
 
       // 3. Search Module - Index and search message
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for indexing
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for indexing
 
       const searchResponse = await request(app.getHttpServer())
         .get('/search/messages')
@@ -189,7 +189,7 @@ describe('Final Integration Validation', () => {
       // Create second tenant
       const tenant2 = await testData.createTenant();
       const user2 = await testData.createUser({ tenantId: tenant2.id });
-      
+
       const token2 = jwtService.sign({
         sub: user2.id,
         tenantId: tenant2.id,
@@ -263,8 +263,10 @@ describe('Final Integration Validation', () => {
       expect(dbConversation).toBeTruthy();
 
       // Verify Redis cache is updated
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const cachedConversation = await redis.get(`conversation:${conversationId}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const cachedConversation = await redis.get(
+        `conversation:${conversationId}`,
+      );
       expect(cachedConversation).toBeTruthy();
     });
 
@@ -294,7 +296,7 @@ describe('Final Integration Validation', () => {
       expect(dbMessage).toBeTruthy();
 
       // Wait for async processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify search indexing
       try {
@@ -358,13 +360,13 @@ describe('Final Integration Validation', () => {
               conversationId,
               content: `Concurrent message ${i}`,
               type: 'TEXT',
-            })
+            }),
         );
       }
 
       const responses = await Promise.all(promises);
-      const successful = responses.filter(r => r.status === 201);
-      
+      const successful = responses.filter((r) => r.status === 201);
+
       expect(successful.length).toBe(messageCount);
 
       // Verify sequence ordering
@@ -376,7 +378,7 @@ describe('Final Integration Validation', () => {
 
       for (let i = 1; i < messages.length; i++) {
         expect(Number(messages[i].sequenceNumber)).toBeGreaterThan(
-          Number(messages[i - 1].sequenceNumber)
+          Number(messages[i - 1].sequenceNumber),
         );
       }
     });
@@ -390,20 +392,22 @@ describe('Final Integration Validation', () => {
           request(app.getHttpServer())
             .get('/conversations')
             .set('Authorization', `Bearer ${authToken}`)
-            .set('X-Tenant-ID', tenantId)
+            .set('X-Tenant-ID', tenantId),
         );
       }
 
       const responses = await Promise.allSettled(promises);
-      const successful = responses.filter(r => r.status === 'fulfilled').length;
-      
+      const successful = responses.filter(
+        (r) => r.status === 'fulfilled',
+      ).length;
+
       // Should handle at least 80% successfully
       expect(successful).toBeGreaterThan(requestCount * 0.8);
     });
 
     it('should maintain response times under load', async () => {
       const startTime = Date.now();
-      
+
       const response = await request(app.getHttpServer())
         .get('/conversations')
         .set('Authorization', `Bearer ${authToken}`)
@@ -411,7 +415,7 @@ describe('Final Integration Validation', () => {
         .expect(200);
 
       const responseTime = Date.now() - startTime;
-      
+
       // Response should be under 1 second
       expect(responseTime).toBeLessThan(1000);
       expect(response.body).toBeDefined();
@@ -497,10 +501,18 @@ describe('Final Integration Validation', () => {
     it('should enforce authentication on protected endpoints', async () => {
       const protectedRequests = [
         { method: 'get', path: '/conversations' },
-        { method: 'post', path: '/messages', body: { conversationId: 'x', content: 'x', type: 'TEXT' } },
+        {
+          method: 'post',
+          path: '/messages',
+          body: { conversationId: 'x', content: 'x', type: 'TEXT' },
+        },
         { method: 'get', path: '/notifications' },
         { method: 'get', path: '/search/messages' },
-        { method: 'post', path: '/media/upload/url', body: { filename: 'x.txt', mimetype: 'text/plain', size: 1 } },
+        {
+          method: 'post',
+          path: '/media/upload/url',
+          body: { filename: 'x.txt', mimetype: 'text/plain', size: 1 },
+        },
         { method: 'get', path: '/sync/state/test-device' },
       ];
       for (const req of protectedRequests) {
@@ -528,7 +540,7 @@ describe('Final Integration Validation', () => {
     it('should enforce tenant isolation', async () => {
       const tenant1 = await testData.createTenant();
       const tenant2 = await testData.createTenant();
-      
+
       const user1 = await testData.createUser({ tenantId: tenant1.id });
       const user2 = await testData.createUser({ tenantId: tenant2.id });
 

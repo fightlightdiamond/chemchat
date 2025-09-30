@@ -42,7 +42,7 @@ export class DataRetentionService {
   async createRetentionPolicy(policy: RetentionPolicy): Promise<string> {
     const created = await this.prisma.dataRetentionPolicy.create({
       data: {
-        tenantId: policy.tenantId || '',  // Ensure tenantId is not undefined
+        tenantId: policy.tenantId || '', // Ensure tenantId is not undefined
         name: policy.name,
         description: policy.description,
         dataType: policy.dataType,
@@ -609,7 +609,7 @@ export class DataRetentionService {
     return {
       recordsToProcess,
       recordsToDelete: recordsToProcess,
-      recordsToAnonymize: 0,  // Anonymization not supported in current schema
+      recordsToAnonymize: 0, // Anonymization not supported in current schema
       oldestRecord,
       newestRecord,
     };

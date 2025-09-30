@@ -46,11 +46,11 @@ describe('SequenceService', () => {
     it('should fallback to database when Redis fails', async () => {
       const conversationId = 'conv-1';
       redisService.incr = jest.fn().mockRejectedValue(new Error('Redis error'));
-      
+
       const mockConversationState = {
         lastSequenceNumber: BigInt(3),
       };
-      
+
       prismaService.conversationState = {
         upsert: jest.fn().mockResolvedValue({
           ...mockConversationState,
@@ -73,13 +73,17 @@ describe('SequenceService', () => {
     it('should reserve multiple sequence numbers', async () => {
       const conversationId = 'conv-1';
       const count = 3;
-      
-      redisService.incr = jest.fn()
+
+      redisService.incr = jest
+        .fn()
         .mockResolvedValueOnce(5)
         .mockResolvedValueOnce(6)
         .mockResolvedValueOnce(7);
 
-      const result = await service.reserveSequenceNumbers(conversationId, count);
+      const result = await service.reserveSequenceNumbers(
+        conversationId,
+        count,
+      );
 
       expect(redisService.incr).toHaveBeenCalledTimes(count);
       expect(result).toEqual([BigInt(5), BigInt(6), BigInt(7)]);
@@ -88,8 +92,9 @@ describe('SequenceService', () => {
     it('should handle partial Redis failures in batch reservation', async () => {
       const conversationId = 'conv-1';
       const count = 2;
-      
-      redisService.incr = jest.fn()
+
+      redisService.incr = jest
+        .fn()
         .mockResolvedValueOnce(5)
         .mockRejectedValueOnce(new Error('Redis error'));
 
@@ -99,7 +104,10 @@ describe('SequenceService', () => {
         }),
       };
 
-      const result = await service.reserveSequenceNumbers(conversationId, count);
+      const result = await service.reserveSequenceNumbers(
+        conversationId,
+        count,
+      );
 
       expect(result).toEqual([BigInt(5), BigInt(6)]);
     });
@@ -119,7 +127,7 @@ describe('SequenceService', () => {
     it('should fallback to database when Redis returns null', async () => {
       const conversationId = 'conv-1';
       redisService.get = jest.fn().mockResolvedValue(null);
-      
+
       prismaService.conversationState = {
         findUnique: jest.fn().mockResolvedValue({
           lastSequenceNumber: BigInt(5),
@@ -151,10 +159,13 @@ describe('SequenceService', () => {
     it('should validate correct sequence order', async () => {
       const conversationId = 'conv-1';
       const sequenceNumber = BigInt(5);
-      
+
       redisService.get = jest.fn().mockResolvedValue('4');
 
-      const result = await service.validateSequenceOrder(conversationId, sequenceNumber);
+      const result = await service.validateSequenceOrder(
+        conversationId,
+        sequenceNumber,
+      );
 
       expect(result).toBe(true);
     });
@@ -162,10 +173,13 @@ describe('SequenceService', () => {
     it('should reject out-of-order sequence', async () => {
       const conversationId = 'conv-1';
       const sequenceNumber = BigInt(3);
-      
+
       redisService.get = jest.fn().mockResolvedValue('5');
 
-      const result = await service.validateSequenceOrder(conversationId, sequenceNumber);
+      const result = await service.validateSequenceOrder(
+        conversationId,
+        sequenceNumber,
+      );
 
       expect(result).toBe(false);
     });
@@ -173,13 +187,16 @@ describe('SequenceService', () => {
     it('should handle missing current sequence', async () => {
       const conversationId = 'conv-1';
       const sequenceNumber = BigInt(1);
-      
+
       redisService.get = jest.fn().mockResolvedValue(null);
       prismaService.conversationState = {
         findUnique: jest.fn().mockResolvedValue(null),
       };
 
-      const result = await service.validateSequenceOrder(conversationId, sequenceNumber);
+      const result = await service.validateSequenceOrder(
+        conversationId,
+        sequenceNumber,
+      );
 
       expect(result).toBe(true);
     });

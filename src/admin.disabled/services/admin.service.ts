@@ -23,7 +23,7 @@ import {
   AdminStats,
   UserModerationHistory,
   ReportSearchFilters,
-  ModerationActionSearchFilters
+  ModerationActionSearchFilters,
 } from '../interfaces/admin.interface';
 
 @Injectable()
@@ -38,7 +38,10 @@ export class AdminService {
   ) {}
 
   // Admin Role Management
-  async createAdminRole(dto: CreateAdminRoleDto, grantedBy: string): Promise<any> {
+  async createAdminRole(
+    dto: CreateAdminRoleDto,
+    grantedBy: string,
+  ): Promise<any> {
     try {
       // Verify the granter has permission to assign this role
       await this.verifyAdminPermission(grantedBy, 'admin_roles', 'create');
@@ -74,15 +77,25 @@ export class AdminService {
       // Clear user permissions cache
       await this.clearUserPermissionsCache(dto.userId, dto.tenantId);
 
-      this.logger.log(`Admin role ${dto.role} granted to user ${dto.userId} by ${grantedBy}`);
+      this.logger.log(
+        `Admin role ${dto.role} granted to user ${dto.userId} by ${grantedBy}`,
+      );
       return adminRole;
     } catch (error) {
-      this.logger.error(`Failed to create admin role: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create admin role: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async revokeAdminRole(userId: string, tenantId: string | null, role: AdminRoleType, revokedBy: string): Promise<void> {
+  async revokeAdminRole(
+    userId: string,
+    tenantId: string | null,
+    role: AdminRoleType,
+    revokedBy: string,
+  ): Promise<void> {
     try {
       await this.verifyAdminPermission(revokedBy, 'admin_roles', 'delete');
 
@@ -100,16 +113,24 @@ export class AdminService {
       });
 
       await this.clearUserPermissionsCache(userId, tenantId || undefined);
-      this.logger.log(`Admin role ${role} revoked from user ${userId} by ${revokedBy}`);
+      this.logger.log(
+        `Admin role ${role} revoked from user ${userId} by ${revokedBy}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to revoke admin role: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to revoke admin role: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async getUserPermissions(userId: string, tenantId?: string): Promise<string[]> {
+  async getUserPermissions(
+    userId: string,
+    tenantId?: string,
+  ): Promise<string[]> {
     const cacheKey = `user_permissions:${userId}:${tenantId || 'global'}`;
-    
+
     try {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
@@ -121,50 +142,68 @@ export class AdminService {
           userId,
           tenantId,
           isActive: true,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
       });
 
       const permissions = new Set<string>();
-      adminRoles.forEach(role => {
-        role.permissions.forEach(permission => permissions.add(permission));
+      adminRoles.forEach((role) => {
+        role.permissions.forEach((permission) => permissions.add(permission));
       });
 
       const permissionsArray = Array.from(permissions);
-      await this.redis.setex(cacheKey, this.PERMISSIONS_CACHE_TTL, JSON.stringify(permissionsArray));
+      await this.redis.setex(
+        cacheKey,
+        this.PERMISSIONS_CACHE_TTL,
+        JSON.stringify(permissionsArray),
+      );
 
       return permissionsArray;
     } catch (error) {
-      this.logger.error(`Failed to get user permissions: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get user permissions: ${error.message}`,
+        error.stack,
+      );
       return [];
     }
   }
 
-  async hasPermission(userId: string, resource: string, action: string, tenantId?: string): Promise<boolean> {
+  async hasPermission(
+    userId: string,
+    resource: string,
+    action: string,
+    tenantId?: string,
+  ): Promise<boolean> {
     try {
       const permissions = await this.getUserPermissions(userId, tenantId);
       const requiredPermission = `${resource}:${action}`;
       const wildcardPermission = `${resource}:*`;
       const superAdminPermission = '*:*';
 
-      return permissions.includes(requiredPermission) || 
-             permissions.includes(wildcardPermission) || 
-             permissions.includes(superAdminPermission);
+      return (
+        permissions.includes(requiredPermission) ||
+        permissions.includes(wildcardPermission) ||
+        permissions.includes(superAdminPermission)
+      );
     } catch (error) {
-      this.logger.error(`Failed to check permission: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to check permission: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }
 
   // Moderation Actions
-  async createModerationAction(dto: ModerationActionDto, moderatorId: string, tenantId?: string): Promise<any> {
+  async createModerationAction(
+    dto: ModerationActionDto,
+    moderatorId: string,
+    tenantId?: string,
+  ): Promise<any> {
     try {
       await this.verifyAdminPermission(moderatorId, 'moderation', 'create');
 
-      const expiresAt = dto.duration 
+      const expiresAt = dto.duration
         ? new Date(Date.now() + dto.duration * 60 * 1000)
         : null;
 
@@ -194,21 +233,31 @@ export class AdminService {
       // Apply the moderation action
       await this.applyModerationAction(action);
 
-      this.logger.log(`Moderation action ${dto.actionType} applied to ${dto.targetType} ${dto.targetId} by ${moderatorId}`);
+      this.logger.log(
+        `Moderation action ${dto.actionType} applied to ${dto.targetType} ${dto.targetId} by ${moderatorId}`,
+      );
       return action;
     } catch (error) {
-      this.logger.error(`Failed to create moderation action: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create moderation action: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async banUser(dto: BanUserDto, moderatorId: string, tenantId?: string): Promise<any> {
+  async banUser(
+    dto: BanUserDto,
+    moderatorId: string,
+    tenantId?: string,
+  ): Promise<any> {
     try {
       await this.verifyAdminPermission(moderatorId, 'users', 'ban');
 
-      const expiresAt = dto.duration && dto.banType === BanType.TEMPORARY
-        ? new Date(Date.now() + dto.duration * 60 * 1000)
-        : null;
+      const expiresAt =
+        dto.duration && dto.banType === BanType.TEMPORARY
+          ? new Date(Date.now() + dto.duration * 60 * 1000)
+          : null;
 
       const ban = await this.prisma.userBan.create({
         data: {
@@ -242,7 +291,9 @@ export class AdminService {
       // Disconnect user from all active sessions
       await this.disconnectBannedUser(dto.userId, tenantId);
 
-      this.logger.log(`User ${dto.userId} banned (${dto.banType}) by ${moderatorId}: ${dto.reason}`);
+      this.logger.log(
+        `User ${dto.userId} banned (${dto.banType}) by ${moderatorId}: ${dto.reason}`,
+      );
       return ban;
     } catch (error) {
       this.logger.error(`Failed to ban user: ${error.message}`, error.stack);
@@ -250,7 +301,11 @@ export class AdminService {
     }
   }
 
-  async unbanUser(userId: string, moderatorId: string, tenantId?: string): Promise<void> {
+  async unbanUser(
+    userId: string,
+    moderatorId: string,
+    tenantId?: string,
+  ): Promise<void> {
     try {
       await this.verifyAdminPermission(moderatorId, 'users', 'unban');
 
@@ -280,22 +335,26 @@ export class AdminService {
           userId,
           tenantId,
           isActive: true,
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } },
-          ],
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
       });
 
       return !!activeBan;
     } catch (error) {
-      this.logger.error(`Failed to check user ban status: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to check user ban status: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }
 
   // Content Reports
-  async createReport(dto: CreateReportDto, reporterId: string, tenantId?: string): Promise<any> {
+  async createReport(
+    dto: CreateReportDto,
+    reporterId: string,
+    tenantId?: string,
+  ): Promise<any> {
     try {
       const report = await this.prisma.contentReport.create({
         data: {
@@ -318,15 +377,24 @@ export class AdminService {
         },
       });
 
-      this.logger.log(`Content report created for ${dto.targetType} ${dto.targetId} by ${reporterId}`);
+      this.logger.log(
+        `Content report created for ${dto.targetType} ${dto.targetId} by ${reporterId}`,
+      );
       return report;
     } catch (error) {
-      this.logger.error(`Failed to create report: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create report: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async updateReport(reportId: string, dto: UpdateReportDto, moderatorId: string): Promise<any> {
+  async updateReport(
+    reportId: string,
+    dto: UpdateReportDto,
+    moderatorId: string,
+  ): Promise<any> {
     try {
       await this.verifyAdminPermission(moderatorId, 'reports', 'update');
 
@@ -359,7 +427,10 @@ export class AdminService {
       this.logger.log(`Report ${reportId} updated by ${moderatorId}`);
       return report;
     } catch (error) {
-      this.logger.error(`Failed to update report: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update report: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -433,69 +504,76 @@ export class AdminService {
         autoModerationViolations,
       };
     } catch (error) {
-      this.logger.error(`Failed to get admin stats: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get admin stats: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async getUserModerationHistory(userId: string, tenantId?: string): Promise<UserModerationHistory> {
+  async getUserModerationHistory(
+    userId: string,
+    tenantId?: string,
+  ): Promise<UserModerationHistory> {
     try {
-      const [warnings, mutes, kicks, bans, reports, violations, lastAction] = await Promise.all([
-        this.prisma.moderationAction.count({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-            actionType: ModerationActionType.WARN,
-          },
-        }),
-        this.prisma.moderationAction.count({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-            actionType: ModerationActionType.MUTE,
-          },
-        }),
-        this.prisma.moderationAction.count({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-            actionType: ModerationActionType.KICK,
-          },
-        }),
-        this.prisma.moderationAction.count({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-            actionType: ModerationActionType.BAN,
-          },
-        }),
-        this.prisma.contentReport.count({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-          },
-        }),
-        this.prisma.autoModerationViolation.count({
-          where: {
-            tenantId,
-            userId,
-          },
-        }),
-        this.prisma.moderationAction.findFirst({
-          where: {
-            tenantId,
-            targetType: ModerationTargetType.USER,
-            targetId: userId,
-          },
-          orderBy: { createdAt: 'desc' },
-          select: { createdAt: true },
-        }),
-      ]);
+      const [warnings, mutes, kicks, bans, reports, violations, lastAction] =
+        await Promise.all([
+          this.prisma.moderationAction.count({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+              actionType: ModerationActionType.WARN,
+            },
+          }),
+          this.prisma.moderationAction.count({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+              actionType: ModerationActionType.MUTE,
+            },
+          }),
+          this.prisma.moderationAction.count({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+              actionType: ModerationActionType.KICK,
+            },
+          }),
+          this.prisma.moderationAction.count({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+              actionType: ModerationActionType.BAN,
+            },
+          }),
+          this.prisma.contentReport.count({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+            },
+          }),
+          this.prisma.autoModerationViolation.count({
+            where: {
+              tenantId,
+              userId,
+            },
+          }),
+          this.prisma.moderationAction.findFirst({
+            where: {
+              tenantId,
+              targetType: ModerationTargetType.USER,
+              targetId: userId,
+            },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+          }),
+        ]);
 
       return {
         userId,
@@ -508,13 +586,21 @@ export class AdminService {
         lastAction: lastAction?.createdAt,
       };
     } catch (error) {
-      this.logger.error(`Failed to get user moderation history: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get user moderation history: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   // Search and Filtering
-  async searchReports(filters: ReportSearchFilters, page = 1, limit = 20, tenantId?: string) {
+  async searchReports(
+    filters: ReportSearchFilters,
+    page = 1,
+    limit = 20,
+    tenantId?: string,
+  ) {
     try {
       const where: Prisma.ContentReportWhereInput = {
         tenantId,
@@ -524,12 +610,12 @@ export class AdminService {
         ...(filters.targetType && { targetType: filters.targetType }),
         ...(filters.assignedTo && { assignedTo: filters.assignedTo }),
         ...(filters.reporterId && { reporterId: filters.reporterId }),
-        ...(filters.dateFrom || filters.dateTo) && {
+        ...((filters.dateFrom || filters.dateTo) && {
           createdAt: {
             ...(filters.dateFrom && { gte: filters.dateFrom }),
             ...(filters.dateTo && { lte: filters.dateTo }),
           },
-        },
+        }),
       };
 
       const [reports, total] = await Promise.all([
@@ -568,12 +654,20 @@ export class AdminService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to search reports: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to search reports: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async searchModerationActions(filters: ModerationActionSearchFilters, page = 1, limit = 20, tenantId?: string) {
+  async searchModerationActions(
+    filters: ModerationActionSearchFilters,
+    page = 1,
+    limit = 20,
+    tenantId?: string,
+  ) {
     try {
       const where: Prisma.ModerationActionWhereInput = {
         tenantId,
@@ -582,12 +676,12 @@ export class AdminService {
         ...(filters.moderatorId && { moderatorId: filters.moderatorId }),
         ...(filters.targetId && { targetId: filters.targetId }),
         ...(filters.isActive !== undefined && { isActive: filters.isActive }),
-        ...(filters.dateFrom || filters.dateTo) && {
+        ...((filters.dateFrom || filters.dateTo) && {
           createdAt: {
             ...(filters.dateFrom && { gte: filters.dateFrom }),
             ...(filters.dateTo && { lte: filters.dateTo }),
           },
-        },
+        }),
       };
 
       const [actions, total] = await Promise.all([
@@ -619,20 +713,38 @@ export class AdminService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to search moderation actions: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to search moderation actions: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   // Private helper methods
-  private async verifyAdminPermission(userId: string, resource: string, action: string, tenantId?: string): Promise<void> {
-    const hasPermission = await this.hasPermission(userId, resource, action, tenantId);
+  private async verifyAdminPermission(
+    userId: string,
+    resource: string,
+    action: string,
+    tenantId?: string,
+  ): Promise<void> {
+    const hasPermission = await this.hasPermission(
+      userId,
+      resource,
+      action,
+      tenantId,
+    );
     if (!hasPermission) {
-      throw new ForbiddenException(`Insufficient permissions for ${resource}:${action}`);
+      throw new ForbiddenException(
+        `Insufficient permissions for ${resource}:${action}`,
+      );
     }
   }
 
-  private async clearUserPermissionsCache(userId: string, tenantId?: string): Promise<void> {
+  private async clearUserPermissionsCache(
+    userId: string,
+    tenantId?: string,
+  ): Promise<void> {
     const cacheKey = `user_permissions:${userId}:${tenantId || 'global'}`;
     await this.redis.del(cacheKey);
   }
@@ -653,10 +765,15 @@ export class AdminService {
           await this.handleQuarantineAction(action);
           break;
         default:
-          this.logger.log(`No specific handler for action type: ${action.actionType}`);
+          this.logger.log(
+            `No specific handler for action type: ${action.actionType}`,
+          );
       }
     } catch (error) {
-      this.logger.error(`Failed to apply moderation action: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to apply moderation action: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -672,12 +789,17 @@ export class AdminService {
   private async handleMuteAction(action: any): Promise<void> {
     // Implementation would depend on your muting mechanism
     // This could involve setting user status, adding to muted users cache, etc.
-    this.logger.log(`Mute action applied to ${action.targetType} ${action.targetId}`);
+    this.logger.log(
+      `Mute action applied to ${action.targetType} ${action.targetId}`,
+    );
   }
 
   private async handleKickAction(action: any): Promise<void> {
     // Implementation would involve removing user from conversation
-    if (action.targetType === ModerationTargetType.USER && action.metadata?.conversationId) {
+    if (
+      action.targetType === ModerationTargetType.USER &&
+      action.metadata?.conversationId
+    ) {
       await this.prisma.conversationMember.delete({
         where: {
           conversationId_userId: {
@@ -691,10 +813,15 @@ export class AdminService {
 
   private async handleQuarantineAction(action: any): Promise<void> {
     // Implementation would involve marking content as quarantined
-    this.logger.log(`Quarantine action applied to ${action.targetType} ${action.targetId}`);
+    this.logger.log(
+      `Quarantine action applied to ${action.targetType} ${action.targetId}`,
+    );
   }
 
-  private async disconnectBannedUser(userId: string, tenantId?: string): Promise<void> {
+  private async disconnectBannedUser(
+    userId: string,
+    tenantId?: string,
+  ): Promise<void> {
     try {
       // Publish ban event to disconnect user from all active sessions
       const banEvent = {
@@ -706,7 +833,10 @@ export class AdminService {
 
       await this.redis.publish('moderation_events', JSON.stringify(banEvent));
     } catch (error) {
-      this.logger.error(`Failed to disconnect banned user: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to disconnect banned user: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

@@ -26,9 +26,7 @@ import {
   ReportSearchFilters,
   ModerationActionSearchFilters,
 } from '../interfaces/admin.interface';
-import {
-  ModerationContext,
-} from '../services/auto-moderation.service';
+import { ModerationContext } from '../services/auto-moderation.service';
 import { AuditLogSearchFilters } from '../services/audit-log.service';
 import {
   AdminRoleType,
@@ -42,7 +40,16 @@ import {
   RuleSeverity,
   ReviewStatus,
 } from '../types/admin.enums';
-import { IsString, IsOptional, IsEnum, IsArray, IsBoolean, IsNumber, IsObject, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsObject,
+  IsDateString,
+} from 'class-validator';
 
 // DTOs for request validation
 class CreateAdminRoleRequestDto {
@@ -236,7 +243,12 @@ export class AdminController {
     @Request() req: any,
     @TenantContext() tenantId?: string,
   ) {
-    await this.adminService.revokeAdminRole(userId, tenantId || null, role, req.user.id);
+    await this.adminService.revokeAdminRole(
+      userId,
+      tenantId || null,
+      role,
+      req.user.id,
+    );
 
     await this.auditLogService.logAdminAction(
       req.user.id,
@@ -268,7 +280,11 @@ export class AdminController {
     @Request() req: any,
     @TenantContext() tenantId?: string,
   ) {
-    const action = await this.adminService.createModerationAction(dto, req.user.id, tenantId);
+    const action = await this.adminService.createModerationAction(
+      dto,
+      req.user.id,
+      tenantId,
+    );
 
     await this.auditLogService.logModerationAction(
       req.user.id,
@@ -351,7 +367,11 @@ export class AdminController {
     @Request() req: any,
     @TenantContext() tenantId?: string,
   ) {
-    const report = await this.adminService.createReport(dto, req.user.id, tenantId);
+    const report = await this.adminService.createReport(
+      dto,
+      req.user.id,
+      tenantId,
+    );
 
     await this.auditLogService.logUserAction(
       req.user.id,
@@ -375,7 +395,11 @@ export class AdminController {
     @Request() req: any,
     @TenantContext() tenantId?: string,
   ) {
-    const report = await this.adminService.updateReport(reportId, dto, req.user.id);
+    const report = await this.adminService.updateReport(
+      reportId,
+      dto,
+      req.user.id,
+    );
 
     await this.auditLogService.logModerationAction(
       req.user.id,
@@ -418,7 +442,12 @@ export class AdminController {
       dateTo: dateTo ? new Date(dateTo) : undefined,
     };
 
-    return await this.adminService.searchReports(filters, page, limit, tenantId);
+    return await this.adminService.searchReports(
+      filters,
+      page,
+      limit,
+      tenantId,
+    );
   }
 
   @Get('moderation/actions')
@@ -445,7 +474,12 @@ export class AdminController {
       dateTo: dateTo ? new Date(dateTo) : undefined,
     };
 
-    return await this.adminService.searchModerationActions(filters, page, limit, tenantId);
+    return await this.adminService.searchModerationActions(
+      filters,
+      page,
+      limit,
+      tenantId,
+    );
   }
 
   // Statistics and Analytics
@@ -577,7 +611,10 @@ export class AdminController {
       dto.targetType,
       dto.targetId,
       'Content analyzed for violations',
-      { violationsFound: result.violations.length, confidence: result.confidence },
+      {
+        violationsFound: result.violations.length,
+        confidence: result.confidence,
+      },
       tenantId,
       req.ip,
       req.get('User-Agent'),
@@ -685,7 +722,12 @@ export class AdminController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit = 50,
     @TenantContext() tenantId?: string,
   ) {
-    return await this.auditLogService.getUserAuditHistory(userId, page, limit, tenantId);
+    return await this.auditLogService.getUserAuditHistory(
+      userId,
+      page,
+      limit,
+      tenantId,
+    );
   }
 
   @Get('audit-logs/targets/:targetType/:targetId')
@@ -697,7 +739,13 @@ export class AdminController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit = 50,
     @TenantContext() tenantId?: string,
   ) {
-    return await this.auditLogService.getTargetAuditHistory(targetType, targetId, page, limit, tenantId);
+    return await this.auditLogService.getTargetAuditHistory(
+      targetType,
+      targetId,
+      page,
+      limit,
+      tenantId,
+    );
   }
 
   @Get('audit-logs/stats')
@@ -722,7 +770,12 @@ export class AdminController {
     @Query('hours', new ParseIntPipe({ optional: true })) hours = 24,
     @TenantContext() tenantId?: string,
   ) {
-    return await this.auditLogService.getActivityTimeline(targetType, targetId, tenantId, hours);
+    return await this.auditLogService.getActivityTimeline(
+      targetType,
+      targetId,
+      tenantId,
+      hours,
+    );
   }
 
   // Maintenance
@@ -730,11 +783,13 @@ export class AdminController {
   @RequirePermission('audit_logs', 'delete')
   @HttpCode(HttpStatus.OK)
   async cleanupOldLogs(
-    @Query('retentionDays', new ParseIntPipe({ optional: true })) retentionDays = 90,
+    @Query('retentionDays', new ParseIntPipe({ optional: true }))
+    retentionDays = 90,
     @Request() req: any,
     @TenantContext() tenantId?: string,
   ) {
-    const deletedCount = await this.auditLogService.cleanupOldLogs(retentionDays);
+    const deletedCount =
+      await this.auditLogService.cleanupOldLogs(retentionDays);
 
     await this.auditLogService.logAdminAction(
       req.user.id,

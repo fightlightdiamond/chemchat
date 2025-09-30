@@ -20,10 +20,6 @@ import { SharedModule } from '../shared/shared.module';
     MessageModerationHandler,
     UserBanHandler,
   ],
-  exports: [
-    AdminService,
-    AuditLogService,
-    AutoModerationService,
-  ],
+  exports: [AdminService, AuditLogService, AutoModerationService],
 })
 export class AdminModule {}

@@ -1,11 +1,11 @@
-import { 
-  AdminRoleType, 
-  ModerationActionType, 
-  ModerationTargetType, 
+import {
+  AdminRoleType,
+  ModerationActionType,
+  ModerationTargetType,
   BanType,
   ReportStatus,
   ReportPriority,
-  ReportType
+  ReportType,
 } from '@prisma/client';
 
 export interface AdminPermission {

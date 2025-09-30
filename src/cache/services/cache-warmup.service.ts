@@ -48,7 +48,7 @@ export class CacheWarmupService implements OnApplicationBootstrap {
 
       // Sort strategies by priority (higher priority first)
       const enabledStrategies = this.strategies
-        .filter(strategy => strategy.enabled)
+        .filter((strategy) => strategy.enabled)
         .sort((a, b) => b.priority - a.priority);
 
       for (const strategy of enabledStrategies) {
@@ -56,9 +56,14 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           const strategyStart = Date.now();
           await strategy.execute();
           const duration = Date.now() - strategyStart;
-          this.logger.debug(`Warmup strategy '${strategy.name}' completed in ${duration}ms`);
+          this.logger.debug(
+            `Warmup strategy '${strategy.name}' completed in ${duration}ms`,
+          );
         } catch (error) {
-          this.logger.error(`Warmup strategy '${strategy.name}' failed:`, error);
+          this.logger.error(
+            `Warmup strategy '${strategy.name}' failed:`,
+            error,
+          );
         }
       }
 
@@ -75,7 +80,7 @@ export class CacheWarmupService implements OnApplicationBootstrap {
    * Execute specific warmup strategy
    */
   async warmupStrategy(strategyName: string): Promise<void> {
-    const strategy = this.strategies.find(s => s.name === strategyName);
+    const strategy = this.strategies.find((s) => s.name === strategyName);
     if (!strategy) {
       throw new Error(`Warmup strategy '${strategyName}' not found`);
     }
@@ -89,7 +94,9 @@ export class CacheWarmupService implements OnApplicationBootstrap {
     try {
       await strategy.execute();
       const duration = Date.now() - startTime;
-      this.logger.log(`Warmup strategy '${strategyName}' completed in ${duration}ms`);
+      this.logger.log(
+        `Warmup strategy '${strategyName}' completed in ${duration}ms`,
+      );
     } catch (error) {
       this.logger.error(`Warmup strategy '${strategyName}' failed:`, error);
       throw error;
@@ -131,7 +138,7 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           take: 1000,
         });
 
-        const cacheItems = activeUsers.map(user => ({
+        const cacheItems = activeUsers.map((user) => ({
           key: `user:${user.id}`,
           value: user,
           options: { ttl: 3600, tags: ['users'], namespace: 'users' },
@@ -174,14 +181,20 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           take: 500,
         });
 
-        const cacheItems = conversations.map(conversation => ({
+        const cacheItems = conversations.map((conversation) => ({
           key: `conversation:${conversation.id}`,
           value: conversation,
-          options: { ttl: 1800, tags: ['conversations'], namespace: 'conversations' },
+          options: {
+            ttl: 1800,
+            tags: ['conversations'],
+            namespace: 'conversations',
+          },
         }));
 
         await this.cacheService.mset(cacheItems);
-        this.logger.debug(`Warmed up ${conversations.length} popular conversations`);
+        this.logger.debug(
+          `Warmed up ${conversations.length} popular conversations`,
+        );
       },
     });
 
@@ -212,7 +225,7 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           take: 500,
         });
 
-        const cacheItems = recentMessages.map(message => ({
+        const cacheItems = recentMessages.map((message) => ({
           key: `message:${message.id}`,
           value: message,
           options: { ttl: 600, tags: ['messages'], namespace: 'messages' },
@@ -242,7 +255,7 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           take: 500,
         });
 
-        const cacheItems = activeUsers.map(user => ({
+        const cacheItems = activeUsers.map((user) => ({
           key: `presence:${user.id}`,
           value: {
             userId: user.id,
@@ -254,7 +267,9 @@ export class CacheWarmupService implements OnApplicationBootstrap {
         }));
 
         await this.cacheService.mset(cacheItems);
-        this.logger.debug(`Warmed up ${activeUsers.length} user presence entries`);
+        this.logger.debug(
+          `Warmed up ${activeUsers.length} user presence entries`,
+        );
       },
     });
 
@@ -276,18 +291,22 @@ export class CacheWarmupService implements OnApplicationBootstrap {
           take: 1000,
         });
 
-        const cacheItems = recentAttachments.map(attachment => ({
+        const cacheItems = recentAttachments.map((attachment) => ({
           key: `attachment:${attachment.id}`,
           value: attachment,
           options: { ttl: 1800, tags: ['attachments'], namespace: 'media' },
         }));
 
         await this.cacheService.mset(cacheItems);
-        this.logger.debug(`Warmed up ${recentAttachments.length} recent attachments`);
+        this.logger.debug(
+          `Warmed up ${recentAttachments.length} recent attachments`,
+        );
       },
     });
 
-    this.logger.log(`Registered ${this.strategies.length} cache warmup strategies`);
+    this.logger.log(
+      `Registered ${this.strategies.length} cache warmup strategies`,
+    );
   }
 
   /**
@@ -305,9 +324,9 @@ export class CacheWarmupService implements OnApplicationBootstrap {
   } {
     return {
       totalStrategies: this.strategies.length,
-      enabledStrategies: this.strategies.filter(s => s.enabled).length,
+      enabledStrategies: this.strategies.filter((s) => s.enabled).length,
       isWarming: this.isWarming,
-      strategies: this.strategies.map(s => ({
+      strategies: this.strategies.map((s) => ({
         name: s.name,
         enabled: s.enabled,
         priority: s.priority,
@@ -319,10 +338,12 @@ export class CacheWarmupService implements OnApplicationBootstrap {
    * Enable/disable warmup strategy
    */
   toggleStrategy(strategyName: string, enabled: boolean): void {
-    const strategy = this.strategies.find(s => s.name === strategyName);
+    const strategy = this.strategies.find((s) => s.name === strategyName);
     if (strategy) {
       strategy.enabled = enabled;
-      this.logger.log(`Warmup strategy '${strategyName}' ${enabled ? 'enabled' : 'disabled'}`);
+      this.logger.log(
+        `Warmup strategy '${strategyName}' ${enabled ? 'enabled' : 'disabled'}`,
+      );
     } else {
       throw new Error(`Warmup strategy '${strategyName}' not found`);
     }

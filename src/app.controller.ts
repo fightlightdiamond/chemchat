@@ -8,8 +8,22 @@ import { Request } from 'express';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @ApiOperation({ summary: 'API Status', description: 'Get API status and basic information' })
-  @ApiResponse({ status: 200, description: 'API status retrieved successfully', schema: { type: 'object', properties: { message: { type: 'string' }, correlationId: { type: 'string' }, timestamp: { type: 'string' } } } })
+  @ApiOperation({
+    summary: 'API Status',
+    description: 'Get API status and basic information',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'API status retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        correlationId: { type: 'string' },
+        timestamp: { type: 'string' },
+      },
+    },
+  })
   @Get()
   getHello(@Req() req: Request): object {
     return {
@@ -20,8 +34,23 @@ export class AppController {
     };
   }
 
-  @ApiOperation({ summary: 'Health Check', description: 'Get application health status and loaded modules' })
-  @ApiResponse({ status: 200, description: 'Health status retrieved successfully', schema: { type: 'object', properties: { status: { type: 'string' }, correlationId: { type: 'string' }, timestamp: { type: 'string' }, modules: { type: 'array', items: { type: 'string' } } } } })
+  @ApiOperation({
+    summary: 'Health Check',
+    description: 'Get application health status and loaded modules',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Health status retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string' },
+        correlationId: { type: 'string' },
+        timestamp: { type: 'string' },
+        modules: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  })
   @Get('health')
   getHealth(@Req() req: Request): object {
     return {

@@ -35,7 +35,6 @@ export class WebSocketAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
-       
       const client = context.switchToWs().getClient();
 
       // Type guard to ensure client has expected structure

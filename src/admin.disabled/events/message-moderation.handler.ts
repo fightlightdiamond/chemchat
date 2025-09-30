@@ -1,19 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { MessageCreatedEvent } from '../../chat/events/message-created.event';
-import { AutoModerationService, ModerationContext } from '../services/auto-moderation.service';
+import {
+  AutoModerationService,
+  ModerationContext,
+} from '../services/auto-moderation.service';
 import { AuditLogService } from '../services/audit-log.service';
 // Define ModerationTargetType locally until Prisma is regenerated
 enum ModerationTargetType {
   USER = 'user',
   MESSAGE = 'message',
   CONVERSATION = 'conversation',
-  ATTACHMENT = 'attachment'
+  ATTACHMENT = 'attachment',
 }
 
 @Injectable()
 @EventsHandler(MessageCreatedEvent)
-export class MessageModerationHandler implements IEventHandler<MessageCreatedEvent> {
+export class MessageModerationHandler
+  implements IEventHandler<MessageCreatedEvent>
+{
   private readonly logger = new Logger(MessageModerationHandler.name);
 
   constructor(
@@ -25,7 +30,7 @@ export class MessageModerationHandler implements IEventHandler<MessageCreatedEve
     try {
       // Extract message content for analysis
       const content = this.extractMessageContent(event.content);
-      
+
       if (!content || content.trim().length === 0) {
         return; // Skip empty messages
       }
@@ -44,11 +49,15 @@ export class MessageModerationHandler implements IEventHandler<MessageCreatedEve
       };
 
       // Analyze content for violations
-      const analysisResult = await this.autoModerationService.analyzeContent(moderationContext);
+      const analysisResult =
+        await this.autoModerationService.analyzeContent(moderationContext);
 
       // Process any violations found
       if (analysisResult.violations.length > 0) {
-        await this.autoModerationService.processViolations(moderationContext, analysisResult);
+        await this.autoModerationService.processViolations(
+          moderationContext,
+          analysisResult,
+        );
 
         // Log the moderation event
         await this.auditLogService.logSystemAction(
@@ -58,7 +67,7 @@ export class MessageModerationHandler implements IEventHandler<MessageCreatedEve
           {
             violationsCount: analysisResult.violations.length,
             confidence: analysisResult.confidence,
-            violations: analysisResult.violations.map(v => ({
+            violations: analysisResult.violations.map((v) => ({
               ruleType: v.ruleType,
               severity: v.severity,
               confidence: v.confidence,
@@ -68,12 +77,15 @@ export class MessageModerationHandler implements IEventHandler<MessageCreatedEve
         );
 
         this.logger.log(
-          `Auto-moderation triggered for message ${event.messageId}: ${analysisResult.violations.length} violations found`
+          `Auto-moderation triggered for message ${event.messageId}: ${analysisResult.violations.length} violations found`,
         );
       }
     } catch (error) {
-      this.logger.error(`Failed to process message moderation: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Failed to process message moderation: ${error.message}`,
+        error.stack,
+      );
+
       // Log the error for audit purposes
       await this.auditLogService.logSystemAction(
         'auto_moderation_error',
@@ -95,7 +107,7 @@ export class MessageModerationHandler implements IEventHandler<MessageCreatedEve
       if (content.text) {
         return content.text;
       }
-      
+
       if (content.body) {
         return content.body;
       }

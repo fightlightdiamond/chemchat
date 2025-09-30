@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from '@elastic/elasticsearch';
 import {
@@ -14,33 +19,52 @@ import {
 } from '../interfaces/elasticsearch.interface';
 
 @Injectable()
-export class ElasticsearchService implements IElasticsearchService, OnModuleInit, OnModuleDestroy {
+export class ElasticsearchService
+  implements IElasticsearchService, OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(ElasticsearchService.name);
   private client: Client;
   private readonly config: ElasticsearchConfig;
 
   constructor(private readonly configService: ConfigService) {
     this.config = {
-      node: this.configService.get<string>('ELASTICSEARCH_NODE', 'http://localhost:9200'),
+      node: this.configService.get<string>(
+        'ELASTICSEARCH_NODE',
+        'http://localhost:9200',
+      ),
       auth: this.configService.get<string>('ELASTICSEARCH_USERNAME')
         ? {
             username: this.configService.get<string>('ELASTICSEARCH_USERNAME')!,
-            password: this.configService.get<string>('ELASTICSEARCH_PASSWORD', ''),
+            password: this.configService.get<string>(
+              'ELASTICSEARCH_PASSWORD',
+              '',
+            ),
           }
         : undefined,
-      requestTimeout: this.configService.get<number>('ELASTICSEARCH_REQUEST_TIMEOUT', 30000),
-      pingTimeout: this.configService.get<number>('ELASTICSEARCH_PING_TIMEOUT', 3000),
-      maxRetries: this.configService.get<number>('ELASTICSEARCH_MAX_RETRIES', 3),
+      requestTimeout: this.configService.get<number>(
+        'ELASTICSEARCH_REQUEST_TIMEOUT',
+        30000,
+      ),
+      pingTimeout: this.configService.get<number>(
+        'ELASTICSEARCH_PING_TIMEOUT',
+        3000,
+      ),
+      maxRetries: this.configService.get<number>(
+        'ELASTICSEARCH_MAX_RETRIES',
+        3,
+      ),
     };
   }
 
   async onModuleInit(): Promise<void> {
     try {
       this.client = new Client(this.config);
-      
+
       // Test connection
       const health = await this.client.cluster.health();
-      this.logger.log(`Connected to Elasticsearch cluster: ${health.cluster_name} (${health.status})`);
+      this.logger.log(
+        `Connected to Elasticsearch cluster: ${health.cluster_name} (${health.status})`,
+      );
     } catch (error) {
       this.logger.error('Failed to connect to Elasticsearch', error);
       throw error;
@@ -58,7 +82,10 @@ export class ElasticsearchService implements IElasticsearchService, OnModuleInit
     return this.client;
   }
 
-  async createIndex(indexName: string, mapping: IndexMapping): Promise<boolean> {
+  async createIndex(
+    indexName: string,
+    mapping: IndexMapping,
+  ): Promise<boolean> {
     try {
       const exists = await this.indexExists(indexName);
       if (exists) {
@@ -117,7 +144,10 @@ export class ElasticsearchService implements IElasticsearchService, OnModuleInit
     }
   }
 
-  async indexDocument(indexName: string, document: SearchDocument): Promise<IndexOperationResult> {
+  async indexDocument(
+    indexName: string,
+    document: SearchDocument,
+  ): Promise<IndexOperationResult> {
     try {
       const response = await this.client.index({
         index: indexName,
@@ -173,7 +203,10 @@ export class ElasticsearchService implements IElasticsearchService, OnModuleInit
     }
   }
 
-  async deleteDocument(indexName: string, documentId: string): Promise<IndexOperationResult> {
+  async deleteDocument(
+    indexName: string,
+    documentId: string,
+  ): Promise<IndexOperationResult> {
     try {
       const response = await this.client.delete({
         index: indexName,
@@ -194,7 +227,10 @@ export class ElasticsearchService implements IElasticsearchService, OnModuleInit
     }
   }
 
-  async bulkIndex(indexName: string, documents: SearchDocument[]): Promise<BulkOperationResult> {
+  async bulkIndex(
+    indexName: string,
+    documents: SearchDocument[],
+  ): Promise<BulkOperationResult> {
     try {
       const body = documents.flatMap((doc) => [
         { index: { _index: indexName, _id: doc.id } },
@@ -334,17 +370,26 @@ export class ElasticsearchService implements IElasticsearchService, OnModuleInit
         body: searchBody,
       });
 
-      const documents: SearchDocument[] = response.hits.hits.map((hit: any) => ({
-        ...hit._source,
-        sequenceNumber: BigInt(hit._source.sequenceNumber), // Convert back to bigint
-      }));
+      const documents: SearchDocument[] = response.hits.hits.map(
+        (hit: any) => ({
+          ...hit._source,
+          sequenceNumber: BigInt(hit._source.sequenceNumber), // Convert back to bigint
+        }),
+      );
 
       return {
         documents,
-        total: typeof response.hits.total === 'number' ? response.hits.total : response.hits.total?.value || 0,
+        total:
+          typeof response.hits.total === 'number'
+            ? response.hits.total
+            : response.hits.total?.value || 0,
         maxScore: response.hits.max_score || 0,
         took: response.took || 0,
-        hasMore: (query.offset || 0) + documents.length < (typeof response.hits.total === 'number' ? response.hits.total : response.hits.total?.value || 0),
+        hasMore:
+          (query.offset || 0) + documents.length <
+          (typeof response.hits.total === 'number'
+            ? response.hits.total
+            : response.hits.total?.value || 0),
       };
     } catch (error) {
       this.logger.error('Failed to search documents', error);

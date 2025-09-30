@@ -23,7 +23,7 @@ describe('Chat Workflow E2E Tests', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
     await app.listen(0); // Listen on random port
-    
+
     const server = app.getHttpServer();
     const address = server.address();
     const port = typeof address === 'string' ? 3000 : address?.port || 3000;
@@ -166,7 +166,9 @@ describe('Chat Workflow E2E Tests', () => {
 
       expect(historyResponse.body.data).toHaveLength(2);
       expect(historyResponse.body.data[0].content).toBe('WebSocket message');
-      expect(historyResponse.body.data[1].content).toBe('Edited message content');
+      expect(historyResponse.body.data[1].content).toBe(
+        'Edited message content',
+      );
 
       // Step 8: Delete a message
       await request(app.getHttpServer())
@@ -183,7 +185,9 @@ describe('Chat Workflow E2E Tests', () => {
         .expect(200);
 
       expect(updatedHistoryResponse.body.data).toHaveLength(1);
-      expect(updatedHistoryResponse.body.data[0].content).toBe('WebSocket message');
+      expect(updatedHistoryResponse.body.data[0].content).toBe(
+        'WebSocket message',
+      );
     });
 
     it('should handle typing indicators', async () => {

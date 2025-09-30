@@ -1,0 +1,11 @@
+{
+  "displayName": "Simple Workflow Tests",
+  "testMatch": ["<rootDir>/test/system/simple-workflow-validation.spec.ts"],
+  "testEnvironment": "node",
+  "rootDir": "../",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "testTimeout": 120000,
+  "verbose": true
+}

@@ -26,19 +26,19 @@ export class SyncService {
   ): Promise<SyncResponse> {
     try {
       const { lastSequenceNumber, conversationIds } = request;
-      
+
       // Get current sequence number
       const currentSequence = await this.getCurrentSequence();
-      
+
       // Get incremental messages
       const messages = await this.getIncrementalMessages(
         Number(lastSequenceNumber),
         conversationIds,
       );
-      
+
       // Get conversations (simplified)
       const conversations = await this.getConversations(conversationIds);
-      
+
       // Create sync metrics
       const metrics: SyncMetrics = {
         messagesCount: messages.length,
@@ -71,7 +71,7 @@ export class SyncService {
       orderBy: { lastSeq: 'desc' },
       select: { lastSeq: true },
     });
-    
+
     return result?.lastSeq ?? BigInt(0);
   }
 
@@ -107,22 +107,26 @@ export class SyncService {
       take: this.SYNC_BATCH_SIZE,
     });
 
-    return messages.map(msg => ({
+    return messages.map((msg) => ({
       id: msg.id,
       conversationId: msg.conversationId,
-      content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+      content:
+        typeof msg.content === 'string'
+          ? msg.content
+          : JSON.stringify(msg.content),
       senderId: msg.senderId || '',
       sequenceNumber: Number(msg.sequenceNumber),
       createdAt: msg.createdAt,
       timestamp: msg.createdAt,
       editedAt: msg.editedAt ?? undefined,
       messageType: msg.messageType,
-      attachments: msg.attachments?.map(att => ({
-        id: att.id,
-        filename: att.filename,
-        mimeType: att.mimeType,
-        size: Number(att.fileSize || 0),
-      })) || [],
+      attachments:
+        msg.attachments?.map((att) => ({
+          id: att.id,
+          filename: att.filename,
+          mimeType: att.mimeType,
+          size: Number(att.fileSize || 0),
+        })) || [],
       isDeleted: !!msg.deletedAt,
       version: 1,
     }));
@@ -153,11 +157,11 @@ export class SyncService {
       take: this.SYNC_BATCH_SIZE,
     });
 
-    return conversations.map(conv => ({
+    return conversations.map((conv) => ({
       id: conv.id,
       name: conv.name ?? undefined,
       type: conv.type,
-      participants: conv.members.map(m => ({
+      participants: conv.members.map((m) => ({
         userId: m.userId,
         role: m.role,
         joinedAt: m.joinedAt,
@@ -199,18 +203,15 @@ export class SyncService {
     }
   }
 
-  async resetSyncState(
-    userId: string,
-    tenantId: string,
-  ): Promise<void> {
+  async resetSyncState(userId: string, tenantId: string): Promise<void> {
     try {
       const pattern = `sync:*:${tenantId}:${userId}`;
       const keys = await this.redis.scanKeys(pattern);
-      
+
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
-      
+
       this.logger.log(`Reset sync state for user ${userId}`);
     } catch (error) {
       this.logger.error('Failed to reset sync state:', error);

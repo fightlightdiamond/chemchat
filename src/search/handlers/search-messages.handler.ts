@@ -5,10 +5,10 @@ import { SearchService, SearchMessageResult } from '../services/search.service';
 import { BaseQueryHandler } from '../../shared/cqrs/base-query-handler';
 
 @QueryHandler(SearchMessagesQuery)
-export class SearchMessagesHandler 
+export class SearchMessagesHandler
   extends BaseQueryHandler<SearchMessagesQuery, SearchMessageResult>
-  implements IQueryHandler<SearchMessagesQuery, SearchMessageResult> {
-  
+  implements IQueryHandler<SearchMessagesQuery, SearchMessageResult>
+{
   protected readonly logger = new Logger(SearchMessagesHandler.name);
 
   constructor(private readonly searchService: SearchService) {
@@ -16,7 +16,9 @@ export class SearchMessagesHandler
   }
 
   async execute(query: SearchMessagesQuery): Promise<SearchMessageResult> {
-    this.logger.debug(`Executing search messages query: ${query.query || 'empty'}`);
+    this.logger.debug(
+      `Executing search messages query: ${query.query || 'empty'}`,
+    );
 
     try {
       const searchQuery = {
@@ -35,15 +37,17 @@ export class SearchMessagesHandler
       };
 
       let result: SearchMessageResult;
-      
+
       if (query.includeHighlights) {
         result = await this.searchService.searchWithHighlights(searchQuery);
       } else {
         result = await this.searchService.searchMessages(searchQuery);
       }
 
-      this.logger.debug(`Search completed: ${result.messages.length} results in ${result.took}ms`);
-      
+      this.logger.debug(
+        `Search completed: ${result.messages.length} results in ${result.took}ms`,
+      );
+
       return result;
     } catch (error) {
       this.logger.error('Failed to execute search messages query', error);

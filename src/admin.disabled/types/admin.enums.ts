@@ -3,14 +3,14 @@ export enum AdminRoleType {
   SUPER_ADMIN = 'super_admin',
   TENANT_ADMIN = 'tenant_admin',
   MODERATOR = 'moderator',
-  SUPPORT = 'support'
+  SUPPORT = 'support',
 }
 
 export enum ModerationTargetType {
   USER = 'user',
   MESSAGE = 'message',
   CONVERSATION = 'conversation',
-  ATTACHMENT = 'attachment'
+  ATTACHMENT = 'attachment',
 }
 
 export enum ModerationActionType {
@@ -21,7 +21,7 @@ export enum ModerationActionType {
   DELETE = 'delete',
   EDIT = 'edit',
   QUARANTINE = 'quarantine',
-  RESTORE = 'restore'
+  RESTORE = 'restore',
 }
 
 export enum ReportType {
@@ -32,7 +32,7 @@ export enum ReportType {
   INAPPROPRIATE_CONTENT = 'inappropriate_content',
   COPYRIGHT = 'copyright',
   IMPERSONATION = 'impersonation',
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export enum ReportStatus {
@@ -40,14 +40,14 @@ export enum ReportStatus {
   INVESTIGATING = 'investigating',
   RESOLVED = 'resolved',
   DISMISSED = 'dismissed',
-  ESCALATED = 'escalated'
+  ESCALATED = 'escalated',
 }
 
 export enum ReportPriority {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  URGENT = 'urgent'
+  URGENT = 'urgent',
 }
 
 export enum AutoModerationRuleType {
@@ -58,25 +58,25 @@ export enum AutoModerationRuleType {
   LINK_FILTER = 'link_filter',
   CAPS_FILTER = 'caps_filter',
   MENTION_SPAM = 'mention_spam',
-  IMAGE_MODERATION = 'image_moderation'
+  IMAGE_MODERATION = 'image_moderation',
 }
 
 export enum RuleSeverity {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export enum ReviewStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
-  ESCALATED = 'escalated'
+  ESCALATED = 'escalated',
 }
 
 export enum BanType {
   TEMPORARY = 'temporary',
   PERMANENT = 'permanent',
-  SHADOW = 'shadow'
+  SHADOW = 'shadow',
 }

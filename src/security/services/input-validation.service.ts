@@ -62,10 +62,7 @@ export class InputValidationService {
   formatErrors(errors: ValidationError[]): Record<string, string[]> {
     const formattedErrors: Record<string, string[]> = {};
 
-    const processError = (
-      error: ValidationError,
-      propertyPath = '',
-    ): void => {
+    const processError = (error: ValidationError, propertyPath = ''): void => {
       const currentPath = propertyPath
         ? `${propertyPath}.${error.property}`
         : error.property;
@@ -85,21 +82,18 @@ export class InputValidationService {
     return formattedErrors;
   }
 
-  sanitizeInput<T extends object>(
-    type: new () => T,
-    object: object,
-  ): T {
+  sanitizeInput<T extends object>(type: new () => T, object: object): T {
     // Strip out any properties not defined in the DTO
     const instance = new type();
     const allowedProperties = Object.keys(instance);
-    
+
     const sanitized: Record<string, any> = {};
     for (const key of allowedProperties) {
       if (key in object) {
         sanitized[key] = object[key];
       }
     }
-    
+
     return sanitized as T;
   }
 

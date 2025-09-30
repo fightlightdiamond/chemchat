@@ -4,14 +4,15 @@ import { DeepLink, DeepLinkType } from '../interfaces/sync.interfaces';
 @Injectable()
 export class DeepLinkService {
   private readonly logger = new Logger(DeepLinkService.name);
-  private readonly BASE_URL = process.env.CLIENT_BASE_URL || 'https://app.chemchat.com';
+  private readonly BASE_URL =
+    process.env.CLIENT_BASE_URL || 'https://app.chemchat.com';
 
   constructor() {}
 
   generateDeepLink(deepLink: DeepLink): string {
     try {
       const url = new URL(this.BASE_URL);
-      
+
       switch (deepLink.type) {
         case DeepLinkType.CONVERSATION:
           if (deepLink.conversationId) {
@@ -39,7 +40,10 @@ export class DeepLinkService {
         case DeepLinkType.NOTIFICATION:
           url.pathname = '/notifications';
           if (deepLink.parameters?.notificationId) {
-            url.searchParams.set('notificationId', deepLink.parameters.notificationId);
+            url.searchParams.set(
+              'notificationId',
+              deepLink.parameters.notificationId,
+            );
           }
           break;
 
@@ -50,7 +54,8 @@ export class DeepLinkService {
       // Add any additional parameters
       if (deepLink.parameters) {
         Object.entries(deepLink.parameters).forEach(([key, value]) => {
-          if (key !== 'notificationId') { // Already handled above
+          if (key !== 'notificationId') {
+            // Already handled above
             url.searchParams.set(key, value);
           }
         });
@@ -58,7 +63,6 @@ export class DeepLinkService {
 
       this.logger.debug(`Generated deep link: ${url.toString()}`);
       return url.toString();
-
     } catch (error) {
       this.logger.error('Failed to generate deep link:', error);
       return this.BASE_URL;
@@ -118,7 +122,6 @@ export class DeepLinkService {
       }
 
       return null;
-
     } catch (error) {
       this.logger.error('Failed to parse deep link:', error);
       return null;
@@ -143,10 +146,7 @@ export class DeepLinkService {
     return this.generateDeepLink(deepLink);
   }
 
-  generateShareLink(
-    conversationId: string,
-    messageId?: string,
-  ): string {
+  generateShareLink(conversationId: string, messageId?: string): string {
     const deepLink: DeepLink = {
       type: messageId ? DeepLinkType.MESSAGE : DeepLinkType.CONVERSATION,
       conversationId,
@@ -184,10 +184,10 @@ export class DeepLinkService {
     androidUrl: string;
   } {
     const webUrl = this.generateDeepLink(deepLink);
-    
+
     // iOS Universal Link
     const iosUrl = webUrl.replace('https://', 'chemchat://');
-    
+
     // Android Intent URL
     const androidUrl = `intent://${webUrl.replace('https://', '')}#Intent;scheme=https;package=com.chemchat.app;end`;
 
@@ -237,7 +237,7 @@ export class DeepLinkService {
   generateQRCodeData(deepLink: DeepLink): string {
     // Generate a shortened URL or QR-friendly format
     const fullUrl = this.generateDeepLink(deepLink);
-    
+
     // In a real implementation, you might want to use a URL shortener
     // For now, return the full URL
     return fullUrl;

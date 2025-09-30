@@ -1,9 +1,9 @@
-import { 
-  MediaUploadStatus, 
-  MediaProcessingStatus, 
-  MediaProcessingType, 
-  ProcessingPriority, 
-  VirusScanStatus 
+import {
+  MediaUploadStatus,
+  MediaProcessingStatus,
+  MediaProcessingType,
+  ProcessingPriority,
+  VirusScanStatus,
 } from '@prisma/client';
 
 export interface MediaUploadRequest {
@@ -60,30 +60,35 @@ export interface MediaProcessingParameters {
   thumbnailWidth?: number;
   thumbnailHeight?: number;
   thumbnailQuality?: number;
-  
+
   // Image resize
   targetWidth?: number;
   targetHeight?: number;
   maintainAspectRatio?: boolean;
   quality?: number;
   format?: string;
-  
+
   // Video transcode
   videoCodec?: string;
   audioCodec?: string;
   videoBitrate?: number;
   audioBitrate?: number;
   resolution?: string;
-  
+
   // Audio transcode
   sampleRate?: number;
   channels?: number;
-  
+
   // Watermark
   watermarkText?: string;
-  watermarkPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+  watermarkPosition?:
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'center';
   watermarkOpacity?: number;
-  
+
   // General
   stripExif?: boolean;
   outputFormat?: string;

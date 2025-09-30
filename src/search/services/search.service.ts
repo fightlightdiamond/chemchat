@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ElasticsearchService } from './elasticsearch.service';
 import { MessageIndexService } from './message-index.service';
-import { SearchQuery, SearchResult, SearchDocument } from '../interfaces/elasticsearch.interface';
+import {
+  SearchQuery,
+  SearchResult,
+  SearchDocument,
+} from '../interfaces/elasticsearch.interface';
 
 export interface SearchMessageQuery {
   query: string;
@@ -52,25 +56,35 @@ export class SearchService {
     private readonly messageIndexService: MessageIndexService,
   ) {}
 
-  async searchMessages(query: SearchMessageQuery): Promise<SearchMessageResult> {
+  async searchMessages(
+    query: SearchMessageQuery,
+  ): Promise<SearchMessageResult> {
     try {
       this.logger.debug(`Searching messages with query: ${query.query}`);
 
       // Validate and normalize the query
       const normalizedQuery = this.normalizeSearchQuery(query);
-      
+
       // Check if index exists
-      const indexName = this.messageIndexService.getMessageIndexName(query.tenantId);
-      const indexExists = await this.elasticsearchService.indexExists(indexName);
-      
+      const indexName = this.messageIndexService.getMessageIndexName(
+        query.tenantId,
+      );
+      const indexExists =
+        await this.elasticsearchService.indexExists(indexName);
+
       if (!indexExists) {
-        this.logger.warn(`Search index does not exist for tenant: ${query.tenantId}`);
+        this.logger.warn(
+          `Search index does not exist for tenant: ${query.tenantId}`,
+        );
         return this.createEmptySearchResult(query);
       }
 
       // Perform the search
-      const searchResult = await this.elasticsearchService.search(indexName, normalizedQuery);
-      
+      const searchResult = await this.elasticsearchService.search(
+        indexName,
+        normalizedQuery,
+      );
+
       // Transform and return the result
       return this.transformSearchResult(searchResult, query);
     } catch (error) {
@@ -79,15 +93,20 @@ export class SearchService {
     }
   }
 
-  async searchWithHighlights(query: SearchMessageQuery): Promise<SearchMessageResult> {
+  async searchWithHighlights(
+    query: SearchMessageQuery,
+  ): Promise<SearchMessageResult> {
     try {
       // Validate and normalize the query
       const normalizedQuery = this.normalizeSearchQuery(query);
-      
+
       // Check if index exists
-      const indexName = this.messageIndexService.getMessageIndexName(query.tenantId);
-      const indexExists = await this.elasticsearchService.indexExists(indexName);
-      
+      const indexName = this.messageIndexService.getMessageIndexName(
+        query.tenantId,
+      );
+      const indexExists =
+        await this.elasticsearchService.indexExists(indexName);
+
       if (!indexExists) {
         return this.createEmptySearchResult(query);
       }
@@ -158,27 +177,29 @@ export class SearchService {
     }
   }
 
-  async getSuggestions(query: string, tenantId: string, limit: number = 5): Promise<SearchSuggestion[]> {
+  async getSuggestions(
+    query: string,
+    tenantId: string,
+    limit: number = 5,
+  ): Promise<SearchSuggestion[]> {
     try {
       this.logger.debug(`Getting search suggestions for: ${query}`);
 
       const indexName = this.messageIndexService.getMessageIndexName(tenantId);
-      const indexExists = await this.elasticsearchService.indexExists(indexName);
-      
+      const indexExists =
+        await this.elasticsearchService.indexExists(indexName);
+
       if (!indexExists) {
         return [];
       }
 
       const client = this.elasticsearchService.getClient();
-      
+
       const response = await client.search({
         index: indexName,
         query: {
           bool: {
-            filter: [
-              { term: { tenantId } },
-              { term: { isDeleted: false } },
-            ],
+            filter: [{ term: { tenantId } }, { term: { isDeleted: false } }],
             should: [
               {
                 match_phrase_prefix: {
@@ -222,25 +243,35 @@ export class SearchService {
       const suggestions: SearchSuggestion[] = [];
 
       // Process content suggestions
-      if (response.aggregations?.content_suggestions && 'buckets' in response.aggregations.content_suggestions) {
-        (response.aggregations.content_suggestions as any).buckets.forEach((bucket: any) => {
-          suggestions.push({
-            text: bucket.key,
-            type: 'content',
-            count: bucket.doc_count,
-          });
-        });
+      if (
+        response.aggregations?.content_suggestions &&
+        'buckets' in response.aggregations.content_suggestions
+      ) {
+        (response.aggregations.content_suggestions as any).buckets.forEach(
+          (bucket: any) => {
+            suggestions.push({
+              text: bucket.key,
+              type: 'content',
+              count: bucket.doc_count,
+            });
+          },
+        );
       }
 
       // Process author suggestions
-      if (response.aggregations?.author_suggestions && 'buckets' in response.aggregations.author_suggestions) {
-        (response.aggregations.author_suggestions as any).buckets.forEach((bucket: any) => {
-          suggestions.push({
-            text: bucket.key,
-            type: 'author',
-            count: bucket.doc_count,
-          });
-        });
+      if (
+        response.aggregations?.author_suggestions &&
+        'buckets' in response.aggregations.author_suggestions
+      ) {
+        (response.aggregations.author_suggestions as any).buckets.forEach(
+          (bucket: any) => {
+            suggestions.push({
+              text: bucket.key,
+              type: 'author',
+              count: bucket.doc_count,
+            });
+          },
+        );
       }
 
       return suggestions.slice(0, limit);
@@ -276,7 +307,7 @@ export class SearchService {
       sortBy: query.sortBy,
       sortOrder: query.sortOrder,
     };
-    
+
     return normalized;
   }
 
@@ -339,7 +370,10 @@ export class SearchService {
     }
   }
 
-  private transformSearchResult(searchResult: SearchResult, query: SearchQuery): SearchMessageResult {
+  private transformSearchResult(
+    searchResult: SearchResult,
+    query: SearchQuery,
+  ): SearchMessageResult {
     const page = query.page || 1;
     const limit = query.limit || 20;
     const totalPages = Math.ceil(searchResult.total / limit);
@@ -358,10 +392,16 @@ export class SearchService {
     };
   }
 
-  private transformSearchResultWithHighlights(response: any, query: SearchQuery): SearchMessageResult {
+  private transformSearchResultWithHighlights(
+    response: any,
+    query: SearchQuery,
+  ): SearchMessageResult {
     const page = query.page || 1;
     const limit = query.limit || 20;
-    const total = typeof response.hits.total === 'number' ? response.hits.total : response.hits.total?.value || 0;
+    const total =
+      typeof response.hits.total === 'number'
+        ? response.hits.total
+        : response.hits.total?.value || 0;
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrevious = page > 1;
@@ -370,7 +410,9 @@ export class SearchService {
       ...hit._source,
       sequenceNumber: BigInt(hit._source.sequenceNumber),
       createdAt: new Date(hit._source.createdAt),
-      updatedAt: hit._source.updatedAt ? new Date(hit._source.updatedAt) : undefined,
+      updatedAt: hit._source.updatedAt
+        ? new Date(hit._source.updatedAt)
+        : undefined,
     }));
 
     const highlights: Record<string, string[]> = {};
@@ -393,7 +435,9 @@ export class SearchService {
     };
   }
 
-  private createEmptySearchResult(query: SearchMessageQuery): SearchMessageResult {
+  private createEmptySearchResult(
+    query: SearchMessageQuery,
+  ): SearchMessageResult {
     const page = query.page || 1;
     const limit = query.limit || 20;
 

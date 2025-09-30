@@ -22,13 +22,16 @@ export class TenantScopeInterceptor implements NestInterceptor {
     const controller = context.getClass();
 
     // Check if tenant scoping is enabled for this handler or controller
-    const isTenantScoped = this.reflector.getAllAndOverride<boolean>(TENANT_SCOPED_KEY, [
-      handler,
-      controller,
-    ]);
+    const isTenantScoped = this.reflector.getAllAndOverride<boolean>(
+      TENANT_SCOPED_KEY,
+      [handler, controller],
+    );
 
     // Check if tenant scoping should be bypassed for this specific method
-    const bypassTenantScope = this.reflector.get<boolean>('bypass_tenant_scope', handler);
+    const bypassTenantScope = this.reflector.get<boolean>(
+      'bypass_tenant_scope',
+      handler,
+    );
 
     if (isTenantScoped && !bypassTenantScope && request.tenantId) {
       // Inject tenant context into the request for downstream services

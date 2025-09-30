@@ -55,32 +55,32 @@ describe('Security and Compliance Validation', () => {
 
   describe('Authentication and Authorization Security', () => {
     it('should reject requests without authentication', async () => {
-      await request(app.getHttpServer())
-    it('should reject unauthorized requests', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/conversations')
-         .expect(401);
-    });
+      await request(app.getHttpServer());
+      it('should reject unauthorized requests', async () => {
+        await request(app.getHttpServer())
+          .get('/api/v1/conversations')
+          .expect(401);
+      });
     });
   });
 
   describe('Rate Limiting and DoS Protection', () => {
     it('should enforce API rate limits', async () => {
       const requests: Promise<any>[] = [];
-      
+
       // Send many requests rapidly to a protected, rate-limited endpoint
       for (let i = 0; i < 150; i++) {
         requests.push(
           request(app.getHttpServer())
             .get('/conversations')
             .set('Authorization', `Bearer ${validToken}`)
-            .set('X-Tenant-ID', tenantId)
+            .set('X-Tenant-ID', tenantId),
         );
       }
 
       const responses = await Promise.all(requests);
-      const rateLimited = responses.filter(r => r.status === 429);
-      
+      const rateLimited = responses.filter((r) => r.status === 429);
+
       expect(rateLimited.length).toBeGreaterThan(0);
     });
 
@@ -95,13 +95,13 @@ describe('Security and Compliance Validation', () => {
           request(app.getHttpServer())
             .get('/conversations')
             .set('Authorization', `Bearer ${validToken}`)
-            .set('X-Tenant-ID', tenantId)
+            .set('X-Tenant-ID', tenantId),
         );
       }
 
       const results = await Promise.allSettled(promises);
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      
+      const successful = results.filter((r) => r.status === 'fulfilled').length;
+
       // Should handle reasonable concurrent load
       expect(successful).toBeGreaterThan(concurrentRequests * 0.8);
     });
@@ -113,19 +113,19 @@ describe('Security and Compliance Validation', () => {
       };
 
       const attempts: Promise<any>[] = [];
-      
+
       // Multiple failed login attempts
       for (let i = 0; i < 10; i++) {
         attempts.push(
           request(app.getHttpServer())
             .post('/auth/login')
-            .send(invalidCredentials)
+            .send(invalidCredentials),
         );
       }
 
       const responses = await Promise.all(attempts);
-      const blocked = responses.filter(r => r.status === 429);
-      
+      const blocked = responses.filter((r) => r.status === 429);
+
       // Should start blocking after several attempts
       expect(blocked.length).toBeGreaterThan(0);
     });
@@ -152,8 +152,9 @@ describe('Security and Compliance Validation', () => {
       });
 
       // Send message with PII
-      const messageWithPII = 'My SSN is 123-45-6789 and email is user@example.com';
-      
+      const messageWithPII =
+        'My SSN is 123-45-6789 and email is user@example.com';
+
       const response = await request(app.getHttpServer())
         .post('/messages')
         .set('Authorization', `Bearer ${validToken}`)
@@ -183,12 +184,10 @@ describe('Security and Compliance Validation', () => {
   describe('Audit Logging and Compliance', () => {
     it('should log authentication events', async () => {
       // Login attempt
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({
-          email: 'nonexistent@example.com',
-          password: 'wrongpassword',
-        });
+      await request(app.getHttpServer()).post('/auth/login').send({
+        email: 'nonexistent@example.com',
+        password: 'wrongpassword',
+      });
 
       // Check if audit log was created (would require audit log service)
       // For now, just verify the endpoint responds correctly
@@ -220,10 +219,12 @@ describe('Security and Compliance Validation', () => {
     it('should handle data retention policies', async () => {
       // Create old message (simulate)
       const oldMessage = await testData.createMessage({
-        conversationId: (await testData.createConversation({
-          tenantId,
-          createdBy: userId,
-        })).id,
+        conversationId: (
+          await testData.createConversation({
+            tenantId,
+            createdBy: userId,
+          })
+        ).id,
         userId,
         content: 'Old message for retention test',
         createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
@@ -247,7 +248,7 @@ describe('Security and Compliance Validation', () => {
 
       // Check for security headers (would be set by middleware in production)
       const headers = response.headers;
-      
+
       // These might not be set in test environment, but structure should exist
       expect(headers).toBeDefined();
     });

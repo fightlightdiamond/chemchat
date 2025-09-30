@@ -20,7 +20,11 @@ export class KafkaModule {
           useValue: options || {},
         },
       ],
-      exports: [KafkaProducerService, KafkaConsumerService, EventSerializerService],
+      exports: [
+        KafkaProducerService,
+        KafkaConsumerService,
+        EventSerializerService,
+      ],
       global: true,
     };
   }

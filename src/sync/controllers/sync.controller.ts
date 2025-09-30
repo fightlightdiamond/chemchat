@@ -12,7 +12,12 @@ import {
   HttpStatus,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { TenantContext } from '../../shared/decorators/tenant-context.decorator';
@@ -21,15 +26,15 @@ import { ConflictResolutionService } from '../services/conflict-resolution.servi
 import { ClientStateService } from '../services/client-state.service';
 import { OfflineQueueService } from '../services/offline-queue.service';
 import { DeepLinkService } from '../services/deep-link.service';
-import { 
-  SyncRequest, 
+import {
+  SyncRequest,
   SyncResponse,
   ConflictResolution,
   ResolutionStrategy,
   PendingOperation,
   QueuePriority,
   DeepLink,
-  ClientState 
+  ClientState,
 } from '../interfaces/sync.interfaces';
 
 @ApiTags('sync')
@@ -47,7 +52,10 @@ export class SyncController {
 
   @Post('delta')
   @ApiOperation({ summary: 'Perform delta synchronization' })
-  @ApiResponse({ status: 200, description: 'Delta sync completed successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Delta sync completed successfully',
+  })
   @HttpCode(HttpStatus.OK)
   async performDeltaSync(
     @CurrentUser() user: any,
@@ -59,7 +67,10 @@ export class SyncController {
 
   @Get('state/:deviceId')
   @ApiOperation({ summary: 'Get client synchronization state' })
-  @ApiResponse({ status: 200, description: 'Client state retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client state retrieved successfully',
+  })
   async getClientState(
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
@@ -70,7 +81,10 @@ export class SyncController {
 
   @Put('state/:deviceId')
   @ApiOperation({ summary: 'Update client synchronization state' })
-  @ApiResponse({ status: 200, description: 'Client state updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Client state updated successfully',
+  })
   @HttpCode(HttpStatus.OK)
   async updateClientState(
     @CurrentUser() user: any,
@@ -78,7 +92,12 @@ export class SyncController {
     @Param('deviceId') deviceId: string,
     @Body() updates: Partial<ClientState>,
   ): Promise<void> {
-    await this.clientStateService.updateClientState(user.id, tenantId, deviceId, updates);
+    await this.clientStateService.updateClientState(
+      user.id,
+      tenantId,
+      deviceId,
+      updates,
+    );
   }
 
   @Post('state/:deviceId/reconcile')
@@ -96,7 +115,12 @@ export class SyncController {
     staleOperations: PendingOperation[];
   }> {
     const serverSequenceNumber = BigInt(body.serverSequenceNumber);
-    return this.clientStateService.reconcileState(user.id, tenantId, deviceId, serverSequenceNumber);
+    return this.clientStateService.reconcileState(
+      user.id,
+      tenantId,
+      deviceId,
+      serverSequenceNumber,
+    );
   }
 
   @Delete('state/:deviceId/reset')
@@ -135,7 +159,7 @@ export class SyncController {
       conflictId,
       body.strategy,
       user.id,
-      tenantId
+      tenantId,
     );
     if (!result) {
       throw new NotFoundException('Conflict not found');
@@ -176,7 +200,10 @@ export class SyncController {
 
   @Get('queue/:deviceId/status')
   @ApiOperation({ summary: 'Get offline queue status' })
-  @ApiResponse({ status: 200, description: 'Queue status retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Queue status retrieved successfully',
+  })
   async getQueueStatus(
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
@@ -192,13 +219,20 @@ export class SyncController {
 
   @Get('queue/:deviceId/failed')
   @ApiOperation({ summary: 'Get failed operations' })
-  @ApiResponse({ status: 200, description: 'Failed operations retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Failed operations retrieved successfully',
+  })
   async getFailedOperations(
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
     @Param('deviceId') deviceId: string,
   ) {
-    return this.offlineQueueService.getFailedOperations(user.id, tenantId, deviceId);
+    return this.offlineQueueService.getFailedOperations(
+      user.id,
+      tenantId,
+      deviceId,
+    );
   }
 
   @Post('queue/:deviceId/retry/:queueItemId')
@@ -211,7 +245,12 @@ export class SyncController {
     @Param('deviceId') deviceId: string,
     @Param('queueItemId') queueItemId: string,
   ): Promise<void> {
-    await this.offlineQueueService.retryFailedOperation(user.id, tenantId, deviceId, queueItemId);
+    await this.offlineQueueService.retryFailedOperation(
+      user.id,
+      tenantId,
+      deviceId,
+      queueItemId,
+    );
   }
 
   @Delete('queue/:deviceId/clear')
@@ -223,16 +262,18 @@ export class SyncController {
     @TenantContext() tenantId: string,
     @Param('deviceId') deviceId: string,
   ): Promise<void> {
-    await this.offlineQueueService.clearAllOperations(user.id, tenantId, deviceId);
+    await this.offlineQueueService.clearAllOperations(
+      user.id,
+      tenantId,
+      deviceId,
+    );
   }
 
   @Post('deeplink/generate')
   @ApiOperation({ summary: 'Generate deep link' })
   @ApiResponse({ status: 200, description: 'Deep link generated successfully' })
   @HttpCode(HttpStatus.OK)
-  async generateDeepLink(
-    @Body() deepLink: DeepLink,
-  ): Promise<{ url: string }> {
+  async generateDeepLink(@Body() deepLink: DeepLink): Promise<{ url: string }> {
     const url = this.deepLinkService.generateDeepLink(deepLink);
     return { url };
   }
@@ -241,9 +282,7 @@ export class SyncController {
   @ApiOperation({ summary: 'Parse deep link URL' })
   @ApiResponse({ status: 200, description: 'Deep link parsed successfully' })
   @HttpCode(HttpStatus.OK)
-  async parseDeepLink(
-    @Body() body: { url: string },
-  ): Promise<DeepLink | null> {
+  async parseDeepLink(@Body() body: { url: string }): Promise<DeepLink | null> {
     return this.deepLinkService.parseDeepLink(body.url);
   }
 
@@ -252,10 +291,11 @@ export class SyncController {
   @ApiResponse({ status: 200, description: 'Notification deep link generated' })
   @HttpCode(HttpStatus.OK)
   async generateNotificationDeepLink(
-    @Body() body: { 
-      conversationId: string; 
-      messageId?: string; 
-      additionalParams?: Record<string, string> 
+    @Body()
+    body: {
+      conversationId: string;
+      messageId?: string;
+      additionalParams?: Record<string, string>;
     },
   ): Promise<{ url: string }> {
     const url = this.deepLinkService.generateNotificationDeepLink(
@@ -270,9 +310,7 @@ export class SyncController {
   @ApiOperation({ summary: 'Generate universal deep links for all platforms' })
   @ApiResponse({ status: 200, description: 'Universal deep links generated' })
   @HttpCode(HttpStatus.OK)
-  async createUniversalLink(
-    @Body() deepLink: DeepLink,
-  ): Promise<{
+  async createUniversalLink(@Body() deepLink: DeepLink): Promise<{
     webUrl: string;
     iosUrl: string;
     androidUrl: string;
@@ -282,7 +320,10 @@ export class SyncController {
 
   @Get('metrics')
   @ApiOperation({ summary: 'Get synchronization metrics' })
-  @ApiResponse({ status: 200, description: 'Sync metrics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Sync metrics retrieved successfully',
+  })
   async getSyncMetrics(
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
@@ -300,16 +341,19 @@ export class SyncController {
   ): Promise<void> {
     // Clear all sync state for the user
     await this.clientStateService.clearUserState(user.id, tenantId);
-    
+
     // Clear any pending operations
     await this.offlineQueueService.clearQueue(user.id, tenantId);
-    
+
     return;
   }
 
   @Get('devices')
   @ApiOperation({ summary: 'Get all device states for user' })
-  @ApiResponse({ status: 200, description: 'Device states retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Device states retrieved successfully',
+  })
   async getDeviceStates(
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
@@ -325,40 +369,45 @@ export class SyncController {
     @CurrentUser() user: any,
     @TenantContext() tenantId: string,
     @Query('deviceId') deviceId?: string,
-  ): Promise<{ 
-    expiredOperations: number; 
-    expiredStates: number; 
+  ): Promise<{
+    expiredOperations: number;
+    expiredStates: number;
   }> {
     let expiredOperations = 0;
     let expiredStates = 0;
 
     if (deviceId) {
       expiredOperations = await this.offlineQueueService.clearExpiredOperations(
-        user.id, 
-        tenantId, 
-        deviceId
+        user.id,
+        tenantId,
+        deviceId,
       );
       expiredStates = await this.clientStateService.clearExpiredOperations(
-        user.id, 
-        tenantId, 
-        deviceId
+        user.id,
+        tenantId,
+        deviceId,
       );
     } else {
       // Cleanup all devices for the user
-      const deviceStates = await this.clientStateService.getDeviceStates(user.id, tenantId);
-      
+      const deviceStates = await this.clientStateService.getDeviceStates(
+        user.id,
+        tenantId,
+      );
+
       for (const state of deviceStates) {
-        const deviceExpiredOps = await this.offlineQueueService.clearExpiredOperations(
-          user.id, 
-          tenantId, 
-          state.deviceId
-        );
-        const deviceExpiredStates = await this.clientStateService.clearExpiredOperations(
-          user.id, 
-          tenantId, 
-          state.deviceId
-        );
-        
+        const deviceExpiredOps =
+          await this.offlineQueueService.clearExpiredOperations(
+            user.id,
+            tenantId,
+            state.deviceId,
+          );
+        const deviceExpiredStates =
+          await this.clientStateService.clearExpiredOperations(
+            user.id,
+            tenantId,
+            state.deviceId,
+          );
+
         expiredOperations += deviceExpiredOps;
         expiredStates += deviceExpiredStates;
       }

@@ -1,0 +1,48 @@
+# Test-optimized Dockerfile for ChemChat workflow validation
+FROM node:20-alpine@sha256:eabac870db94f7342d6c33560d6613f188bbcf4bbe1f4eb47d5e2a08e1a37722
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for testing
+RUN apk update && apk upgrade && apk add --no-cache \
+    git \
+    curl \
+    bash \
+    procps \
+    jq \
+    && rm -rf /var/cache/apk/*
+
+# Install global npm packages for testing
+RUN npm install -g npm@latest
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including dev dependencies for testing)
+RUN npm ci --include=dev
+
+# Copy source code
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate || echo "Prisma generation skipped (no schema found)"
+
+# Create directories for test results and logs
+RUN mkdir -p /app/test-results /app/logs && \
+    chmod 755 /app/test-results /app/logs
+
+# Set environment variables for testing
+ENV NODE_ENV=test
+ENV CI=true
+ENV DOCKER_ENV=true
+
+# Expose port for health checks
+EXPOSE 3000
+
+# Health check for test container
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node --version || exit 1
+
+# Default command runs comprehensive validation
+CMD ["npm", "run", "validate:comprehensive"]

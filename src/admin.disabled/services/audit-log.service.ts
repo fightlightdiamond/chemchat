@@ -46,7 +46,9 @@ export class AuditLogService {
       // Add to batch queue for performance
       this.auditQueue.push({
         ...entry,
-        metadata: entry.metadata ? JSON.parse(JSON.stringify(entry.metadata)) : undefined,
+        metadata: entry.metadata
+          ? JSON.parse(JSON.stringify(entry.metadata))
+          : undefined,
       });
 
       // Process immediately if queue is full
@@ -54,7 +56,10 @@ export class AuditLogService {
         await this.processBatch();
       }
     } catch (error) {
-      this.logger.error(`Failed to queue audit log entry: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to queue audit log entry: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -168,30 +173,26 @@ export class AuditLogService {
   }
 
   // Search and retrieval methods
-  async searchAuditLogs(
-    filters: AuditLogSearchFilters,
-    page = 1,
-    limit = 50,
-  ) {
+  async searchAuditLogs(filters: AuditLogSearchFilters, page = 1, limit = 50) {
     try {
       const where: Prisma.AuditLogWhereInput = {
         ...(filters.tenantId && { tenantId: filters.tenantId }),
         ...(filters.actorId && { actorId: filters.actorId }),
-        ...(filters.action && { 
-          action: { 
-            contains: filters.action, 
-            mode: 'insensitive' 
-          } 
+        ...(filters.action && {
+          action: {
+            contains: filters.action,
+            mode: 'insensitive',
+          },
         }),
         ...(filters.targetType && { targetType: filters.targetType }),
         ...(filters.targetId && { targetId: filters.targetId }),
         ...(filters.ipAddress && { ipAddress: filters.ipAddress }),
-        ...(filters.dateFrom || filters.dateTo) && {
+        ...((filters.dateFrom || filters.dateTo) && {
           createdAt: {
             ...(filters.dateFrom && { gte: filters.dateFrom }),
             ...(filters.dateTo && { lte: filters.dateTo }),
           },
-        },
+        }),
       };
 
       const [logs, total] = await Promise.all([
@@ -224,7 +225,10 @@ export class AuditLogService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to search audit logs: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to search audit logs: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -245,7 +249,10 @@ export class AuditLogService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to get audit log: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get audit log: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -282,7 +289,10 @@ export class AuditLogService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to get user audit history: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get user audit history: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -330,7 +340,10 @@ export class AuditLogService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to get target audit history: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get target audit history: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -340,12 +353,12 @@ export class AuditLogService {
     try {
       const where: Prisma.AuditLogWhereInput = {
         ...(tenantId && { tenantId }),
-        ...(dateFrom || dateTo) && {
+        ...((dateFrom || dateTo) && {
           createdAt: {
             ...(dateFrom && { gte: dateFrom }),
             ...(dateTo && { lte: dateTo }),
           },
-        },
+        }),
       };
 
       const [
@@ -403,11 +416,11 @@ export class AuditLogService {
       return {
         totalLogs,
         uniqueActors: uniqueActors.length,
-        topActions: topActions.map(item => ({
+        topActions: topActions.map((item) => ({
           action: item.action,
           count: item._count.action,
         })),
-        topTargetTypes: topTargetTypes.map(item => ({
+        topTargetTypes: topTargetTypes.map((item) => ({
           targetType: item.targetType,
           count: item._count.targetType,
         })),
@@ -418,7 +431,10 @@ export class AuditLogService {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to get audit stats: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get audit stats: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -431,7 +447,7 @@ export class AuditLogService {
   ) {
     try {
       const dateFrom = new Date(Date.now() - hours * 60 * 60 * 1000);
-      
+
       const where: Prisma.AuditLogWhereInput = {
         createdAt: { gte: dateFrom },
         ...(tenantId && { tenantId }),
@@ -456,7 +472,10 @@ export class AuditLogService {
 
       return logs;
     } catch (error) {
-      this.logger.error(`Failed to get activity timeline: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get activity timeline: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -464,18 +483,25 @@ export class AuditLogService {
   // Cleanup and maintenance
   async cleanupOldLogs(retentionDays = 90): Promise<number> {
     try {
-      const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
-      
+      const cutoffDate = new Date(
+        Date.now() - retentionDays * 24 * 60 * 60 * 1000,
+      );
+
       const result = await this.prisma.auditLog.deleteMany({
         where: {
           createdAt: { lt: cutoffDate },
         },
       });
 
-      this.logger.log(`Cleaned up ${result.count} audit logs older than ${retentionDays} days`);
+      this.logger.log(
+        `Cleaned up ${result.count} audit logs older than ${retentionDays} days`,
+      );
       return result.count;
     } catch (error) {
-      this.logger.error(`Failed to cleanup old logs: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to cleanup old logs: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -493,10 +519,10 @@ export class AuditLogService {
     if (this.auditQueue.length === 0) return;
 
     const batch = this.auditQueue.splice(0, this.BATCH_SIZE);
-    
+
     try {
       await this.prisma.auditLog.createMany({
-        data: batch.map(entry => ({
+        data: batch.map((entry) => ({
           tenantId: entry.tenantId,
           actorId: entry.actorId,
           action: entry.action,
@@ -511,8 +537,11 @@ export class AuditLogService {
 
       this.logger.debug(`Processed batch of ${batch.length} audit log entries`);
     } catch (error) {
-      this.logger.error(`Failed to process audit log batch: ${error.message}`, error.stack);
-      
+      this.logger.error(
+        `Failed to process audit log batch: ${error.message}`,
+        error.stack,
+      );
+
       // Re-queue failed entries for retry
       this.auditQueue.unshift(...batch);
     }
@@ -523,7 +552,7 @@ export class AuditLogService {
     if (this.batchTimer) {
       clearInterval(this.batchTimer);
     }
-    
+
     // Process remaining queue items
     if (this.auditQueue.length > 0) {
       await this.processBatch();

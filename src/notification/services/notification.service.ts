@@ -11,15 +11,15 @@ import {
 // Temporary enum definitions until Prisma schema is applied
 enum NotificationType {
   NEW_MESSAGE = 'NEW_MESSAGE',
-  MENTION = 'MENTION', 
+  MENTION = 'MENTION',
   CONVERSATION_INVITE = 'CONVERSATION_INVITE',
-  SYSTEM_ANNOUNCEMENT = 'SYSTEM_ANNOUNCEMENT'
+  SYSTEM_ANNOUNCEMENT = 'SYSTEM_ANNOUNCEMENT',
 }
 
 enum NotificationChannel {
   PUSH = 'PUSH',
   EMAIL = 'EMAIL',
-  SMS = 'SMS'
+  SMS = 'SMS',
 }
 
 enum NotificationStatus {
@@ -28,7 +28,7 @@ enum NotificationStatus {
   DELIVERED = 'DELIVERED',
   FAILED = 'FAILED',
   SCHEDULED = 'SCHEDULED',
-  READ = 'READ'
+  READ = 'READ',
 }
 
 type NotificationDelivery = any;
@@ -43,21 +43,36 @@ export class NotificationService {
     private readonly redis: RedisService,
   ) {}
 
-  async sendNotification(payload: NotificationPayload): Promise<NotificationDeliveryResult[]> {
-    const { userId, tenantId, type, title, body, data, channels, scheduledAt, priority } = payload;
+  async sendNotification(
+    payload: NotificationPayload,
+  ): Promise<NotificationDeliveryResult[]> {
+    const {
+      userId,
+      tenantId,
+      type,
+      title,
+      body,
+      data,
+      channels,
+      scheduledAt,
+      priority,
+    } = payload;
 
     try {
       // Get user preferences to determine delivery channels
       const preferences = await this.getUserPreferences(userId, tenantId);
-      
+
       // Determine which channels to use
-      const deliveryChannels = channels || this.getDefaultChannels(type as any, preferences);
-      
+      const deliveryChannels =
+        channels || this.getDefaultChannels(type as any, preferences);
+
       // Check if user is in quiet hours
       if (await this.isInQuietHours(preferences)) {
         // Only send urgent notifications during quiet hours
         if (priority !== NotificationPriority.URGENT) {
-          this.logger.log(`Skipping notification for user ${userId} - in quiet hours`);
+          this.logger.log(
+            `Skipping notification for user ${userId} - in quiet hours`,
+          );
           return [];
         }
       }
@@ -70,19 +85,23 @@ export class NotificationService {
           continue;
         }
 
-        const delivery = await (this.prisma as any).notificationDelivery.create({
-          data: {
-            tenantId,
-            userId,
-            notificationType: type,
-            deliveryChannel: channel,
-            status: scheduledAt ? NotificationStatus.SCHEDULED : NotificationStatus.PENDING,
-            title,
-            body,
-            data: data || {},
-            scheduledAt,
+        const delivery = await (this.prisma as any).notificationDelivery.create(
+          {
+            data: {
+              tenantId,
+              userId,
+              notificationType: type,
+              deliveryChannel: channel,
+              status: scheduledAt
+                ? NotificationStatus.SCHEDULED
+                : NotificationStatus.PENDING,
+              title,
+              body,
+              data: data || {},
+              scheduledAt,
+            },
           },
-        });
+        );
 
         // Queue for immediate delivery or schedule for later
         if (scheduledAt) {
@@ -102,7 +121,10 @@ export class NotificationService {
 
       return results;
     } catch (error) {
-      this.logger.error(`Failed to send notification: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send notification: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -147,7 +169,9 @@ export class NotificationService {
     });
   }
 
-  async getNotifications(filter: NotificationFilter): Promise<NotificationDelivery[]> {
+  async getNotifications(
+    filter: NotificationFilter,
+  ): Promise<NotificationDelivery[]> {
     const {
       userId,
       tenantId,
@@ -167,12 +191,13 @@ export class NotificationService {
         ...(type && { notificationType: type }),
         ...(status && { status }),
         ...(channel && { deliveryChannel: channel }),
-        ...(startDate && endDate && {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        }),
+        ...(startDate &&
+          endDate && {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }),
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -198,51 +223,74 @@ export class NotificationService {
     const where = {
       ...(userId && { userId }),
       ...(tenantId && { tenantId }),
-      ...(startDate && endDate && {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      }),
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        }),
     };
 
-    const [totalSent, totalDelivered, totalFailed, channelStats] = await Promise.all([
-      (this.prisma as any).notificationDelivery.count({
-        where: { ...where, status: { in: [NotificationStatus.SENT, NotificationStatus.DELIVERED, NotificationStatus.READ] } },
-      }),
-      (this.prisma as any).notificationDelivery.count({
-        where: { ...where, status: { in: [NotificationStatus.DELIVERED, NotificationStatus.READ] } },
-      }),
-      (this.prisma as any).notificationDelivery.count({
-        where: { ...where, status: NotificationStatus.FAILED },
-      }),
-      (this.prisma as any).notificationDelivery.groupBy({
-        by: ['deliveryChannel', 'status'],
-        where,
-        _count: true,
-      }),
-    ]);
+    const [totalSent, totalDelivered, totalFailed, channelStats] =
+      await Promise.all([
+        (this.prisma as any).notificationDelivery.count({
+          where: {
+            ...where,
+            status: {
+              in: [
+                NotificationStatus.SENT,
+                NotificationStatus.DELIVERED,
+                NotificationStatus.READ,
+              ],
+            },
+          },
+        }),
+        (this.prisma as any).notificationDelivery.count({
+          where: {
+            ...where,
+            status: {
+              in: [NotificationStatus.DELIVERED, NotificationStatus.READ],
+            },
+          },
+        }),
+        (this.prisma as any).notificationDelivery.count({
+          where: { ...where, status: NotificationStatus.FAILED },
+        }),
+        (this.prisma as any).notificationDelivery.groupBy({
+          by: ['deliveryChannel', 'status'],
+          where,
+          _count: true,
+        }),
+      ]);
 
     // Calculate average delivery time
-    const deliveries = await (this.prisma as any).notificationDelivery.findMany({
-      where: {
-        ...where,
-        status: { in: [NotificationStatus.DELIVERED, NotificationStatus.READ] },
-        sentAt: { not: null },
-        deliveredAt: { not: null },
+    const deliveries = await (this.prisma as any).notificationDelivery.findMany(
+      {
+        where: {
+          ...where,
+          status: {
+            in: [NotificationStatus.DELIVERED, NotificationStatus.READ],
+          },
+          sentAt: { not: null },
+          deliveredAt: { not: null },
+        },
+        select: {
+          sentAt: true,
+          deliveredAt: true,
+        },
       },
-      select: {
-        sentAt: true,
-        deliveredAt: true,
-      },
-    });
+    );
 
-    const averageDeliveryTime = deliveries.length > 0
-      ? deliveries.reduce((sum, notification) => {
-          const deliveryTime = notification.deliveredAt!.getTime() - notification.sentAt!.getTime();
-          return sum + deliveryTime;
-        }, 0) / deliveries.length
-      : 0;
+    const averageDeliveryTime =
+      deliveries.length > 0
+        ? deliveries.reduce((sum, notification) => {
+            const deliveryTime =
+              notification.deliveredAt!.getTime() -
+              notification.sentAt!.getTime();
+            return sum + deliveryTime;
+          }, 0) / deliveries.length
+        : 0;
 
     // Process channel statistics
     const byChannel: Record<NotificationChannel, any> = {
@@ -253,13 +301,17 @@ export class NotificationService {
 
     channelStats.forEach((stat) => {
       const channel = stat.deliveryChannel;
-      if (stat.status === NotificationStatus.SENT || 
-          stat.status === NotificationStatus.DELIVERED || 
-          stat.status === NotificationStatus.READ) {
+      if (
+        stat.status === NotificationStatus.SENT ||
+        stat.status === NotificationStatus.DELIVERED ||
+        stat.status === NotificationStatus.READ
+      ) {
         byChannel[channel].sent += stat._count;
       }
-      if (stat.status === NotificationStatus.DELIVERED || 
-          stat.status === NotificationStatus.READ) {
+      if (
+        stat.status === NotificationStatus.DELIVERED ||
+        stat.status === NotificationStatus.READ
+      ) {
         byChannel[channel].delivered += stat._count;
       }
       if (stat.status === NotificationStatus.FAILED) {
@@ -339,32 +391,50 @@ export class NotificationService {
     }
   }
 
-  private async isInQuietHours(preferences?: NotificationPreference | null): Promise<boolean> {
-    if (!preferences?.quietHoursEnabled || !preferences.quietHoursStart || !preferences.quietHoursEnd) {
+  private async isInQuietHours(
+    preferences?: NotificationPreference | null,
+  ): Promise<boolean> {
+    if (
+      !preferences?.quietHoursEnabled ||
+      !preferences.quietHoursStart ||
+      !preferences.quietHoursEnd
+    ) {
       return false;
     }
 
     const now = new Date();
     const timezone = preferences.timezone || 'UTC';
-    
+
     // Convert current time to user's timezone
-    const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    const userTime = new Date(
+      now.toLocaleString('en-US', { timeZone: timezone }),
+    );
     const currentHour = userTime.getHours();
     const currentMinute = userTime.getMinutes();
     const currentTimeMinutes = currentHour * 60 + currentMinute;
 
-    const [startHour, startMinute] = preferences.quietHoursStart.split(':').map(Number);
-    const [endHour, endMinute] = preferences.quietHoursEnd.split(':').map(Number);
-    
+    const [startHour, startMinute] = preferences.quietHoursStart
+      .split(':')
+      .map(Number);
+    const [endHour, endMinute] = preferences.quietHoursEnd
+      .split(':')
+      .map(Number);
+
     const startTimeMinutes = startHour * 60 + startMinute;
     const endTimeMinutes = endHour * 60 + endMinute;
 
     // Handle overnight quiet hours (e.g., 22:00 to 08:00)
     if (startTimeMinutes > endTimeMinutes) {
-      return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes <= endTimeMinutes;
+      return (
+        currentTimeMinutes >= startTimeMinutes ||
+        currentTimeMinutes <= endTimeMinutes
+      );
     }
 
-    return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes <= endTimeMinutes;
+    return (
+      currentTimeMinutes >= startTimeMinutes &&
+      currentTimeMinutes <= endTimeMinutes
+    );
   }
 
   private async queueForDelivery(
@@ -373,21 +443,31 @@ export class NotificationService {
     priority: NotificationPriority = NotificationPriority.NORMAL,
   ): Promise<void> {
     const queueName = `notification:${channel}:${priority}`;
-    
-    await (this.redis as any).lpush(queueName, JSON.stringify({ deliveryId, channel, priority }));
 
-    this.logger.debug(`Queued notification for ${channel} delivery with ${priority} priority`);
+    await (this.redis as any).lpush(
+      queueName,
+      JSON.stringify({ deliveryId, channel, priority }),
+    );
+
+    this.logger.debug(
+      `Queued notification for ${channel} delivery with ${priority} priority`,
+    );
   }
 
-  private async scheduleNotification(deliveryId: string, scheduledAt: Date): Promise<void> {
+  private async scheduleNotification(
+    deliveryId: string,
+    scheduledAt: Date,
+  ): Promise<void> {
     const delay = scheduledAt.getTime() - Date.now();
-    
+
     if (delay <= 0) {
       // Schedule immediately if time has passed
-      const delivery = await (this.prisma as any).notificationDelivery.findUnique({
+      const delivery = await (
+        this.prisma as any
+      ).notificationDelivery.findUnique({
         where: { id: deliveryId },
       });
-      
+
       if (delivery) {
         await this.queueForDelivery(deliveryId, delivery.deliveryChannel);
       }
@@ -395,10 +475,18 @@ export class NotificationService {
     }
 
     // Use Redis for scheduling
-    await (this.redis as any).sadd(`scheduled:${scheduledAt.getTime()}`, deliveryId);
-    await (this.redis as any).expire(`scheduled:${scheduledAt.getTime()}`, 86400);
+    await (this.redis as any).sadd(
+      `scheduled:${scheduledAt.getTime()}`,
+      deliveryId,
+    );
+    await (this.redis as any).expire(
+      `scheduled:${scheduledAt.getTime()}`,
+      86400,
+    );
 
-    this.logger.debug(`Scheduled notification ${deliveryId} for ${scheduledAt.toISOString()}`);
+    this.logger.debug(
+      `Scheduled notification ${deliveryId} for ${scheduledAt.toISOString()}`,
+    );
   }
 
   private async updateMetrics(

@@ -104,7 +104,7 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should handle Redis cluster node failures', async () => {
       // This test would require a Redis cluster setup
       // For now, we'll test connection resilience
-      
+
       let connectionErrors = 0;
       const maxRetries = 3;
 
@@ -117,7 +117,7 @@ describe('Disaster Recovery and Failover Tests', () => {
           if (connectionErrors === maxRetries) {
             throw error;
           }
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
 
@@ -129,13 +129,13 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should handle database connection timeouts', async () => {
       // Test with a very short timeout
       const shortTimeoutPrisma = new PrismaService();
-      
+
       try {
         // This should timeout quickly
         await Promise.race([
           shortTimeoutPrisma.user.findMany({ take: 1 }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 100)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 100),
           ),
         ]);
       } catch (error) {
@@ -145,17 +145,19 @@ describe('Disaster Recovery and Failover Tests', () => {
 
     it('should handle database connection pool exhaustion', async () => {
       const promises: Promise<any>[] = [];
-      
+
       // Create many concurrent database operations
       for (let i = 0; i < 50; i++) {
         promises.push(
-          prisma.user.findMany({ take: 1 }).catch(err => ({ error: err.message }))
+          prisma.user
+            .findMany({ take: 1 })
+            .catch((err) => ({ error: err.message })),
         );
       }
 
       const results = await Promise.all(promises);
-      const errors = results.filter(r => r.error);
-      
+      const errors = results.filter((r) => r.error);
+
       // Some operations might fail due to pool exhaustion, but system should recover
       expect(errors.length).toBeLessThan(results.length);
     });
@@ -184,7 +186,9 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should handle Elasticsearch cluster unavailability', async () => {
       // Mock Elasticsearch failure
       const originalSearch = elasticsearch.search;
-      elasticsearch.search = jest.fn().mockRejectedValue(new Error('Cluster unavailable'));
+      elasticsearch.search = jest
+        .fn()
+        .mockRejectedValue(new Error('Cluster unavailable'));
 
       // Search should gracefully degrade
       const response = await request(app.getHttpServer())
@@ -194,7 +198,9 @@ describe('Disaster Recovery and Failover Tests', () => {
         .query({ q: 'test' })
         .expect(503); // Service unavailable
 
-      expect(response.body.message).toContain('Search service temporarily unavailable');
+      expect(response.body.message).toContain(
+        'Search service temporarily unavailable',
+      );
 
       // Restore original function
       elasticsearch.search = originalSearch;
@@ -202,7 +208,7 @@ describe('Disaster Recovery and Failover Tests', () => {
 
     it('should handle index corruption or missing indices', async () => {
       const indexName = `messages_${tenantId}`;
-      
+
       try {
         // Try to delete the index to simulate corruption
         await elasticsearch.indices.delete({ index: indexName });
@@ -224,20 +230,20 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should handle Elasticsearch memory pressure', async () => {
       // Simulate high memory usage by creating many search requests
       const searchPromises: Promise<any>[] = [];
-      
+
       for (let i = 0; i < 20; i++) {
         searchPromises.push(
           request(app.getHttpServer())
             .get('/search/messages')
             .set('Authorization', `Bearer ${authToken}`)
             .set('X-Tenant-ID', tenantId)
-            .query({ q: `test query ${i}` })
+            .query({ q: `test query ${i}` }),
         );
       }
 
       const results = await Promise.allSettled(searchPromises);
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      
+      const successful = results.filter((r) => r.status === 'fulfilled').length;
+
       // At least some searches should succeed
       expect(successful).toBeGreaterThan(0);
     });
@@ -246,8 +252,8 @@ describe('Disaster Recovery and Failover Tests', () => {
   describe('Network Partition Scenarios', () => {
     it('should handle network timeouts gracefully', async () => {
       // Simulate network timeout by setting very short timeouts
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Network timeout')), 50)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), 50),
       );
 
       try {
@@ -267,7 +273,7 @@ describe('Disaster Recovery and Failover Tests', () => {
         .expect(200);
 
       const services = healthResponse.body.details;
-      
+
       // At least the core application should be healthy
       expect(services.database).toBeDefined();
       expect(services.redis).toBeDefined();
@@ -285,7 +291,7 @@ describe('Disaster Recovery and Failover Tests', () => {
           if (i % 3 === 0) {
             // Simulate Redis failure every 3rd message
             await redis.disconnect();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             await redis.connect();
           }
 
@@ -308,11 +314,13 @@ describe('Disaster Recovery and Failover Tests', () => {
       }
 
       // Verify message sequence integrity
-      messages.sort((a, b) => Number(a.sequenceNumber) - Number(b.sequenceNumber));
-      
+      messages.sort(
+        (a, b) => Number(a.sequenceNumber) - Number(b.sequenceNumber),
+      );
+
       for (let i = 1; i < messages.length; i++) {
         expect(Number(messages[i].sequenceNumber)).toBeGreaterThan(
-          Number(messages[i - 1].sequenceNumber)
+          Number(messages[i - 1].sequenceNumber),
         );
       }
     });
@@ -333,16 +341,18 @@ describe('Disaster Recovery and Failover Tests', () => {
               content: `Concurrent message ${i}`,
               type: 'TEXT',
             })
-            .catch(err => ({ error: err.message, index: i }))
+            .catch((err) => ({ error: err.message, index: i })),
         );
       }
 
       const results = await Promise.all(promises);
-      const successful = results.filter(r => !r.error && r.status === 201);
-      const failed = results.filter(r => r.error);
+      const successful = results.filter((r) => !r.error && r.status === 201);
+      const failed = results.filter((r) => r.error);
 
-      console.log(`Successful writes: ${successful.length}, Failed: ${failed.length}`);
-      
+      console.log(
+        `Successful writes: ${successful.length}, Failed: ${failed.length}`,
+      );
+
       // At least 80% should succeed
       expect(successful.length).toBeGreaterThan(concurrentWrites * 0.8);
     });
@@ -352,7 +362,7 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should recover from complete system restart', async () => {
       // Simulate system restart by recreating the app
       await app.close();
-      
+
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
       }).compile();
@@ -372,15 +382,15 @@ describe('Disaster Recovery and Failover Tests', () => {
     it('should handle graceful shutdown', async () => {
       // Test graceful shutdown procedures
       const shutdownPromise = app.close();
-      
+
       // Should complete within reasonable time
       await expect(
         Promise.race([
           shutdownPromise,
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Shutdown timeout')), 10000)
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Shutdown timeout')), 10000),
           ),
-        ])
+        ]),
       ).resolves.toBeUndefined();
     });
   });
@@ -392,7 +402,7 @@ describe('Disaster Recovery and Failover Tests', () => {
         .expect(200);
 
       const metrics = metricsResponse.text;
-      
+
       // Should contain error rate metrics
       expect(metrics).toContain('http_requests_total');
       expect(metrics).toContain('http_request_duration');

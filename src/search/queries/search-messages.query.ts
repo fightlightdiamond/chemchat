@@ -1,4 +1,13 @@
-import { IsOptional, IsString, IsEnum, IsDateString, IsInt, Min, Max, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsDateString,
+  IsInt,
+  Min,
+  Max,
+  IsBoolean,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { BaseQuery } from '../../shared/cqrs/base-query';
 

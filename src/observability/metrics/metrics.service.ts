@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { register, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
+import {
+  register,
+  Counter,
+  Histogram,
+  Gauge,
+  collectDefaultMetrics,
+} from 'prom-client';
 
 @Injectable()
 export class MetricsService {
@@ -152,7 +158,7 @@ export class MetricsService {
     route: string,
     statusCode: number,
     duration: number,
-    tenantId?: string
+    tenantId?: string,
   ): void {
     const labels = {
       method,
@@ -183,10 +189,10 @@ export class MetricsService {
     eventType: string,
     tenantId: string,
     duration: number,
-    status: 'success' | 'error' = 'success'
+    status: 'success' | 'error' = 'success',
   ): void {
     const labels = { event_type: eventType, tenant_id: tenantId };
-    
+
     this.websocketEventsTotal.inc({ ...labels, status });
     this.websocketEventDuration.observe(labels, duration);
   }
@@ -198,10 +204,10 @@ export class MetricsService {
     operation: 'send' | 'edit' | 'delete' | 'broadcast',
     tenantId: string,
     duration: number,
-    status: 'success' | 'error' = 'success'
+    status: 'success' | 'error' = 'success',
   ): void {
     const labels = { operation, tenant_id: tenantId };
-    
+
     this.messagesTotal.inc({ ...labels, status });
     this.messageProcessingDuration.observe(labels, duration);
   }
@@ -212,12 +218,15 @@ export class MetricsService {
   recordMessageLatency(
     tenantId: string,
     conversationType: string,
-    latency: number
+    latency: number,
   ): void {
-    this.messageLatency.observe({
-      tenant_id: tenantId,
-      conversation_type: conversationType,
-    }, latency);
+    this.messageLatency.observe(
+      {
+        tenant_id: tenantId,
+        conversation_type: conversationType,
+      },
+      latency,
+    );
   }
 
   /**
@@ -228,10 +237,10 @@ export class MetricsService {
     table: string,
     tenantId: string,
     duration: number,
-    status: 'success' | 'error' = 'success'
+    status: 'success' | 'error' = 'success',
   ): void {
     const labels = { operation, table, tenant_id: tenantId };
-    
+
     this.databaseOperationsTotal.inc({ ...labels, status });
     this.databaseOperationDuration.observe(labels, duration);
   }
@@ -243,10 +252,10 @@ export class MetricsService {
     operation: string,
     tenantId: string,
     duration: number,
-    status: 'success' | 'error' = 'success'
+    status: 'success' | 'error' = 'success',
   ): void {
     const labels = { operation, tenant_id: tenantId };
-    
+
     this.redisOperationsTotal.inc({ ...labels, status });
     this.redisOperationDuration.observe(labels, duration);
   }
@@ -255,27 +264,44 @@ export class MetricsService {
    * Update active users gauge
    */
   updateActiveUsers(tenantId: string, timeWindow: string, count: number): void {
-    this.activeUsersGauge.set({ tenant_id: tenantId, time_window: timeWindow }, count);
+    this.activeUsersGauge.set(
+      { tenant_id: tenantId, time_window: timeWindow },
+      count,
+    );
   }
 
   /**
    * Update conversations count
    */
-  updateConversationsCount(tenantId: string, conversationType: string, count: number): void {
-    this.conversationsTotal.set({
-      tenant_id: tenantId,
-      conversation_type: conversationType,
-    }, count);
+  updateConversationsCount(
+    tenantId: string,
+    conversationType: string,
+    count: number,
+  ): void {
+    this.conversationsTotal.set(
+      {
+        tenant_id: tenantId,
+        conversation_type: conversationType,
+      },
+      count,
+    );
   }
 
   /**
    * Update quota usage
    */
-  updateQuotaUsage(tenantId: string, quotaType: string, usageRatio: number): void {
-    this.quotaUsageGauge.set({
-      tenant_id: tenantId,
-      quota_type: quotaType,
-    }, Math.min(1, Math.max(0, usageRatio)));
+  updateQuotaUsage(
+    tenantId: string,
+    quotaType: string,
+    usageRatio: number,
+  ): void {
+    this.quotaUsageGauge.set(
+      {
+        tenant_id: tenantId,
+        quota_type: quotaType,
+      },
+      Math.min(1, Math.max(0, usageRatio)),
+    );
   }
 
   /**
@@ -296,7 +322,7 @@ export class MetricsService {
     operation: 'get' | 'set' | 'del' | 'exists',
     cacheType: string,
     tenantId: string,
-    result: 'hit' | 'miss' | 'success' | 'error'
+    result: 'hit' | 'miss' | 'success' | 'error',
   ): void {
     this.cacheOperationsTotal.inc({
       operation,

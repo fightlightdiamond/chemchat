@@ -12,10 +12,10 @@ export class CorrelationIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     // Extract or generate correlation ID
     const correlationId = this.extractOrGenerateCorrelationId(req.headers);
-    
+
     // Add correlation ID to request
     (req as any).correlationId = correlationId;
-    
+
     // Add correlation ID to response headers
     res.set('x-correlation-id', correlationId);
 
@@ -30,7 +30,7 @@ export class CorrelationIdMiddleware implements NestMiddleware {
         remoteAddress: req.ip || req.connection.remoteAddress,
         method: req.method,
         url: req.originalUrl,
-      }
+      },
     );
 
     // Create span for the request
@@ -44,7 +44,7 @@ export class CorrelationIdMiddleware implements NestMiddleware {
         'http.user_agent': req.headers['user-agent'] || 'unknown',
         'http.remote_addr': req.ip || req.connection.remoteAddress || 'unknown',
         'correlation.id': correlationId,
-      }
+      },
     );
 
     // Store span ID in request for potential use by other middleware/controllers
@@ -60,9 +60,17 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     // Handle response completion
     res.on('finish', () => {
       try {
-        this.tracingService.setAttribute(spanId, 'http.status_code', res.statusCode);
-        this.tracingService.setAttribute(spanId, 'http.response.size', Number(res.get('content-length')) || 0);
-        
+        this.tracingService.setAttribute(
+          spanId,
+          'http.status_code',
+          res.statusCode,
+        );
+        this.tracingService.setAttribute(
+          spanId,
+          'http.response.size',
+          Number(res.get('content-length')) || 0,
+        );
+
         if (res.statusCode >= 400) {
           this.tracingService.finishSpan(spanId, 'error');
         } else {

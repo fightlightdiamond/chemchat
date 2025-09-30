@@ -143,7 +143,7 @@ describe('Chat Integration Tests', () => {
         conversationId,
         testUser.id,
         testTenant.id,
-        5
+        5,
       );
 
       for (const message of messages) {
@@ -186,7 +186,7 @@ describe('Chat Integration Tests', () => {
       const message = TestDataFactory.createMessage(
         conversation.id,
         testUser.id,
-        testTenant.id
+        testTenant.id,
       );
       await testContext.prisma.message.create({ data: message });
       messageId = message.id;
@@ -218,7 +218,7 @@ describe('Chat Integration Tests', () => {
       const otherMessage = TestDataFactory.createMessage(
         conversation.id,
         otherUser.id,
-        testTenant.id
+        testTenant.id,
       );
       await testContext.prisma.message.create({ data: otherMessage });
 
@@ -241,7 +241,7 @@ describe('Chat Integration Tests', () => {
       const message = TestDataFactory.createMessage(
         conversation.id,
         testUser.id,
-        testTenant.id
+        testTenant.id,
       );
       await testContext.prisma.message.create({ data: message });
       messageId = message.id;

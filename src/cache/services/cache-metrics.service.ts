@@ -29,7 +29,10 @@ export class CacheMetricsService {
   private readonly maxHistorySize: number;
 
   constructor(private configService: ConfigService) {
-    this.maxHistorySize = this.configService.get('CACHE_METRICS_HISTORY_SIZE', 1000);
+    this.maxHistorySize = this.configService.get(
+      'CACHE_METRICS_HISTORY_SIZE',
+      1000,
+    );
   }
 
   /**
@@ -102,7 +105,7 @@ export class CacheMetricsService {
    */
   recordOperation(metrics: CacheOperationMetrics): void {
     const namespace = metrics.namespace || 'default';
-    
+
     // Get or create metrics for namespace
     let namespaceMetrics = this.metrics.get(namespace);
     if (!namespaceMetrics) {
@@ -210,7 +213,8 @@ export class CacheMetricsService {
     }
 
     if (aggregated.totalOperations > 0) {
-      aggregated.avgResponseTime = totalResponseTime / aggregated.totalOperations;
+      aggregated.avgResponseTime =
+        totalResponseTime / aggregated.totalOperations;
     }
 
     return aggregated;
@@ -260,16 +264,20 @@ export class CacheMetricsService {
     averageHitRate: number;
     totalOperations: number;
   } {
-    const slowThreshold = this.configService.get('CACHE_SLOW_OPERATION_THRESHOLD', 100); // ms
-    
+    const slowThreshold = this.configService.get(
+      'CACHE_SLOW_OPERATION_THRESHOLD',
+      100,
+    ); // ms
+
     const slowOperations = this.operationHistory.filter(
-      op => op.duration > slowThreshold
+      (op) => op.duration > slowThreshold,
     );
 
     const aggregated = this.getAggregatedMetrics();
-    const errorRate = aggregated.totalOperations > 0 
-      ? aggregated.errors / aggregated.totalOperations 
-      : 0;
+    const errorRate =
+      aggregated.totalOperations > 0
+        ? aggregated.errors / aggregated.totalOperations
+        : 0;
 
     return {
       slowOperations,
@@ -291,8 +299,8 @@ export class CacheMetricsService {
     if (totalOps === 1) {
       metrics.avgResponseTime = duration;
     } else {
-      metrics.avgResponseTime = 
-        ((metrics.avgResponseTime * (totalOps - 1)) + duration) / totalOps;
+      metrics.avgResponseTime =
+        (metrics.avgResponseTime * (totalOps - 1) + duration) / totalOps;
     }
   }
 

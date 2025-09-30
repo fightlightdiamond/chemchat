@@ -23,20 +23,11 @@ import { SharedModule } from '../shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../shared/infrastructure/prisma/prisma.module';
 
-const queryHandlers = [
-  SearchMessagesHandler,
-  GetSearchSuggestionsHandler,
-];
+const queryHandlers = [SearchMessagesHandler, GetSearchSuggestionsHandler];
 
-const services = [
-  ElasticsearchService,
-  MessageIndexService,
-  SearchService,
-];
+const services = [ElasticsearchService, MessageIndexService, SearchService];
 
-const workers = [
-  MessageIndexingWorker,
-];
+const workers = [MessageIndexingWorker];
 
 @Module({
   imports: [
@@ -48,11 +39,7 @@ const workers = [
     AuthModule,
   ],
   controllers: [SearchController],
-  providers: [
-    ...services,
-    ...workers,
-    ...queryHandlers,
-  ],
+  providers: [...services, ...workers, ...queryHandlers],
   exports: [
     ElasticsearchService,
     MessageIndexService,

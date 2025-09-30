@@ -22,14 +22,20 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
   constructor(private readonly configService: ConfigService) {
     const isProduction = this.configService.get('NODE_ENV') === 'production';
-    const appUrl = this.configService.get('APP_URL', 'https://chemchat.example.com');
-    const reportUri = this.configService.get('SECURITY_REPORT_URI', 'https://chemchat.example.com/report-endpoint');
-    
+    const appUrl = this.configService.get(
+      'APP_URL',
+      'https://chemchat.example.com',
+    );
+    const reportUri = this.configService.get(
+      'SECURITY_REPORT_URI',
+      'https://chemchat.example.com/report-endpoint',
+    );
+
     // Content Security Policy
     this.csp = [
       "default-src 'self'",
       "connect-src 'self' https://*.sentry.io wss://*",
-      `frame-src 'self' ${appUrl}`,  
+      `frame-src 'self' ${appUrl}`,
       `img-src 'self' data: blob: ${appUrl}`,
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.sentry.io https://js.stripe.com",
       "style-src 'self' 'unsafe-inline'",
@@ -37,9 +43,11 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       `form-action 'self' ${appUrl}`,
       "frame-ancestors 'self'",
       `report-uri ${reportUri}`,
-      isProduction ? "upgrade-insecure-requests" : "",
-      "block-all-mixed-content"
-    ].filter(Boolean).join('; ');
+      isProduction ? 'upgrade-insecure-requests' : '',
+      'block-all-mixed-content',
+    ]
+      .filter(Boolean)
+      .join('; ');
 
     // Feature Policy (legacy)
     this.featurePolicy = [
@@ -50,7 +58,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       "magnetometer 'none'",
       "microphone 'none'",
       "payment 'none'",
-      "usb 'none'"
+      "usb 'none'",
     ].join('; ');
 
     // Permissions Policy (replaces Feature Policy)
@@ -62,7 +70,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       'usb=()',
       'fullscreen=(self)',
       'display-capture=()',
-      'web-share=()'
+      'web-share=()',
     ].join(', ');
 
     // Report-To header for reporting API
@@ -70,18 +78,19 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       group: 'default',
       max_age: 31536000,
       endpoints: [{ url: reportUri }],
-      include_subdomains: true
+      include_subdomains: true,
     });
 
     // Expect-CT header
     this.expectCt = `max-age=86400, enforce, report-uri="${reportUri}"`;
-    
+
     // Other security headers
     this.xssProtection = '1; mode=block';
     this.xFrameOptions = 'SAMEORIGIN';
     this.xContentTypeOptions = 'nosniff';
     this.referrerPolicy = 'strict-origin-when-cross-origin';
-    this.strictTransportSecurity = 'max-age=31536000; includeSubDomains; preload';
+    this.strictTransportSecurity =
+      'max-age=31536000; includeSubDomains; preload';
     this.crossOriginEmbedderPolicy = 'require-corp';
     this.crossOriginOpenerPolicy = 'same-origin';
     this.crossOriginResourcePolicy = 'same-origin';
@@ -101,21 +110,30 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     res.setHeader('X-XSS-Protection', this.xssProtection);
     res.setHeader('Referrer-Policy', this.referrerPolicy);
     res.setHeader('Strict-Transport-Security', this.strictTransportSecurity);
-    res.setHeader('Cross-Origin-Embedder-Policy', this.crossOriginEmbedderPolicy);
+    res.setHeader(
+      'Cross-Origin-Embedder-Policy',
+      this.crossOriginEmbedderPolicy,
+    );
     res.setHeader('Cross-Origin-Opener-Policy', this.crossOriginOpenerPolicy);
-    res.setHeader('Cross-Origin-Resource-Policy', this.crossOriginResourcePolicy);
+    res.setHeader(
+      'Cross-Origin-Resource-Policy',
+      this.crossOriginResourcePolicy,
+    );
     res.setHeader('Origin-Agent-Cluster', this.originAgentCluster);
-    res.setHeader('X-Permitted-Cross-Domain-Policies', this.xPermittedCrossDomainPolicies);
-    
+    res.setHeader(
+      'X-Permitted-Cross-Domain-Policies',
+      this.xPermittedCrossDomainPolicies,
+    );
+
     // Remove X-Powered-By header if present
     res.removeHeader('X-Powered-By');
-    
+
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
       res.status(200).end();
       return;
     }
-    
+
     next();
   }
 }

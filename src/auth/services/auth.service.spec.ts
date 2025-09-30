@@ -41,7 +41,9 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     tokenService = module.get<TokenService>(TokenService);
-    securityService = module.get<SecurityMonitoringService>(SecurityMonitoringService);
+    securityService = module.get<SecurityMonitoringService>(
+      SecurityMonitoringService,
+    );
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
@@ -72,15 +74,24 @@ describe('AuthService', () => {
       prismaService.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       tokenService.generateTokens.mockResolvedValue(tokens);
-      securityService.analyzeLoginAttempt.mockResolvedValue({ riskScore: 0.1, isBlocked: false });
+      securityService.analyzeLoginAttempt.mockResolvedValue({
+        riskScore: 0.1,
+        isBlocked: false,
+      });
 
       const result = await service.login(loginDto, 'tenant-1');
 
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: loginDto.email, tenantId: 'tenant-1' },
       });
-      expect(bcrypt.compare).toHaveBeenCalledWith(loginDto.password, user.passwordHash);
-      expect(tokenService.generateTokens).toHaveBeenCalledWith(user, loginDto.deviceFingerprint);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        loginDto.password,
+        user.passwordHash,
+      );
+      expect(tokenService.generateTokens).toHaveBeenCalledWith(
+        user,
+        loginDto.deviceFingerprint,
+      );
       expect(result).toEqual({
         user: expect.objectContaining({ id: user.id, email: user.email }),
         tokens,
@@ -96,7 +107,9 @@ describe('AuthService', () => {
 
       prismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for invalid password', async () => {
@@ -114,7 +127,9 @@ describe('AuthService', () => {
       prismaService.user.findUnique.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should block login for high-risk attempts', async () => {
@@ -126,9 +141,14 @@ describe('AuthService', () => {
       };
 
       prismaService.user.findUnique.mockResolvedValue(user);
-      securityService.analyzeLoginAttempt.mockResolvedValue({ riskScore: 0.9, isBlocked: true });
+      securityService.analyzeLoginAttempt.mockResolvedValue({
+        riskScore: 0.9,
+        isBlocked: true,
+      });
 
-      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto, 'tenant-1')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -141,7 +161,10 @@ describe('AuthService', () => {
 
       await service.logout(userId, deviceFingerprint);
 
-      expect(tokenService.revokeToken).toHaveBeenCalledWith(userId, deviceFingerprint);
+      expect(tokenService.revokeToken).toHaveBeenCalledWith(
+        userId,
+        deviceFingerprint,
+      );
       expect(securityService.recordSecurityEvent).toHaveBeenCalledWith({
         userId,
         eventType: 'LOGOUT',

@@ -43,7 +43,11 @@ describe('SendMessageCommandHandler', () => {
       const tenant = TestDataFactory.createTenant();
       const user = TestDataFactory.createUser(tenant.id);
       const conversation = TestDataFactory.createConversation(tenant.id);
-      const message = TestDataFactory.createMessage(conversation.id, user.id, tenant.id);
+      const message = TestDataFactory.createMessage(
+        conversation.id,
+        user.id,
+        tenant.id,
+      );
 
       const command = new SendMessageCommand({
         content: 'Test message',
@@ -67,7 +71,7 @@ describe('SendMessageCommandHandler', () => {
       });
 
       expect(eventBus.publish).toHaveBeenCalledWith(
-        expect.any(MessageCreatedEvent)
+        expect.any(MessageCreatedEvent),
       );
 
       expect(result).toEqual(message);
@@ -83,7 +87,9 @@ describe('SendMessageCommandHandler', () => {
         correlationId: 'test-correlation',
       });
 
-      messageService.createMessage.mockRejectedValue(new Error('Creation failed'));
+      messageService.createMessage.mockRejectedValue(
+        new Error('Creation failed'),
+      );
 
       await expect(handler.execute(command)).rejects.toThrow('Creation failed');
       expect(eventBus.publish).not.toHaveBeenCalled();

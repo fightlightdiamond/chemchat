@@ -7,15 +7,16 @@ export function initializeTelemetry(): void {
     // Simplified telemetry initialization
     // This is a placeholder for future telemetry integration
     logger.log('Telemetry initialization completed (simplified mode)');
-    
+
     // Set up basic process monitoring
     if (process.env.NODE_ENV === 'production') {
       // Monitor memory usage
       setInterval(() => {
         const memoryUsage = process.memoryUsage();
         const memoryMB = Math.round(memoryUsage.rss / 1024 / 1024);
-        
-        if (memoryMB > 500) { // Alert if memory usage > 500MB
+
+        if (memoryMB > 500) {
+          // Alert if memory usage > 500MB
           logger.warn(`High memory usage detected: ${memoryMB}MB`);
         }
       }, 60000); // Check every minute

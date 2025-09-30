@@ -41,7 +41,7 @@ export class PerformanceMonitorService {
 
   constructor(
     private readonly metricsService: MetricsService,
-    private readonly tracingService: TracingService
+    private readonly tracingService: TracingService,
   ) {
     // Clean up old latency data every minute
     setInterval(() => this.cleanupLatencyBuffer(), this.performanceWindow);
@@ -50,7 +50,9 @@ export class PerformanceMonitorService {
   /**
    * Record message sent timestamp
    */
-  async recordMessageSent(data: Omit<MessageLatencyData, 'sentAt'>): Promise<void> {
+  async recordMessageSent(
+    data: Omit<MessageLatencyData, 'sentAt'>,
+  ): Promise<void> {
     const messageData: MessageLatencyData = {
       ...data,
       sentAt: new Date(),
@@ -67,12 +69,16 @@ export class PerformanceMonitorService {
     // Create a span for message tracking
     const spanId = this.tracingService.createSpan(
       'message.sent',
-      this.tracingService.createTracingContext('message.sent', this.tracingService.generateCorrelationId(), data.tenantId),
+      this.tracingService.createTracingContext(
+        'message.sent',
+        this.tracingService.generateCorrelationId(),
+        data.tenantId,
+      ),
       {
         'message.id': data.messageId,
         'conversation.id': data.conversationId,
         'tenant.id': data.tenantId,
-      }
+      },
     );
     this.tracingService.finishSpan(spanId, 'ok');
   }
@@ -84,26 +90,30 @@ export class PerformanceMonitorService {
     const messageData = this.latencyBuffer.get(messageId);
     if (messageData) {
       messageData.processedAt = new Date();
-      
-      const processingLatency = messageData.processedAt.getTime() - messageData.sentAt.getTime();
-      
+
+      const processingLatency =
+        messageData.processedAt.getTime() - messageData.sentAt.getTime();
+
       // Record metrics
       this.metricsService.recordMessage(
         'send',
         messageData.tenantId,
         processingLatency / 1000,
-        'success'
+        'success',
       );
 
       // Add tracing event
       // Create a span for message processing tracking
       const spanId = this.tracingService.createSpan(
         'message.processed',
-        this.tracingService.createTracingContext('message.processed', this.tracingService.generateCorrelationId()),
+        this.tracingService.createTracingContext(
+          'message.processed',
+          this.tracingService.generateCorrelationId(),
+        ),
         {
           'message.id': messageId,
           'processing.latency_ms': processingLatency,
-        }
+        },
       );
       this.tracingService.finishSpan(spanId, 'ok');
     }
@@ -125,31 +135,35 @@ export class PerformanceMonitorService {
     const messageData = this.latencyBuffer.get(messageId);
     if (messageData) {
       messageData.deliveredAt = new Date();
-      
-      const endToEndLatency = messageData.deliveredAt.getTime() - messageData.sentAt.getTime();
-      
+
+      const endToEndLatency =
+        messageData.deliveredAt.getTime() - messageData.sentAt.getTime();
+
       // Record end-to-end latency metric
       this.metricsService.recordMessageLatency(
         messageData.tenantId,
         messageData.conversationType,
-        endToEndLatency / 1000
+        endToEndLatency / 1000,
       );
 
       // Add tracing event
       // Create a span for message delivery tracking
       const spanId = this.tracingService.createSpan(
         'message.delivered',
-        this.tracingService.createTracingContext('message.delivered', this.tracingService.generateCorrelationId()),
+        this.tracingService.createTracingContext(
+          'message.delivered',
+          this.tracingService.generateCorrelationId(),
+        ),
         {
           'message.id': messageId,
           'end_to_end.latency_ms': endToEndLatency,
-        }
+        },
       );
       this.tracingService.finishSpan(spanId, 'ok');
 
       this.logger.debug(
         `Message ${messageId} end-to-end latency: ${endToEndLatency}ms`,
-        { tenantId: messageData.tenantId }
+        { tenantId: messageData.tenantId },
       );
     }
 
@@ -171,17 +185,23 @@ export class PerformanceMonitorService {
    */
   recordWebSocketConnection(tenantId: string, connected: boolean): void {
     this.metricsService.recordWebSocketConnection(tenantId, connected);
-    
+
     // Create a span for WebSocket connection tracking
-    const eventName = connected ? 'websocket.connected' : 'websocket.disconnected';
+    const eventName = connected
+      ? 'websocket.connected'
+      : 'websocket.disconnected';
     const spanId = this.tracingService.createSpan(
       eventName,
-      this.tracingService.createTracingContext(eventName, this.tracingService.generateCorrelationId(), tenantId),
+      this.tracingService.createTracingContext(
+        eventName,
+        this.tracingService.generateCorrelationId(),
+        tenantId,
+      ),
       {
         'tenant.id': tenantId,
         'connection.status': connected ? 'connected' : 'disconnected',
-        'timestamp': new Date().toISOString(),
-      }
+        timestamp: new Date().toISOString(),
+      },
     );
     this.tracingService.finishSpan(spanId, 'ok');
   }
@@ -193,10 +213,10 @@ export class PerformanceMonitorService {
     operation: string,
     table: string,
     tenantId: string,
-    fn: () => Promise<T>
+    fn: () => Promise<T>,
   ): Promise<T> {
     const startTime = Date.now();
-    
+
     try {
       const result = await this.tracingService.executeWithSpan(
         `DB ${operation} ${table}`,
@@ -205,23 +225,39 @@ export class PerformanceMonitorService {
           this.tracingService.generateCorrelationId(),
           tenantId,
           undefined,
-          { table, operation }
+          { table, operation },
         ),
         async (spanId) => {
           this.tracingService.setAttribute(spanId, 'db.operation', operation);
           this.tracingService.setAttribute(spanId, 'db.table', table);
           return fn();
-        }
+        },
       );
 
       const duration = (Date.now() - startTime) / 1000;
-      this.metricsService.recordDatabaseOperation(operation, table, tenantId, duration, 'success');
-      
+      this.metricsService.recordDatabaseOperation(
+        operation,
+        table,
+        tenantId,
+        duration,
+        'success',
+      );
+
       return result;
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
-      this.metricsService.recordDatabaseOperation(operation, table, tenantId, duration, 'error');
-      this.metricsService.recordError('database', error instanceof Error ? error.name : 'UnknownError', tenantId);
+      this.metricsService.recordDatabaseOperation(
+        operation,
+        table,
+        tenantId,
+        duration,
+        'error',
+      );
+      this.metricsService.recordError(
+        'database',
+        error instanceof Error ? error.name : 'UnknownError',
+        tenantId,
+      );
       throw error;
     }
   }
@@ -232,10 +268,10 @@ export class PerformanceMonitorService {
   async recordRedisOperation<T>(
     operation: string,
     tenantId: string,
-    fn: () => Promise<T>
+    fn: () => Promise<T>,
   ): Promise<T> {
     const startTime = Date.now();
-    
+
     try {
       const result = await this.tracingService.executeWithSpan(
         `Redis ${operation}`,
@@ -244,22 +280,40 @@ export class PerformanceMonitorService {
           this.tracingService.generateCorrelationId(),
           tenantId,
           undefined,
-          { operation }
+          { operation },
         ),
         async (spanId) => {
-          this.tracingService.setAttribute(spanId, 'redis.operation', operation);
+          this.tracingService.setAttribute(
+            spanId,
+            'redis.operation',
+            operation,
+          );
           return fn();
-        }
+        },
       );
 
       const duration = (Date.now() - startTime) / 1000;
-      this.metricsService.recordRedisOperation(operation, tenantId, duration, 'success');
-      
+      this.metricsService.recordRedisOperation(
+        operation,
+        tenantId,
+        duration,
+        'success',
+      );
+
       return result;
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
-      this.metricsService.recordRedisOperation(operation, tenantId, duration, 'error');
-      this.metricsService.recordError('redis', error instanceof Error ? error.name : 'UnknownError', tenantId);
+      this.metricsService.recordRedisOperation(
+        operation,
+        tenantId,
+        duration,
+        'error',
+      );
+      this.metricsService.recordError(
+        'redis',
+        error instanceof Error ? error.name : 'UnknownError',
+        tenantId,
+      );
       throw error;
     }
   }
@@ -273,11 +327,11 @@ export class PerformanceMonitorService {
 
     // Calculate message latency percentiles from buffer
     const recentMessages = Array.from(this.latencyBuffer.values())
-      .filter(msg => {
+      .filter((msg) => {
         if (tenantId && msg.tenantId !== tenantId) return false;
         return msg.deliveredAt && msg.deliveredAt.getTime() > windowStart;
       })
-      .map(msg => msg.deliveredAt!.getTime() - msg.sentAt.getTime())
+      .map((msg) => msg.deliveredAt!.getTime() - msg.sentAt.getTime())
       .sort((a, b) => a - b);
 
     const latencyMetrics = this.calculatePercentiles(recentMessages);
@@ -297,7 +351,8 @@ export class PerformanceMonitorService {
         avg: latencyMetrics.avg / 1000,
       },
       throughput: {
-        messagesPerSecond: recentMessages.length / (this.performanceWindow / 1000),
+        messagesPerSecond:
+          recentMessages.length / (this.performanceWindow / 1000),
         connectionsPerSecond: 0, // Would need to track connection events
         requestsPerSecond: 0, // Would need to track from HTTP metrics
       },
@@ -316,7 +371,7 @@ export class PerformanceMonitorService {
     try {
       // This would typically query the database for current counts
       // For now, we'll use placeholder logic
-      
+
       // Update active users (would need to implement actual tracking)
       this.metricsService.updateActiveUsers('default', '5m', 0);
       this.metricsService.updateActiveUsers('default', '1h', 0);
@@ -329,14 +384,22 @@ export class PerformanceMonitorService {
       // Update quota usage (would query tenant usage)
       this.metricsService.updateQuotaUsage('default', 'messages', 0.5);
       this.metricsService.updateQuotaUsage('default', 'storage', 0.3);
-
     } catch (error) {
       this.logger.error('Failed to update business metrics', error);
-      this.metricsService.recordError('performance-monitor', 'business-metrics-update', 'system');
+      this.metricsService.recordError(
+        'performance-monitor',
+        'business-metrics-update',
+        'system',
+      );
     }
   }
 
-  private calculatePercentiles(values: number[]): { p50: number; p95: number; p99: number; avg: number } {
+  private calculatePercentiles(values: number[]): {
+    p50: number;
+    p95: number;
+    p99: number;
+    avg: number;
+  } {
     if (values.length === 0) {
       return { p50: 0, p95: 0, p99: 0, avg: 0 };
     }
@@ -369,7 +432,7 @@ export class PerformanceMonitorService {
 
   private cleanupLatencyBuffer(): void {
     const now = Date.now();
-    const cutoff = now - (this.performanceWindow * 2); // Keep data for 2 windows
+    const cutoff = now - this.performanceWindow * 2; // Keep data for 2 windows
 
     let cleaned = 0;
     for (const [messageId, data] of this.latencyBuffer.entries()) {
@@ -381,10 +444,14 @@ export class PerformanceMonitorService {
 
     // If buffer is still too large, remove oldest entries
     if (this.latencyBuffer.size > this.maxBufferSize) {
-      const entries = Array.from(this.latencyBuffer.entries())
-        .sort(([, a], [, b]) => a.sentAt.getTime() - b.sentAt.getTime());
-      
-      const toRemove = entries.slice(0, this.latencyBuffer.size - this.maxBufferSize);
+      const entries = Array.from(this.latencyBuffer.entries()).sort(
+        ([, a], [, b]) => a.sentAt.getTime() - b.sentAt.getTime(),
+      );
+
+      const toRemove = entries.slice(
+        0,
+        this.latencyBuffer.size - this.maxBufferSize,
+      );
       toRemove.forEach(([messageId]) => this.latencyBuffer.delete(messageId));
       cleaned += toRemove.length;
     }

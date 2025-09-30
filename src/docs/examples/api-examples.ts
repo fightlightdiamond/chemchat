@@ -10,7 +10,8 @@ export const ApiExamples = {
       email: 'user@example.com',
       password: 'securePassword123',
       deviceFingerprint: {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         language: 'en-US',
         timezone: 'America/New_York',
         screen: '1920x1080',
@@ -34,13 +35,7 @@ export const ApiExamples = {
     mfaSetupResponse: {
       secret: 'JBSWY3DPEHPK3PXP',
       qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
-      backupCodes: [
-        '12345678',
-        '87654321',
-        '11223344',
-        '44332211',
-        '55667788',
-      ],
+      backupCodes: ['12345678', '87654321', '11223344', '44332211', '55667788'],
     },
   },
 

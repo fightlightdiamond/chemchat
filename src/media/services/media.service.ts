@@ -1,14 +1,24 @@
-import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { RedisService } from '../../shared/redis/redis.service';
-import { 
-  MediaUploadRequest, 
-  MediaUploadResponse, 
-  MediaAttachment, 
-  MediaFilter, 
+import {
+  MediaUploadRequest,
+  MediaUploadResponse,
+  MediaAttachment,
+  MediaFilter,
   MediaSearchResult,
   MediaStorageConfig,
   MediaValidationRule,
@@ -22,14 +32,12 @@ interface CreateAttachmentOptions {
   tenantId?: string;
   uploaderId?: string;
 }
-import { 
-  Attachment, 
-} from '@prisma/client';
+import { Attachment } from '@prisma/client';
 
 // Enum definitions for media processing status
 export enum MediaUploadStatus {
   PENDING = 'PENDING',
-  UPLOADING = 'UPLOADING', 
+  UPLOADING = 'UPLOADING',
   UPLOADED = 'UPLOADED',
   PROCESSING = 'PROCESSING',
   COMPLETED = 'COMPLETED',
@@ -39,7 +47,7 @@ export enum MediaUploadStatus {
 export enum MediaProcessingStatus {
   PENDING = 'PENDING',
   PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED', 
+  COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
 }
 
@@ -75,31 +83,54 @@ export class MediaService {
       accessKeyId: this.config.get('MEDIA_STORAGE_ACCESS_KEY'),
       secretAccessKey: this.config.get('MEDIA_STORAGE_SECRET_KEY'),
       cdnUrl: this.config.get('MEDIA_CDN_URL'),
-      signedUrlExpiry: parseInt(this.config.get('MEDIA_SIGNED_URL_EXPIRY', '3600'), 10),
+      signedUrlExpiry: parseInt(
+        this.config.get('MEDIA_SIGNED_URL_EXPIRY', '3600'),
+        10,
+      ),
     };
 
     this.validationRules = {
-      maxFileSize: parseInt(this.config.get('MEDIA_MAX_FILE_SIZE', '104857600'), 10), // 100MB
-      allowedMimeTypes: this.config.get('MEDIA_ALLOWED_MIME_TYPES', 'image/*,video/*,audio/*,application/pdf').split(','),
-      allowedExtensions: this.config.get('MEDIA_ALLOWED_EXTENSIONS', '.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.mp3,.wav,.pdf').split(','),
-      requireVirusScan: this.config.get('MEDIA_REQUIRE_VIRUS_SCAN', 'true') === 'true',
-      requireContentModeration: this.config.get('MEDIA_REQUIRE_CONTENT_MODERATION', 'true') === 'true',
-      autoGenerateThumbnails: this.config.get('MEDIA_AUTO_GENERATE_THUMBNAILS', 'true') === 'true',
+      maxFileSize: parseInt(
+        this.config.get('MEDIA_MAX_FILE_SIZE', '104857600'),
+        10,
+      ), // 100MB
+      allowedMimeTypes: this.config
+        .get(
+          'MEDIA_ALLOWED_MIME_TYPES',
+          'image/*,video/*,audio/*,application/pdf',
+        )
+        .split(','),
+      allowedExtensions: this.config
+        .get(
+          'MEDIA_ALLOWED_EXTENSIONS',
+          '.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.mp3,.wav,.pdf',
+        )
+        .split(','),
+      requireVirusScan:
+        this.config.get('MEDIA_REQUIRE_VIRUS_SCAN', 'true') === 'true',
+      requireContentModeration:
+        this.config.get('MEDIA_REQUIRE_CONTENT_MODERATION', 'true') === 'true',
+      autoGenerateThumbnails:
+        this.config.get('MEDIA_AUTO_GENERATE_THUMBNAILS', 'true') === 'true',
       stripExifData: this.config.get('MEDIA_STRIP_EXIF', 'true') === 'true',
     };
 
     this.s3Client = new S3Client({
       region: this.storageConfig.region,
       endpoint: this.storageConfig.endpoint,
-      credentials: this.storageConfig.accessKeyId ? {
-        accessKeyId: this.storageConfig.accessKeyId,
-        secretAccessKey: this.storageConfig.secretAccessKey!,
-      } : undefined,
+      credentials: this.storageConfig.accessKeyId
+        ? {
+            accessKeyId: this.storageConfig.accessKeyId,
+            secretAccessKey: this.storageConfig.secretAccessKey!,
+          }
+        : undefined,
       forcePathStyle: this.storageConfig.provider === 'minio',
     });
   }
 
-  async generateUploadUrl(request: MediaUploadRequest): Promise<MediaUploadResponse> {
+  async generateUploadUrl(
+    request: MediaUploadRequest,
+  ): Promise<MediaUploadResponse> {
     this.logger.log(`Generating upload URL for file: ${request.filename}`);
 
     // Validate request
@@ -118,7 +149,11 @@ export class MediaService {
     const uniqueFilename = `${baseName}_${timestamp}_${randomId}${fileExtension}`;
 
     // Generate storage key
-    const storageKey = this.generateStorageKey(request.tenantId, request.userId, uniqueFilename);
+    const storageKey = this.generateStorageKey(
+      request.tenantId,
+      request.userId,
+      uniqueFilename,
+    );
 
     // Generate upload ID
     const uploadId = crypto.randomUUID();
@@ -159,7 +194,7 @@ export class MediaService {
     await (this.redis as any).setex(
       `media:upload:${uploadId}`,
       expiresIn,
-      JSON.stringify(uploadMetadata)
+      JSON.stringify(uploadMetadata),
     );
 
     return {
@@ -169,7 +204,10 @@ export class MediaService {
     };
   }
 
-  async confirmUpload(uploadId: string, options?: MediaUploadOptions): Promise<MediaAttachment> {
+  async confirmUpload(
+    uploadId: string,
+    options?: MediaUploadOptions,
+  ): Promise<MediaAttachment> {
     this.logger.log(`Confirming upload: ${uploadId}`, { options });
 
     // Get upload metadata from Redis
@@ -249,7 +287,7 @@ export class MediaService {
     this.logger.log(`Confirming upload: ${filename}`);
 
     // Create attachment record
-    const cdnUrl = this.storageConfig.cdnUrl 
+    const cdnUrl = this.storageConfig.cdnUrl
       ? `${this.storageConfig.cdnUrl}/${storageUrl}`
       : storageUrl;
 
@@ -285,7 +323,10 @@ export class MediaService {
     return attachment;
   }
 
-  async getAttachment(id: string, tenantId?: string): Promise<MediaAttachment | null> {
+  async getAttachment(
+    id: string,
+    tenantId?: string,
+  ): Promise<MediaAttachment | null> {
     const attachment = await this.prisma.attachment.findFirst({
       where: {
         id,
@@ -300,22 +341,30 @@ export class MediaService {
     return attachment ? this.mapAttachmentToInterface(attachment) : null;
   }
 
-  async searchAttachments(filter: MediaFilter, page = 1, limit = 20): Promise<MediaSearchResult> {
+  async searchAttachments(
+    filter: MediaFilter,
+    page = 1,
+    limit = 20,
+  ): Promise<MediaSearchResult> {
     const offset = (page - 1) * limit;
 
     const where: any = {};
-    
+
     if (filter.tenantId) where.tenantId = filter.tenantId;
     if (filter.userId) where.uploadedBy = filter.userId;
     if (filter.messageId) where.messageId = filter.messageId;
     if (filter.mimeType) where.mimeType = { contains: filter.mimeType };
     if (filter.uploadStatus) where.uploadStatus = filter.uploadStatus;
-    if (filter.processingStatus) where.processingStatus = filter.processingStatus;
+    if (filter.processingStatus)
+      where.processingStatus = filter.processingStatus;
     if (filter.virusScanStatus) where.virusScanStatus = filter.virusScanStatus;
-    if (filter.minFileSize) where.fileSize = { gte: BigInt(filter.minFileSize) };
-    if (filter.maxFileSize) where.fileSize = { ...where.fileSize, lte: BigInt(filter.maxFileSize) };
+    if (filter.minFileSize)
+      where.fileSize = { gte: BigInt(filter.minFileSize) };
+    if (filter.maxFileSize)
+      where.fileSize = { ...where.fileSize, lte: BigInt(filter.maxFileSize) };
     if (filter.uploadedAfter) where.createdAt = { gte: filter.uploadedAfter };
-    if (filter.uploadedBefore) where.createdAt = { ...where.createdAt, lte: filter.uploadedBefore };
+    if (filter.uploadedBefore)
+      where.createdAt = { ...where.createdAt, lte: filter.uploadedBefore };
 
     // Category filter
     if (filter.category) {
@@ -336,7 +385,7 @@ export class MediaService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      attachments: attachments.map(a => this.mapAttachmentToInterface(a)),
+      attachments: attachments.map((a) => this.mapAttachmentToInterface(a)),
       total,
       page,
       limit,
@@ -359,7 +408,9 @@ export class MediaService {
 
     // Validate mimeType matches for security
     if (attachment.mimeType !== mimeType) {
-      this.logger.warn(`MIME type mismatch for attachment ${id}: expected ${mimeType}, got ${attachment.mimeType}`);
+      this.logger.warn(
+        `MIME type mismatch for attachment ${id}: expected ${mimeType}, got ${attachment.mimeType}`,
+      );
     }
 
     // Delete from storage
@@ -396,9 +447,18 @@ export class MediaService {
 
     if (!quota) {
       // Create default quota
-      const defaultStorageLimit = parseInt(this.config.get('MEDIA_DEFAULT_STORAGE_LIMIT', '10737418240'), 10); // 10GB
-      const defaultUploadLimit = parseInt(this.config.get('MEDIA_DEFAULT_UPLOAD_LIMIT', '1000'), 10);
-      const defaultBandwidthLimit = parseInt(this.config.get('MEDIA_DEFAULT_BANDWIDTH_LIMIT', '107374182400'), 10); // 100GB
+      const defaultStorageLimit = parseInt(
+        this.config.get('MEDIA_DEFAULT_STORAGE_LIMIT', '10737418240'),
+        10,
+      ); // 10GB
+      const defaultUploadLimit = parseInt(
+        this.config.get('MEDIA_DEFAULT_UPLOAD_LIMIT', '1000'),
+        10,
+      );
+      const defaultBandwidthLimit = parseInt(
+        this.config.get('MEDIA_DEFAULT_BANDWIDTH_LIMIT', '107374182400'),
+        10,
+      ); // 100GB
 
       quota = await (this.prisma as any).mediaQuota.create({
         data: {
@@ -423,14 +483,19 @@ export class MediaService {
     };
   }
 
-  async generateDownloadUrl(id: string, tenantId?: string, expiresIn = 3600): Promise<string> {
+  async generateDownloadUrl(
+    id: string,
+    tenantId?: string,
+    expiresIn = 3600,
+  ): Promise<string> {
     const attachment = await this.getAttachment(id, tenantId);
     if (!attachment) {
       throw new BadRequestException('Attachment not found');
     }
 
     // If CDN URL is available and no expiry needed, return it
-    if (attachment.cdnUrl && expiresIn >= 86400) { // 24 hours
+    if (attachment.cdnUrl && expiresIn >= 86400) {
+      // 24 hours
       return attachment.cdnUrl;
     }
 
@@ -445,28 +510,38 @@ export class MediaService {
   }
 
   // Private helper methods
-  private async validateUploadRequest(request: MediaUploadRequest): Promise<void> {
+  private async validateUploadRequest(
+    request: MediaUploadRequest,
+  ): Promise<void> {
     // File size validation
     if (request.fileSize > this.validationRules.maxFileSize) {
-      throw new BadRequestException(`File size exceeds maximum allowed size of ${this.validationRules.maxFileSize} bytes`);
+      throw new BadRequestException(
+        `File size exceeds maximum allowed size of ${this.validationRules.maxFileSize} bytes`,
+      );
     }
 
     // MIME type validation
-    const isAllowedMimeType = this.validationRules.allowedMimeTypes.some(pattern => {
-      if (pattern.endsWith('/*')) {
-        return request.mimeType.startsWith(pattern.slice(0, -1));
-      }
-      return request.mimeType === pattern;
-    });
+    const isAllowedMimeType = this.validationRules.allowedMimeTypes.some(
+      (pattern) => {
+        if (pattern.endsWith('/*')) {
+          return request.mimeType.startsWith(pattern.slice(0, -1));
+        }
+        return request.mimeType === pattern;
+      },
+    );
 
     if (!isAllowedMimeType) {
-      throw new BadRequestException(`MIME type ${request.mimeType} is not allowed`);
+      throw new BadRequestException(
+        `MIME type ${request.mimeType} is not allowed`,
+      );
     }
 
     // File extension validation
     const extension = path.extname(request.filename).toLowerCase();
     if (!this.validationRules.allowedExtensions.includes(extension)) {
-      throw new BadRequestException(`File extension ${extension} is not allowed`);
+      throw new BadRequestException(
+        `File extension ${extension} is not allowed`,
+      );
     }
 
     // Verify MIME type matches extension
@@ -478,7 +553,7 @@ export class MediaService {
 
   private async checkQuota(tenantId: string, fileSize: number): Promise<void> {
     const quota = await this.getQuotaInfo(tenantId);
-    
+
     if (quota.storageUsed + fileSize > quota.storageLimit) {
       throw new ForbiddenException('Storage quota exceeded');
     }
@@ -488,7 +563,11 @@ export class MediaService {
     }
   }
 
-  private async updateQuota(tenantId: string, storageChange: number, uploadChange: number): Promise<void> {
+  private async updateQuota(
+    tenantId: string,
+    storageChange: number,
+    uploadChange: number,
+  ): Promise<void> {
     await (this.prisma as any).mediaQuota.upsert({
       where: { tenantId },
       update: {
@@ -499,15 +578,32 @@ export class MediaService {
         tenantId,
         storageUsed: BigInt(Math.max(0, storageChange)),
         uploadCount: Math.max(0, uploadChange),
-        storageLimit: BigInt(parseInt(this.config.get('MEDIA_DEFAULT_STORAGE_LIMIT', '10737418240'), 10)),
-        uploadLimit: parseInt(this.config.get('MEDIA_DEFAULT_UPLOAD_LIMIT', '1000'), 10),
-        bandwidthLimit: BigInt(parseInt(this.config.get('MEDIA_DEFAULT_BANDWIDTH_LIMIT', '107374182400'), 10)),
+        storageLimit: BigInt(
+          parseInt(
+            this.config.get('MEDIA_DEFAULT_STORAGE_LIMIT', '10737418240'),
+            10,
+          ),
+        ),
+        uploadLimit: parseInt(
+          this.config.get('MEDIA_DEFAULT_UPLOAD_LIMIT', '1000'),
+          10,
+        ),
+        bandwidthLimit: BigInt(
+          parseInt(
+            this.config.get('MEDIA_DEFAULT_BANDWIDTH_LIMIT', '107374182400'),
+            10,
+          ),
+        ),
         resetAt: this.getNextResetDate(),
       },
     });
   }
 
-  private generateStorageKey(tenantId: string | undefined, userId: string, filename: string): string {
+  private generateStorageKey(
+    tenantId: string | undefined,
+    userId: string,
+    filename: string,
+  ): string {
     const tenant = tenantId || 'default';
     const year = new Date().getFullYear();
     const month = String(new Date().getMonth() + 1).padStart(2, '0');
@@ -553,7 +649,10 @@ export class MediaService {
     return crypto.createHash('sha256').update(content).digest('hex');
   }
 
-  private async findByHash(fileHash: string, tenantId?: string): Promise<Attachment | null> {
+  private async findByHash(
+    fileHash: string,
+    tenantId?: string,
+  ): Promise<Attachment | null> {
     return await this.prisma.attachment.findFirst({
       where: {
         fileHash,
@@ -570,11 +669,17 @@ export class MediaService {
       });
       await this.s3Client.send(command);
     } catch (error) {
-      this.logger.error(`Failed to delete file from storage: ${storageKey}`, error);
+      this.logger.error(
+        `Failed to delete file from storage: ${storageKey}`,
+        error,
+      );
     }
   }
 
-  private async scheduleProcessingJobs(attachmentId: string, mimeType: string): Promise<void> {
+  private async scheduleProcessingJobs(
+    attachmentId: string,
+    mimeType: string,
+  ): Promise<void> {
     const jobs: Array<{ type: string; priority: string }> = [];
 
     // Virus scan
@@ -619,7 +724,7 @@ export class MediaService {
 
       await this.redis.lpush(
         `media:processing:${job.priority.toLowerCase()}`,
-        JSON.stringify(jobData)
+        JSON.stringify(jobData),
       );
     }
   }
@@ -627,15 +732,41 @@ export class MediaService {
   private getCategoryMimeTypes(category: MediaCategory): string[] {
     switch (category) {
       case MediaCategory.IMAGE:
-        return ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        return [
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
+        ];
       case MediaCategory.VIDEO:
-        return ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm'];
+        return [
+          'video/mp4',
+          'video/avi',
+          'video/mov',
+          'video/wmv',
+          'video/webm',
+        ];
       case MediaCategory.AUDIO:
-        return ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/flac'];
+        return [
+          'audio/mp3',
+          'audio/wav',
+          'audio/ogg',
+          'audio/m4a',
+          'audio/flac',
+        ];
       case MediaCategory.DOCUMENT:
-        return ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        return [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
       case MediaCategory.ARCHIVE:
-        return ['application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed'];
+        return [
+          'application/zip',
+          'application/x-rar-compressed',
+          'application/x-7z-compressed',
+        ];
       default:
         return [];
     }

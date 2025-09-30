@@ -1,7 +1,13 @@
 import { Injectable, Logger, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
-import { TenantContext, TenantSettings, TenantQuota, TenantUsage, SubscriptionTier } from '../interfaces/tenant.interface';
+import {
+  TenantContext,
+  TenantSettings,
+  TenantQuota,
+  TenantUsage,
+  SubscriptionTier,
+} from '../interfaces/tenant.interface';
 
 @Injectable()
 export class TenantService {
@@ -19,7 +25,7 @@ export class TenantService {
       // Check cache first
       const cacheKey = `${this.TENANT_CACHE_PREFIX}${tenantId}`;
       const cached = await this.redis.get(cacheKey);
-      
+
       if (cached) {
         this.logger.debug(`Tenant found in cache: ${tenantId}`);
         return JSON.parse(cached);
@@ -32,12 +38,15 @@ export class TenantService {
       //     settings: true,
       //   },
       // });
-      
+
       // Temporary: Return null until migration is complete
       this.logger.debug(`Tenant lookup for ${tenantId} - migration pending`);
       return null;
     } catch (error) {
-      this.logger.error(`Error fetching tenant ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error fetching tenant ${tenantId}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -97,7 +106,10 @@ export class TenantService {
       this.logger.debug(`Getting tenant quota for ${tenantId}`);
       return quota;
     } catch (error) {
-      this.logger.error(`Error fetching tenant quota ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error fetching tenant quota ${tenantId}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -113,12 +125,18 @@ export class TenantService {
       this.logger.debug(`Getting tenant usage for ${tenantId}`);
       return usage;
     } catch (error) {
-      this.logger.error(`Error fetching tenant usage ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error fetching tenant usage ${tenantId}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async updateTenantUsage(tenantId: string, updates: Partial<TenantUsage>): Promise<void> {
+  async updateTenantUsage(
+    tenantId: string,
+    updates: Partial<TenantUsage>,
+  ): Promise<void> {
     try {
       // TODO: Uncomment after database migration is applied
       // await this.prisma.tenantUsage.update({
@@ -128,9 +146,14 @@ export class TenantService {
       //     updatedAt: new Date(),
       //   },
       // });
-      this.logger.debug(`Updated tenant usage for ${tenantId} with ${Object.keys(updates).length} fields`);
+      this.logger.debug(
+        `Updated tenant usage for ${tenantId} with ${Object.keys(updates).length} fields`,
+      );
     } catch (error) {
-      this.logger.error(`Error updating tenant usage ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error updating tenant usage ${tenantId}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -146,7 +169,10 @@ export class TenantService {
       this.logger.debug(`Getting tenant settings for ${tenantId}`);
       return settings;
     } catch (error) {
-      this.logger.error(`Error fetching tenant settings ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error fetching tenant settings ${tenantId}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -157,11 +183,16 @@ export class TenantService {
       await this.redis.del(cacheKey);
       this.logger.debug(`Invalidated tenant cache: ${tenantId}`);
     } catch (error) {
-      this.logger.error(`Error invalidating tenant cache ${tenantId}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error invalidating tenant cache ${tenantId}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
-  private getDefaultTenantSettings(tier: SubscriptionTier): Partial<TenantSettings> {
+  private getDefaultTenantSettings(
+    tier: SubscriptionTier,
+  ): Partial<TenantSettings> {
     const baseSettings = {
       allowFileUploads: true,
       retentionDays: 90,

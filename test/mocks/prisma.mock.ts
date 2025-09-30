@@ -14,7 +14,10 @@ export class MockPrismaService {
   // User operations
   user = {
     create: jest.fn(async (args: any) => {
-      const user = { ...args.data, id: args.data.id || TestDataFactory.createUser('').id };
+      const user = {
+        ...args.data,
+        id: args.data.id || TestDataFactory.createUser('').id,
+      };
       this.data.users.set(user.id, user);
       return user;
     }),
@@ -24,29 +27,33 @@ export class MockPrismaService {
         return this.data.users.get(args.where.id) || null;
       }
       if (args.where.email) {
-        return Array.from(this.data.users.values()).find((u: any) => u.email === args.where.email) || null;
+        return (
+          Array.from(this.data.users.values()).find(
+            (u: any) => u.email === args.where.email,
+          ) || null
+        );
       }
       return null;
     }),
 
     findMany: jest.fn(async (args: any = {}) => {
       let users = Array.from(this.data.users.values());
-      
+
       if (args.where?.tenantId) {
         users = users.filter((u: any) => u.tenantId === args.where.tenantId);
       }
-      
+
       if (args.take) {
         users = users.slice(0, args.take);
       }
-      
+
       return users;
     }),
 
     update: jest.fn(async (args: any) => {
       const user = this.data.users.get(args.where.id);
       if (!user) throw new Error('User not found');
-      
+
       const updated = { ...user, ...args.data };
       this.data.users.set(args.where.id, updated);
       return updated;
@@ -55,7 +62,7 @@ export class MockPrismaService {
     delete: jest.fn(async (args: any) => {
       const user = this.data.users.get(args.where.id);
       if (!user) throw new Error('User not found');
-      
+
       this.data.users.delete(args.where.id);
       return user;
     }),
@@ -70,7 +77,10 @@ export class MockPrismaService {
   // Tenant operations
   tenant = {
     create: jest.fn(async (args: any) => {
-      const tenant = { ...args.data, id: args.data.id || TestDataFactory.createTenant().id };
+      const tenant = {
+        ...args.data,
+        id: args.data.id || TestDataFactory.createTenant().id,
+      };
       this.data.tenants.set(tenant.id, tenant);
       return tenant;
     }),
@@ -80,7 +90,11 @@ export class MockPrismaService {
         return this.data.tenants.get(args.where.id) || null;
       }
       if (args.where.subdomain) {
-        return Array.from(this.data.tenants.values()).find((t: any) => t.subdomain === args.where.subdomain) || null;
+        return (
+          Array.from(this.data.tenants.values()).find(
+            (t: any) => t.subdomain === args.where.subdomain,
+          ) || null
+        );
       }
       return null;
     }),
@@ -95,7 +109,10 @@ export class MockPrismaService {
   // Conversation operations
   conversation = {
     create: jest.fn(async (args: any) => {
-      const conversation = { ...args.data, id: args.data.id || TestDataFactory.createConversation('').id };
+      const conversation = {
+        ...args.data,
+        id: args.data.id || TestDataFactory.createConversation('').id,
+      };
       this.data.conversations.set(conversation.id, conversation);
       return conversation;
     }),
@@ -106,11 +123,13 @@ export class MockPrismaService {
 
     findMany: jest.fn(async (args: any = {}) => {
       let conversations = Array.from(this.data.conversations.values());
-      
+
       if (args.where?.tenantId) {
-        conversations = conversations.filter((c: any) => c.tenantId === args.where.tenantId);
+        conversations = conversations.filter(
+          (c: any) => c.tenantId === args.where.tenantId,
+        );
       }
-      
+
       return conversations;
     }),
 
@@ -124,10 +143,10 @@ export class MockPrismaService {
   // Message operations
   message = {
     create: jest.fn(async (args: any) => {
-      const message = { 
-        ...args.data, 
+      const message = {
+        ...args.data,
         id: args.data.id || TestDataFactory.createMessage('', '', '').id,
-        sequenceNumber: args.data.sequenceNumber || BigInt(Date.now())
+        sequenceNumber: args.data.sequenceNumber || BigInt(Date.now()),
       };
       this.data.messages.set(message.id, message);
       return message;
@@ -139,30 +158,34 @@ export class MockPrismaService {
 
     findMany: jest.fn(async (args: any = {}) => {
       let messages = Array.from(this.data.messages.values());
-      
+
       if (args.where?.conversationId) {
-        messages = messages.filter((m: any) => m.conversationId === args.where.conversationId);
+        messages = messages.filter(
+          (m: any) => m.conversationId === args.where.conversationId,
+        );
       }
-      
+
       if (args.orderBy?.sequenceNumber) {
         messages.sort((a: any, b: any) => {
           const aSeq = Number(a.sequenceNumber);
           const bSeq = Number(b.sequenceNumber);
-          return args.orderBy.sequenceNumber === 'asc' ? aSeq - bSeq : bSeq - aSeq;
+          return args.orderBy.sequenceNumber === 'asc'
+            ? aSeq - bSeq
+            : bSeq - aSeq;
         });
       }
-      
+
       if (args.take) {
         messages = messages.slice(0, args.take);
       }
-      
+
       return messages;
     }),
 
     update: jest.fn(async (args: any) => {
       const message = this.data.messages.get(args.where.id);
       if (!message) throw new Error('Message not found');
-      
+
       const updated = { ...message, ...args.data };
       this.data.messages.set(args.where.id, updated);
       return updated;
@@ -171,7 +194,7 @@ export class MockPrismaService {
     delete: jest.fn(async (args: any) => {
       const message = this.data.messages.get(args.where.id);
       if (!message) throw new Error('Message not found');
-      
+
       this.data.messages.delete(args.where.id);
       return message;
     }),
@@ -226,7 +249,11 @@ export class MockPrismaService {
     const tenant = TestDataFactory.createTenant();
     const user = TestDataFactory.createUser(tenant.id);
     const conversation = TestDataFactory.createConversation(tenant.id);
-    const message = TestDataFactory.createMessage(conversation.id, user.id, tenant.id);
+    const message = TestDataFactory.createMessage(
+      conversation.id,
+      user.id,
+      tenant.id,
+    );
 
     this.data.tenants.set(tenant.id, tenant);
     this.data.users.set(user.id, user);

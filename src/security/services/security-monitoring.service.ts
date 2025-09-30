@@ -509,7 +509,11 @@ export class SecurityMonitoringService {
     severity?: string,
     resolved?: boolean,
   ): Promise<SecurityAlert[]> {
-    const alertIds = await this.redis.lrange('security:alerts:list', 0, limit - 1);
+    const alertIds = await this.redis.lrange(
+      'security:alerts:list',
+      0,
+      limit - 1,
+    );
     const alerts: SecurityAlert[] = [];
 
     for (const alertId of alertIds) {

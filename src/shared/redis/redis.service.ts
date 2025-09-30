@@ -331,7 +331,11 @@ export class RedisService implements OnModuleDestroy {
   }
 
   /** Sorted set count */
-  async zcount(key: string, min: string | number, max: string | number): Promise<number> {
+  async zcount(
+    key: string,
+    min: string | number,
+    max: string | number,
+  ): Promise<number> {
     return this.exec(async (client) => client.zcount(key, min, max));
   }
 
@@ -341,7 +345,11 @@ export class RedisService implements OnModuleDestroy {
   }
 
   /** Sorted set remove by score */
-  async zremrangebyscore(key: string, min: string | number, max: string | number): Promise<number> {
+  async zremrangebyscore(
+    key: string,
+    min: string | number,
+    max: string | number,
+  ): Promise<number> {
     return this.exec(async (client) => client.zremrangebyscore(key, min, max));
   }
 

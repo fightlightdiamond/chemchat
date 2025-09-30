@@ -19,78 +19,78 @@ spec:
       restartPolicy: Never
       serviceAccountName: chemchat-migration-sa
       initContainers:
-      - name: wait-for-postgres
-        image: postgres:15-alpine
-        command:
-        - sh
-        - -c
-        - |
-          until pg_isready -h postgres-service -p 5432 -U chemchat_user; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
-        env:
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: chemchat-secrets
-              key: database-password
+        - name: wait-for-postgres
+          image: postgres:15-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres-service -p 5432 -U chemchat; do
+                echo "Waiting for PostgreSQL to be ready..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chemchat-secrets
+                  key: POSTGRES_PASSWORD
       containers:
-      - name: migration
-        image: chemchat:latest
-        command:
-        - sh
-        - -c
-        - |
-          echo "Starting database migration..."
-          
-          # Create backup
-          echo "Creating backup..."
-          pg_dump -h postgres-service -U chemchat_user -d chemchat_db > /tmp/backup-$(date +%Y%m%d-%H%M%S).sql
-          
-          # Run Prisma migrations
-          echo "Running Prisma migrations..."
-          npx prisma migrate deploy --schema=prisma/schema.prisma
-          
-          # Validate migration
-          echo "Validating migration..."
-          npx prisma migrate status --schema=prisma/schema.prisma
-          
-          echo "Migration completed successfully!"
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: chemchat-secrets
-              key: database-url
-        - name: NODE_ENV
-          value: "production"
-        - name: PGPASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: chemchat-secrets
-              key: database-password
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        volumeMounts:
-        - name: migration-scripts
-          mountPath: /app/scripts
-        - name: backup-storage
-          mountPath: /tmp/backups
+        - name: migration
+          image: chemchat:latest
+          command:
+            - sh
+            - -c
+            - |
+              echo "Starting database migration..."
+
+              # Backup is handled by the CD workflow before this job runs
+
+              # Run Prisma migrations
+              echo "Running Prisma migrations..."
+              npx prisma migrate deploy --schema=prisma/schema.prisma
+
+              # Validate migration
+              echo "Validating migration..."
+              npx prisma migrate status --schema=prisma/schema.prisma
+
+              echo "Migration completed successfully!"
+          env:
+            - name: DATABASE_URL
+              value: 'postgresql://chemchat:$(POSTGRES_PASSWORD)@postgres-service:5432/chemchat?schema=public'
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chemchat-secrets
+                  key: POSTGRES_PASSWORD
+            - name: NODE_ENV
+              value: 'production'
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chemchat-secrets
+                  key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '100m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
+          volumeMounts:
+            - name: migration-scripts
+              mountPath: /app/scripts
+            - name: backup-storage
+              mountPath: /tmp/backups
       volumes:
-      - name: migration-scripts
-        configMap:
-          name: migration-scripts
-          defaultMode: 0755
-      - name: backup-storage
-        persistentVolumeClaim:
-          claimName: backup-pvc
+        - name: migration-scripts
+          configMap:
+            name: migration-scripts
+            defaultMode: 0755
+        - name: backup-storage
+          persistentVolumeClaim:
+            claimName: backup-pvc
   backoffLimit: 3
   activeDeadlineSeconds: 600
 ---
@@ -112,12 +112,12 @@ metadata:
     app.kubernetes.io/name: chemchat
     app.kubernetes.io/component: migration
 rules:
-- apiGroups: [""]
-  resources: ["pods", "services"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "watch", "patch"]
+  - apiGroups: ['']
+    resources: ['pods', 'services']
+    verbs: ['get', 'list', 'watch']
+  - apiGroups: ['apps']
+    resources: ['deployments']
+    verbs: ['get', 'list', 'watch', 'patch']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -128,9 +128,9 @@ metadata:
     app.kubernetes.io/name: chemchat
     app.kubernetes.io/component: migration
 subjects:
-- kind: ServiceAccount
-  name: chemchat-migration-sa
-  namespace: chemchat
+  - kind: ServiceAccount
+    name: chemchat-migration-sa
+    namespace: chemchat
 roleRef:
   kind: Role
   name: chemchat-migration-role
@@ -149,44 +149,44 @@ data:
     #!/bin/bash
     # Zero-downtime migration script (embedded version)
     set -euo pipefail
-    
+
     log() {
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
     }
-    
+
     error() {
         echo "[ERROR] $1" >&2
         exit 1
     }
-    
+
     success() {
         echo "[SUCCESS] $1"
     }
-    
+
     # Create backup
     create_backup() {
         log "Creating database backup..."
         local backup_name="backup-$(date +%Y%m%d-%H%M%S)"
-        pg_dump -h postgres-service -U chemchat_user -d chemchat_db > "/tmp/backups/${backup_name}.sql"
+        pg_dump -h postgres-service -U chemchat -d chemchat > "/tmp/backups/${backup_name}.sql"
         gzip "/tmp/backups/${backup_name}.sql"
         success "Backup created: ${backup_name}.sql.gz"
         echo "$backup_name"
     }
-    
+
     # Run migration
     run_migration() {
         log "Running Prisma migration..."
         npx prisma migrate deploy --schema=prisma/schema.prisma || error "Migration failed"
         success "Migration completed"
     }
-    
+
     # Validate migration
     validate_migration() {
         log "Validating migration..."
         npx prisma migrate status --schema=prisma/schema.prisma || error "Migration validation failed"
         success "Migration validation passed"
     }
-    
+
     # Main execution
     main() {
         log "Starting zero-downtime migration"
@@ -196,7 +196,7 @@ data:
         validate_migration
         success "Zero-downtime migration completed successfully!"
     }
-    
+
     main "$@"
 ---
 apiVersion: v1

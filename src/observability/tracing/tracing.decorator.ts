@@ -12,10 +12,15 @@ export interface TracingOptions {
  * Decorator to enable automatic tracing for methods
  */
 export const Traced = (options: TracingOptions = {}) => {
-  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+  return (
+    target: any,
+    propertyName: string,
+    descriptor: PropertyDescriptor,
+  ) => {
     const originalMethod = descriptor.value;
     const className = target.constructor.name;
-    const operationName = options.operationName || `${className}.${propertyName}`;
+    const operationName =
+      options.operationName || `${className}.${propertyName}`;
     const logger = new Logger(`${className}.${propertyName}`);
 
     descriptor.value = async function (...args: any[]) {
@@ -58,7 +63,11 @@ export const Traced = (options: TracingOptions = {}) => {
     };
 
     // Set metadata for the decorator
-    SetMetadata(TRACING_METADATA_KEY, options)(target, propertyName, descriptor);
+    SetMetadata(TRACING_METADATA_KEY, options)(
+      target,
+      propertyName,
+      descriptor,
+    );
     return descriptor;
   };
 };
@@ -70,15 +79,21 @@ export const TracedClass = (options: TracingOptions = {}) => {
   return <T extends new (...args: any[]) => any>(constructor: T) => {
     const className = constructor.name;
     const logger = new Logger(className);
-    
+
     // Get all method names
-    const methodNames = Object.getOwnPropertyNames(constructor.prototype)
-      .filter(name => name !== 'constructor' && typeof constructor.prototype[name] === 'function');
+    const methodNames = Object.getOwnPropertyNames(
+      constructor.prototype,
+    ).filter(
+      (name) =>
+        name !== 'constructor' &&
+        typeof constructor.prototype[name] === 'function',
+    );
 
     // Apply tracing to each method
-    methodNames.forEach(methodName => {
+    methodNames.forEach((methodName) => {
       const originalMethod = constructor.prototype[methodName];
-      const operationName = options.operationName || `${className}.${methodName}`;
+      const operationName =
+        options.operationName || `${className}.${methodName}`;
 
       constructor.prototype[methodName] = async function (...args: any[]) {
         if (options.skipTracing) {
@@ -99,10 +114,13 @@ export const TracedClass = (options: TracingOptions = {}) => {
           const result = await originalMethod.apply(this, args);
 
           const duration = Date.now() - startTime;
-          logger.debug(`Operation completed: ${operationName} (${duration}ms)`, {
-            correlationId,
-            duration,
-          });
+          logger.debug(
+            `Operation completed: ${operationName} (${duration}ms)`,
+            {
+              correlationId,
+              duration,
+            },
+          );
 
           return result;
         } catch (error) {

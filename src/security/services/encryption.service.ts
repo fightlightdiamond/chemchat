@@ -17,7 +17,7 @@ export class EncryptionService {
     if (!encryptionKey) {
       throw new Error('ENCRYPTION_KEY is not defined in environment variables');
     }
-    
+
     // Ensure the key is the correct length for the algorithm (32 bytes for aes-256-cbc)
     this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
   }
@@ -36,10 +36,10 @@ export class EncryptionService {
   encrypt(text: string): string {
     const iv = crypto.randomBytes(this.ivLength);
     const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
-    
+
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     // Return iv + encrypted data
     return iv.toString('hex') + ':' + encrypted;
   }
@@ -48,17 +48,18 @@ export class EncryptionService {
     const textParts = encryptedText.split(':');
     const iv = Buffer.from(textParts.shift()!, 'hex');
     const encrypted = textParts.join(':');
-    
+
     const decipher = crypto.createDecipheriv(this.algorithm, this.key, iv);
-    
+
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   }
 
   generateRandomString(length = 32): string {
-    return crypto.randomBytes(Math.ceil(length / 2))
+    return crypto
+      .randomBytes(Math.ceil(length / 2))
       .toString('hex')
       .slice(0, length);
   }
@@ -82,10 +83,7 @@ export class EncryptionService {
   }
 
   createHmac(data: string, secret: string): string {
-    return crypto
-      .createHmac('sha256', secret)
-      .update(data)
-      .digest('hex');
+    return crypto.createHmac('sha256', secret).update(data).digest('hex');
   }
 
   verifyHmac(data: string, hash: string, secret: string): boolean {

@@ -52,7 +52,7 @@ export class IdempotencyInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         // Record successful execution for future idempotency checks
-         
+
         this.idempotencyService.recordExecution(command, handler);
       }),
       catchError((error: unknown) => {

@@ -22,7 +22,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     app = moduleFixture.createNestApplication();
     prisma = app.get<PrismaService>(PrismaService);
-    
+
     await app.init();
     await app.listen(0); // Random port for testing
 
@@ -32,11 +32,11 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
   afterAll(async () => {
     // Cleanup WebSocket connections
-    wsClients.forEach(client => client.disconnect());
-    
+    wsClients.forEach((client) => client.disconnect());
+
     // Cleanup test data
     await cleanupTestData();
-    
+
     await app.close();
   });
 
@@ -52,9 +52,9 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     it('should create tenant with proper schema', async () => {
       const tenant = await prisma.tenant.findUnique({
-        where: { id: testTenant.id }
+        where: { id: testTenant.id },
       });
-      
+
       expect(tenant).toBeDefined();
       expect(tenant.name).toBe('Test Tenant');
       expect(tenant.subscriptionTier).toBe('ENTERPRISE');
@@ -63,11 +63,11 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     it('should create users with proper relationships', async () => {
       const users = await prisma.user.findMany({
-        where: { tenantId: testTenant.id }
+        where: { tenantId: testTenant.id },
       });
-      
+
       expect(users).toHaveLength(3);
-      users.forEach(user => {
+      users.forEach((user) => {
         expect(user.tenantId).toBe(testTenant.id);
         expect(user.email).toContain('@test.com');
         expect(user.passwordHash).toBeDefined();
@@ -79,10 +79,10 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         where: { tenantId: testTenant.id },
         include: {
           participants: true,
-          messages: true
-        }
+          messages: true,
+        },
       });
-      
+
       expect(conversation).toBeDefined();
       expect(conversation.participants.length).toBeGreaterThan(0);
       expect(conversation.messages).toBeDefined();
@@ -95,7 +95,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         email: 'newuser@test.com',
         username: 'newuser',
         displayName: 'New User',
-        password: 'password123'
+        password: 'password123',
       };
 
       const response = await request(app.getHttpServer())
@@ -111,7 +111,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
     it('should authenticate users and return JWT tokens', async () => {
       const loginData = {
         email: testUsers[0].email,
-        password: 'password123'
+        password: 'password123',
       };
 
       const response = await request(app.getHttpServer())
@@ -127,9 +127,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     it('should protect routes with JWT authentication', async () => {
       // Test without token
-      await request(app.getHttpServer())
-        .get('/auth/profile')
-        .expect(401);
+      await request(app.getHttpServer()).get('/auth/profile').expect(401);
 
       // Test with valid token
       await request(app.getHttpServer())
@@ -143,31 +141,33 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .post('/auth/login')
         .send({
           email: testUsers[0].email,
-          password: 'password123'
+          password: 'password123',
         });
 
       const refreshResponse = await request(app.getHttpServer())
         .post('/auth/refresh')
         .send({
-          refreshToken: loginResponse.body.refreshToken
+          refreshToken: loginResponse.body.refreshToken,
         })
         .expect(200);
 
       expect(refreshResponse.body.accessToken).toBeDefined();
-      expect(refreshResponse.body.accessToken).not.toBe(loginResponse.body.accessToken);
+      expect(refreshResponse.body.accessToken).not.toBe(
+        loginResponse.body.accessToken,
+      );
     });
   });
 
   describe('Task 4.1: CQRS Command Infrastructure', () => {
     it('should handle SendMessage command', async () => {
       const conversation = await prisma.conversation.findFirst({
-        where: { tenantId: testTenant.id }
+        where: { tenantId: testTenant.id },
       });
 
       const messageData = {
         conversationId: conversation.id,
         content: 'Test message from CQRS command',
-        type: 'TEXT'
+        type: 'TEXT',
       };
 
       const response = await request(app.getHttpServer())
@@ -185,7 +185,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
       const conversationData = {
         name: 'Test Conversation from CQRS',
         type: 'GROUP',
-        participantIds: [testUsers[0].id, testUsers[1].id]
+        participantIds: [testUsers[0].id, testUsers[1].id],
       };
 
       const response = await request(app.getHttpServer())
@@ -207,7 +207,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .send({
           conversationId: 'invalid-id',
           content: '', // Empty content should fail validation
-          type: 'INVALID_TYPE'
+          type: 'INVALID_TYPE',
         })
         .expect(400);
     });
@@ -216,7 +216,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
   describe('Task 5.1: Message Ordering and Sequence Management', () => {
     it('should assign sequential sequence numbers to messages', async () => {
       const conversation = await prisma.conversation.findFirst({
-        where: { tenantId: testTenant.id }
+        where: { tenantId: testTenant.id },
       });
 
       // Send multiple messages
@@ -228,10 +228,10 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
           .send({
             conversationId: conversation.id,
             content: `Sequential message ${i + 1}`,
-            type: 'TEXT'
+            type: 'TEXT',
           })
           .expect(201);
-        
+
         messages.push(response.body);
       }
 
@@ -245,14 +245,14 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     it('should handle idempotency for duplicate messages', async () => {
       const conversation = await prisma.conversation.findFirst({
-        where: { tenantId: testTenant.id }
+        where: { tenantId: testTenant.id },
       });
 
       const messageData = {
         conversationId: conversation.id,
         content: 'Idempotent test message',
         type: 'TEXT',
-        clientMessageId: 'unique-client-id-123'
+        clientMessageId: 'unique-client-id-123',
       };
 
       // Send same message twice
@@ -275,11 +275,14 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
   describe('Task 6.1: WebSocket Gateway and Real-time Communication', () => {
     it('should establish WebSocket connection with authentication', (done) => {
-      const client = io(`http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`, {
-        auth: {
-          token: authTokens[0]
-        }
-      });
+      const client = io(
+        `http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`,
+        {
+          auth: {
+            token: authTokens[0],
+          },
+        },
+      );
 
       client.on('connect', () => {
         expect(client.connected).toBe(true);
@@ -294,69 +297,79 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
 
     it('should join and leave rooms', (done) => {
       const client = wsClients[0];
-      
-      prisma.conversation.findFirst({
-        where: { tenantId: testTenant.id }
-      }).then(conversation => {
-        client.emit('join_room', { conversationId: conversation.id });
-        
-        client.on('room_joined', (data) => {
-          expect(data.conversationId).toBe(conversation.id);
-          
-          client.emit('leave_room', { conversationId: conversation.id });
-          
-          client.on('room_left', (data) => {
+
+      prisma.conversation
+        .findFirst({
+          where: { tenantId: testTenant.id },
+        })
+        .then((conversation) => {
+          client.emit('join_room', { conversationId: conversation.id });
+
+          client.on('room_joined', (data) => {
             expect(data.conversationId).toBe(conversation.id);
-            done();
+
+            client.emit('leave_room', { conversationId: conversation.id });
+
+            client.on('room_left', (data) => {
+              expect(data.conversationId).toBe(conversation.id);
+              done();
+            });
           });
         });
-      });
     });
 
     it('should broadcast messages in real-time', (done) => {
       // Setup two WebSocket clients
       const client1 = wsClients[0];
-      const client2 = io(`http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`, {
-        auth: {
-          token: authTokens[1]
-        }
-      });
+      const client2 = io(
+        `http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`,
+        {
+          auth: {
+            token: authTokens[1],
+          },
+        },
+      );
 
       client2.on('connect', () => {
         wsClients.push(client2);
-        
-        prisma.conversation.findFirst({
-          where: { tenantId: testTenant.id }
-        }).then(conversation => {
-          // Both clients join the same room
-          client1.emit('join_room', { conversationId: conversation.id });
-          client2.emit('join_room', { conversationId: conversation.id });
-          
-          // Client2 listens for new messages
-          client2.on('message_created', (data) => {
-            expect(data.content).toBe('Real-time broadcast test');
-            expect(data.conversationId).toBe(conversation.id);
-            done();
-          });
-          
-          // Client1 sends a message
-          setTimeout(() => {
-            client1.emit('send_message', {
-              conversationId: conversation.id,
-              content: 'Real-time broadcast test',
-              type: 'TEXT'
+
+        prisma.conversation
+          .findFirst({
+            where: { tenantId: testTenant.id },
+          })
+          .then((conversation) => {
+            // Both clients join the same room
+            client1.emit('join_room', { conversationId: conversation.id });
+            client2.emit('join_room', { conversationId: conversation.id });
+
+            // Client2 listens for new messages
+            client2.on('message_created', (data) => {
+              expect(data.content).toBe('Real-time broadcast test');
+              expect(data.conversationId).toBe(conversation.id);
+              done();
             });
-          }, 100);
-        });
+
+            // Client1 sends a message
+            setTimeout(() => {
+              client1.emit('send_message', {
+                conversationId: conversation.id,
+                content: 'Real-time broadcast test',
+                type: 'TEXT',
+              });
+            }, 100);
+          });
       });
     });
 
     it('should handle WebSocket authentication errors', (done) => {
-      const client = io(`http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`, {
-        auth: {
-          token: 'invalid-token'
-        }
-      });
+      const client = io(
+        `http://localhost:${app.getHttpAdapter().getHttpServer().address().port}`,
+        {
+          auth: {
+            token: 'invalid-token',
+          },
+        },
+      );
 
       client.on('connect_error', (error) => {
         expect(error.message).toContain('Authentication failed');
@@ -392,7 +405,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .send({
           name: 'Integration Test Chat',
           type: 'GROUP',
-          participantIds: [testUsers[0].id, testUsers[1].id]
+          participantIds: [testUsers[0].id, testUsers[1].id],
         })
         .expect(201);
 
@@ -405,7 +418,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .send({
           conversationId,
           content: 'First message in integration test',
-          type: 'TEXT'
+          type: 'TEXT',
         })
         .expect(201);
 
@@ -415,7 +428,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .send({
           conversationId,
           content: 'Second message in integration test',
-          type: 'TEXT'
+          type: 'TEXT',
         })
         .expect(201);
 
@@ -426,12 +439,17 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .expect(200);
 
       expect(historyResponse.body.data).toHaveLength(2);
-      expect(historyResponse.body.data[0].content).toBe('First message in integration test');
-      expect(historyResponse.body.data[1].content).toBe('Second message in integration test');
+      expect(historyResponse.body.data[0].content).toBe(
+        'First message in integration test',
+      );
+      expect(historyResponse.body.data[1].content).toBe(
+        'Second message in integration test',
+      );
 
       // 4. Verify sequence numbers are correct
-      expect(BigInt(historyResponse.body.data[1].sequenceNumber))
-        .toBeGreaterThan(BigInt(historyResponse.body.data[0].sequenceNumber));
+      expect(
+        BigInt(historyResponse.body.data[1].sequenceNumber),
+      ).toBeGreaterThan(BigInt(historyResponse.body.data[0].sequenceNumber));
     });
   });
 
@@ -442,8 +460,8 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
       data: {
         name: 'Test Tenant',
         subscriptionTier: 'ENTERPRISE',
-        status: 'ACTIVE'
-      }
+        status: 'ACTIVE',
+      },
     });
 
     // Create test users
@@ -455,8 +473,8 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
           username: 'user1',
           displayName: 'Test User 1',
           passwordHash: hashedPassword,
-          tenantId: testTenant.id
-        }
+          tenantId: testTenant.id,
+        },
       }),
       prisma.user.create({
         data: {
@@ -464,8 +482,8 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
           username: 'user2',
           displayName: 'Test User 2',
           passwordHash: hashedPassword,
-          tenantId: testTenant.id
-        }
+          tenantId: testTenant.id,
+        },
       }),
       prisma.user.create({
         data: {
@@ -473,9 +491,9 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
           username: 'user3',
           displayName: 'Test User 3',
           passwordHash: hashedPassword,
-          tenantId: testTenant.id
-        }
-      })
+          tenantId: testTenant.id,
+        },
+      }),
     ]);
 
     // Get auth tokens for users
@@ -485,7 +503,7 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         .post('/auth/login')
         .send({
           email: user.email,
-          password: 'password123'
+          password: 'password123',
         });
       authTokens.push(loginResponse.body.accessToken);
     }
@@ -496,21 +514,21 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
         name: 'Test Conversation',
         type: 'GROUP',
         tenantId: testTenant.id,
-        createdById: testUsers[0].id
-      }
+        createdById: testUsers[0].id,
+      },
     });
 
     // Add participants
     await Promise.all(
-      testUsers.map(user =>
+      testUsers.map((user) =>
         prisma.conversationParticipant.create({
           data: {
             conversationId: conversation.id,
             userId: user.id,
-            role: 'MEMBER'
-          }
-        })
-      )
+            role: 'MEMBER',
+          },
+        }),
+      ),
     );
 
     wsClients = [];
@@ -521,29 +539,29 @@ describe('Milestone 1: Core Chat Foundation Validation', () => {
     await prisma.message.deleteMany({
       where: {
         conversation: {
-          tenantId: testTenant.id
-        }
-      }
+          tenantId: testTenant.id,
+        },
+      },
     });
 
     await prisma.conversationParticipant.deleteMany({
       where: {
         conversation: {
-          tenantId: testTenant.id
-        }
-      }
+          tenantId: testTenant.id,
+        },
+      },
     });
 
     await prisma.conversation.deleteMany({
-      where: { tenantId: testTenant.id }
+      where: { tenantId: testTenant.id },
     });
 
     await prisma.user.deleteMany({
-      where: { tenantId: testTenant.id }
+      where: { tenantId: testTenant.id },
     });
 
     await prisma.tenant.delete({
-      where: { id: testTenant.id }
+      where: { id: testTenant.id },
     });
   }
 });

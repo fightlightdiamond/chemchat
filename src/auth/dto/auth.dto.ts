@@ -2,7 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, IsOptional, IsObject } from 'class-validator';
 
 export class LoginRequestDto {
-  @ApiProperty({ example: 'alice@example.com', description: 'User email address' })
+  @ApiProperty({
+    example: 'alice@example.com',
+    description: 'User email address',
+  })
   @IsEmail()
   email: string;
 
@@ -10,10 +13,10 @@ export class LoginRequestDto {
   @IsString()
   password: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     required: false,
     description: 'Device fingerprint for security tracking',
-    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' }
+    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' },
   })
   @IsOptional()
   @IsObject()
@@ -21,23 +24,32 @@ export class LoginRequestDto {
 }
 
 export class LoginResponseDto {
-  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'JWT access token' })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'JWT access token',
+  })
   accessToken: string;
 
-  @ApiProperty({ example: 'refresh_token_here', description: 'Refresh token for token renewal' })
+  @ApiProperty({
+    example: 'refresh_token_here',
+    description: 'Refresh token for token renewal',
+  })
   refreshToken: string;
 
-  @ApiProperty({ example: 3600, description: 'Token expiration time in seconds' })
+  @ApiProperty({
+    example: 3600,
+    description: 'Token expiration time in seconds',
+  })
   expiresIn: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'User information',
     example: {
       id: 'user-id',
       email: 'alice@example.com',
       name: 'Alice Smith',
-      tenantId: 'tenant-id'
-    }
+      tenantId: 'tenant-id',
+    },
   })
   user: {
     id: string;
@@ -46,10 +58,18 @@ export class LoginResponseDto {
     tenantId: string;
   };
 
-  @ApiProperty({ required: false, example: 'mfa_token_here', description: 'MFA token if MFA is required' })
+  @ApiProperty({
+    required: false,
+    example: 'mfa_token_here',
+    description: 'MFA token if MFA is required',
+  })
   mfaToken?: string;
 
-  @ApiProperty({ required: false, example: true, description: 'Whether MFA is required' })
+  @ApiProperty({
+    required: false,
+    example: true,
+    description: 'Whether MFA is required',
+  })
   requiresMfa?: boolean;
 }
 
@@ -58,10 +78,10 @@ export class RefreshTokenRequestDto {
   @IsString()
   refreshToken: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     required: false,
     description: 'Device fingerprint for security tracking',
-    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' }
+    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' },
   })
   @IsOptional()
   @IsObject()
@@ -69,28 +89,41 @@ export class RefreshTokenRequestDto {
 }
 
 export class LogoutRequestDto {
-  @ApiProperty({ example: 'refresh_token_here', description: 'Refresh token to invalidate' })
+  @ApiProperty({
+    example: 'refresh_token_here',
+    description: 'Refresh token to invalidate',
+  })
   @IsString()
   refreshToken: string;
 
-  @ApiProperty({ required: false, example: true, description: 'Logout from all devices' })
+  @ApiProperty({
+    required: false,
+    example: true,
+    description: 'Logout from all devices',
+  })
   @IsOptional()
   allDevices?: boolean;
 }
 
 export class MfaCompleteRequestDto {
-  @ApiProperty({ example: 'mfa_token_here', description: 'MFA token from login response' })
+  @ApiProperty({
+    example: 'mfa_token_here',
+    description: 'MFA token from login response',
+  })
   @IsString()
   mfaToken: string;
 
-  @ApiProperty({ example: '123456', description: '6-digit MFA code from authenticator app' })
+  @ApiProperty({
+    example: '123456',
+    description: '6-digit MFA code from authenticator app',
+  })
   @IsString()
   mfaCode: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     required: false,
     description: 'Device fingerprint for security tracking',
-    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' }
+    example: { userAgent: 'Mozilla/5.0...', screen: '1920x1080' },
   })
   @IsOptional()
   @IsObject()
@@ -138,9 +171,15 @@ export class MfaSetupDto {
 }
 
 export class WebSocketTokenResponseDto {
-  @ApiProperty({ example: 'ws_token_here', description: 'WebSocket authentication token' })
+  @ApiProperty({
+    example: 'ws_token_here',
+    description: 'WebSocket authentication token',
+  })
   wsToken: string;
 
-  @ApiProperty({ example: 3600, description: 'Token expiration time in seconds' })
+  @ApiProperty({
+    example: 3600,
+    description: 'Token expiration time in seconds',
+  })
   expiresIn: number;
 }

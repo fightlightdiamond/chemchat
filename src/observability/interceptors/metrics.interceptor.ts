@@ -1,4 +1,10 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  Logger,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
@@ -24,7 +30,11 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle();
   }
 
-  private handleHttpRequest(context: ExecutionContext, next: CallHandler, startTime: number): Observable<any> {
+  private handleHttpRequest(
+    context: ExecutionContext,
+    next: CallHandler,
+    startTime: number,
+  ): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
 
@@ -40,47 +50,73 @@ export class MetricsInterceptor implements NestInterceptor {
         const statusCode = response.statusCode;
 
         // Record HTTP request metrics
-        this.metricsService.recordHttpRequest(method, route, statusCode, duration, tenantId);
-
-        // Log successful request
-        this.logger.debug(`HTTP ${method} ${route} - ${statusCode} (${duration * 1000}ms)`, {
-          method,
-          route,
-          statusCode,
-          duration: duration * 1000,
-          userAgent,
-          userId,
-          tenantId,
-        });
-      }),
-      catchError(error => {
-        const duration = (Date.now() - startTime) / 1000; // Convert to seconds
-        const statusCode = error.status || 500;
-
-        // Record HTTP request metrics
-        this.metricsService.recordHttpRequest(method, route, statusCode, duration, tenantId);
-        
-        // Record error
-        this.metricsService.recordError('http', error.name || 'UnknownError', tenantId);
-
-        // Log error
-        this.logger.error(`HTTP ${method} ${route} - ${statusCode} (${duration}ms)`, {
+        this.metricsService.recordHttpRequest(
           method,
           route,
           statusCode,
           duration,
-          error: error.message,
-          userAgent,
-          userId,
           tenantId,
-        });
+        );
+
+        // Log successful request
+        this.logger.debug(
+          `HTTP ${method} ${route} - ${statusCode} (${duration * 1000}ms)`,
+          {
+            method,
+            route,
+            statusCode,
+            duration: duration * 1000,
+            userAgent,
+            userId,
+            tenantId,
+          },
+        );
+      }),
+      catchError((error) => {
+        const duration = (Date.now() - startTime) / 1000; // Convert to seconds
+        const statusCode = error.status || 500;
+
+        // Record HTTP request metrics
+        this.metricsService.recordHttpRequest(
+          method,
+          route,
+          statusCode,
+          duration,
+          tenantId,
+        );
+
+        // Record error
+        this.metricsService.recordError(
+          'http',
+          error.name || 'UnknownError',
+          tenantId,
+        );
+
+        // Log error
+        this.logger.error(
+          `HTTP ${method} ${route} - ${statusCode} (${duration}ms)`,
+          {
+            method,
+            route,
+            statusCode,
+            duration,
+            error: error.message,
+            userAgent,
+            userId,
+            tenantId,
+          },
+        );
 
         throw error;
-      })
+      }),
     );
   }
 
-  private handleWebSocketEvent(context: ExecutionContext, next: CallHandler, startTime: number): Observable<any> {
+  private handleWebSocketEvent(
+    context: ExecutionContext,
+    next: CallHandler,
+    startTime: number,
+  ): Observable<any> {
     const wsContext = context.switchToWs();
     const client = wsContext.getClient();
     const data = wsContext.getData();
@@ -95,7 +131,12 @@ export class MetricsInterceptor implements NestInterceptor {
         const duration = (Date.now() - startTime) / 1000; // Convert to seconds
 
         // Record WebSocket event metrics
-        this.metricsService.recordWebSocketEvent(eventType, tenantId, duration, 'success');
+        this.metricsService.recordWebSocketEvent(
+          eventType,
+          tenantId,
+          duration,
+          'success',
+        );
 
         // Log successful WebSocket event
         this.logger.debug(`WebSocket ${eventType} (${duration * 1000}ms)`, {
@@ -107,12 +148,21 @@ export class MetricsInterceptor implements NestInterceptor {
           clientId: client.id,
         });
       }),
-      catchError(error => {
+      catchError((error) => {
         const duration = (Date.now() - startTime) / 1000; // Convert to seconds
 
         // Record WebSocket error metrics
-        this.metricsService.recordWebSocketEvent(eventType, tenantId, duration, 'error');
-        this.metricsService.recordError('websocket', error.name || 'UnknownError', tenantId);
+        this.metricsService.recordWebSocketEvent(
+          eventType,
+          tenantId,
+          duration,
+          'error',
+        );
+        this.metricsService.recordError(
+          'websocket',
+          error.name || 'UnknownError',
+          tenantId,
+        );
 
         // Log WebSocket error
         this.logger.error(`WebSocket ${eventType} error (${duration}ms)`, {
@@ -126,7 +176,7 @@ export class MetricsInterceptor implements NestInterceptor {
         });
 
         throw error;
-      })
+      }),
     );
   }
 }

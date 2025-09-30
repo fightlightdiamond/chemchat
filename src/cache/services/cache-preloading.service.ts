@@ -53,8 +53,11 @@ export class CachePreloadingService {
         enabled: true,
         trigger: 'threshold',
         condition: async () => {
-          const currentValue = await this.getCurrentThresholdValue('high_miss_rate_preload');
-          const threshold = this.thresholds.get('high_miss_rate_preload') || 0.25;
+          const currentValue = await this.getCurrentThresholdValue(
+            'high_miss_rate_preload',
+          );
+          const threshold =
+            this.thresholds.get('high_miss_rate_preload') || 0.25;
           return currentValue > threshold;
         },
         action: async () => this.preloadPopularContent(),
@@ -64,7 +67,8 @@ export class CachePreloadingService {
         enabled: true,
         trigger: 'threshold',
         condition: async () => {
-          const currentValue = await this.getCurrentThresholdValue('low_memory_preload');
+          const currentValue =
+            await this.getCurrentThresholdValue('low_memory_preload');
           const threshold = this.thresholds.get('low_memory_preload') || 0.75;
           return currentValue > threshold;
         },
@@ -98,7 +102,7 @@ export class CachePreloadingService {
    * Execute a specific preloading rule
    */
   private async executeRule(ruleName: string): Promise<void> {
-    const rule = this.rules.find(r => r.name === ruleName && r.enabled);
+    const rule = this.rules.find((r) => r.name === ruleName && r.enabled);
     if (!rule) return;
 
     try {
@@ -118,14 +122,19 @@ export class CachePreloadingService {
    */
   @Cron(CronExpression.EVERY_5_MINUTES)
   async checkThresholds(): Promise<void> {
-    for (const rule of this.rules.filter(r => r.enabled && r.trigger === 'threshold')) {
+    for (const rule of this.rules.filter(
+      (r) => r.enabled && r.trigger === 'threshold',
+    )) {
       try {
-        if (rule.condition && await rule.condition()) {
+        if (rule.condition && (await rule.condition())) {
           await rule.action();
           this.logger.debug(`Executed threshold rule: ${rule.name}`);
         }
       } catch (error) {
-        this.logger.error(`Error checking threshold for rule ${rule.name}:`, error);
+        this.logger.error(
+          `Error checking threshold for rule ${rule.name}:`,
+          error,
+        );
       }
     }
   }
@@ -155,15 +164,21 @@ export class CachePreloadingService {
         take: 20,
       });
 
-      const conversationItems = userConversations.map(cp => ({
+      const conversationItems = userConversations.map((cp) => ({
         key: `conversation:${cp.conversationId}`,
         value: cp.conversation,
-        options: { ttl: 1800, tags: ['conversations'], namespace: 'conversations' },
+        options: {
+          ttl: 1800,
+          tags: ['conversations'],
+          namespace: 'conversations',
+        },
       }));
 
       await this.cacheService.mset(conversationItems);
 
-      this.logger.debug(`Preloaded ${userConversations.length} user conversations for ${userId}`);
+      this.logger.debug(
+        `Preloaded ${userConversations.length} user conversations for ${userId}`,
+      );
     } catch (error) {
       this.logger.error('Failed to preload user conversations:', error);
     }
@@ -224,7 +239,7 @@ export class CachePreloadingService {
         take: 100,
       });
 
-      const messageItems = recentMessages.map(message => ({
+      const messageItems = recentMessages.map((message) => ({
         key: `message:${message.id}`,
         value: message,
         options: { ttl: 1800, tags: ['messages'], namespace: 'messages' },
@@ -258,7 +273,7 @@ export class CachePreloadingService {
         take: 50,
       });
 
-      const userItems = activeUsers.map(user => ({
+      const userItems = activeUsers.map((user) => ({
         key: `user:${user.id}`,
         value: user,
         options: { ttl: 600, tags: ['users'], namespace: 'users' },
@@ -266,7 +281,9 @@ export class CachePreloadingService {
 
       await this.cacheService.mset(userItems);
 
-      this.logger.debug(`Preloaded ${activeUsers.length} critical user data for low memory`);
+      this.logger.debug(
+        `Preloaded ${activeUsers.length} critical user data for low memory`,
+      );
     } catch (error) {
       this.logger.error('Failed to preload critical data:', error);
     }
@@ -302,8 +319,8 @@ export class CachePreloadingService {
   } {
     return {
       totalRules: this.rules.length,
-      enabledRules: this.rules.filter(r => r.enabled).length,
-      rules: this.rules.map(r => ({
+      enabledRules: this.rules.filter((r) => r.enabled).length,
+      rules: this.rules.map((r) => ({
         name: r.name,
         enabled: r.enabled,
         trigger: r.trigger,
@@ -315,10 +332,12 @@ export class CachePreloadingService {
    * Enable/disable preloading rule
    */
   toggleRule(ruleName: string, enabled: boolean): void {
-    const rule = this.rules.find(r => r.name === ruleName);
+    const rule = this.rules.find((r) => r.name === ruleName);
     if (rule) {
       rule.enabled = enabled;
-      this.logger.log(`Preloading rule '${ruleName}' ${enabled ? 'enabled' : 'disabled'}`);
+      this.logger.log(
+        `Preloading rule '${ruleName}' ${enabled ? 'enabled' : 'disabled'}`,
+      );
     } else {
       throw new Error(`Preloading rule '${ruleName}' not found`);
     }

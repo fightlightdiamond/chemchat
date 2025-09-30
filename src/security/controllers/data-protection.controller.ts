@@ -238,7 +238,9 @@ export class DataProtectionController {
     }
 
     // Manual retention run - simplified implementation
-    const policies = await this.dataRetentionService.getRetentionPolicies(user.tenantId);
+    const policies = await this.dataRetentionService.getRetentionPolicies(
+      user.tenantId,
+    );
     const result = { processed: policies.length, errors: [] };
 
     return {
@@ -301,7 +303,7 @@ export class DataProtectionController {
         tenantId: user.tenantId,
       },
     ];
-    
+
     for (const policy of defaultPolicies) {
       await this.dataRetentionService.createRetentionPolicy(policy);
     }

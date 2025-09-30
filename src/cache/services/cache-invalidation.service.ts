@@ -29,7 +29,7 @@ export class CacheInvalidationService {
     const existingRules = this.rules.get(rule.event) || [];
     existingRules.push(rule);
     this.rules.set(rule.event, existingRules);
-    
+
     this.logger.debug(`Registered invalidation rule for event: ${rule.event}`);
   }
 
@@ -48,7 +48,7 @@ export class CacheInvalidationService {
     } else {
       this.rules.delete(event);
     }
-    
+
     this.logger.debug(`Unregistered invalidation rule(s) for event: ${event}`);
   }
 
@@ -57,17 +57,19 @@ export class CacheInvalidationService {
    */
   async invalidateByTags(tags: string[]): Promise<void> {
     await this.cacheService.invalidateByTags(tags);
-    this.logger.debug(`Manually invalidated cache for tags: ${tags.join(', ')}`);
+    this.logger.debug(
+      `Manually invalidated cache for tags: ${tags.join(', ')}`,
+    );
   }
 
   /**
    * Manually invalidate cache by keys
    */
   async invalidateByKeys(keys: string[], namespace?: string): Promise<void> {
-    await Promise.all(
-      keys.map(key => this.cacheService.del(key, namespace))
+    await Promise.all(keys.map((key) => this.cacheService.del(key, namespace)));
+    this.logger.debug(
+      `Manually invalidated cache for keys: ${keys.join(', ')}`,
     );
-    this.logger.debug(`Manually invalidated cache for keys: ${keys.join(', ')}`);
   }
 
   /**
@@ -75,7 +77,9 @@ export class CacheInvalidationService {
    */
   async invalidateByPattern(pattern: string): Promise<void> {
     // This would require Redis SCAN operation for safety
-    this.logger.warn(`Pattern invalidation not implemented for safety: ${pattern}`);
+    this.logger.warn(
+      `Pattern invalidation not implemented for safety: ${pattern}`,
+    );
   }
 
   /**
@@ -112,7 +116,10 @@ export class CacheInvalidationService {
 
         this.logger.debug(`Applied invalidation rule for event: ${event}`);
       } catch (error) {
-        this.logger.error(`Error applying invalidation rule for event ${event}:`, error);
+        this.logger.error(
+          `Error applying invalidation rule for event ${event}:`,
+          error,
+        );
       }
     }
   }

@@ -24,11 +24,14 @@ export class HealthCheckService {
   /**
    * Check memory usage
    */
-  checkMemory(): { status: 'healthy' | 'unhealthy'; details: Record<string, any> } {
+  checkMemory(): {
+    status: 'healthy' | 'unhealthy';
+    details: Record<string, any>;
+  } {
     const memoryUsage = process.memoryUsage();
     const heapUsedThreshold = 150 * 1024 * 1024; // 150MB
     const isHealthy = memoryUsage.heapUsed < heapUsedThreshold;
-    
+
     return {
       status: isHealthy ? 'healthy' : 'unhealthy',
       details: {
@@ -59,7 +62,7 @@ export class HealthCheckService {
         details: memoryCheck.details,
       });
       details.memory = memoryCheck.details;
-      
+
       if (memoryCheck.status === 'unhealthy') {
         overallStatus = 'error';
       }
@@ -70,7 +73,10 @@ export class HealthCheckService {
         status: 'unhealthy',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      details.memory = { status: 'error', error: error instanceof Error ? error.message : 'Unknown error' };
+      details.memory = {
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
 
     // System info

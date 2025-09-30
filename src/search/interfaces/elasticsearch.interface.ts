@@ -100,10 +100,23 @@ export interface IElasticsearchService {
   createIndex(indexName: string, mapping: IndexMapping): Promise<boolean>;
   deleteIndex(indexName: string): Promise<boolean>;
   indexExists(indexName: string): Promise<boolean>;
-  indexDocument(indexName: string, document: SearchDocument): Promise<IndexOperationResult>;
-  updateDocument(indexName: string, documentId: string, document: Partial<SearchDocument>): Promise<IndexOperationResult>;
-  deleteDocument(indexName: string, documentId: string): Promise<IndexOperationResult>;
-  bulkIndex(indexName: string, documents: SearchDocument[]): Promise<BulkOperationResult>;
+  indexDocument(
+    indexName: string,
+    document: SearchDocument,
+  ): Promise<IndexOperationResult>;
+  updateDocument(
+    indexName: string,
+    documentId: string,
+    document: Partial<SearchDocument>,
+  ): Promise<IndexOperationResult>;
+  deleteDocument(
+    indexName: string,
+    documentId: string,
+  ): Promise<IndexOperationResult>;
+  bulkIndex(
+    indexName: string,
+    documents: SearchDocument[],
+  ): Promise<BulkOperationResult>;
   search(indexName: string, query: SearchQuery): Promise<SearchResult>;
   getHealth(): Promise<ElasticsearchHealthStatus>;
   refreshIndex(indexName: string): Promise<boolean>;

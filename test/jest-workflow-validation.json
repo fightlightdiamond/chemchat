@@ -6,7 +6,9 @@
     "<rootDir>/test/system/script-execution-validation.spec.ts",
     "<rootDir>/test/system/nodejs-version-consistency.spec.ts",
     "<rootDir>/test/system/ci-workflow-execution.spec.ts",
-    "<rootDir>/test/system/docker-workflow-integration.spec.ts"
+    "<rootDir>/test/system/complete-workflow-execution.spec.ts",
+    "<rootDir>/test/system/docker-service-connections.spec.ts",
+    "<rootDir>/test/system/simple-docker-validation.spec.ts"
   ],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
@@ -17,9 +19,7 @@
   "coverageDirectory": "coverage/workflow-validation",
   "testTimeout": 120000,
   "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
-  "moduleNameMapping": {
-    "^@/(.*)$": "<rootDir>/src/$1"
-  },
+
   "verbose": true,
   "forceExit": true,
   "detectOpenHandles": true

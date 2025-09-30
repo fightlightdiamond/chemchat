@@ -34,7 +34,7 @@ export class NotificationPreferenceService {
     tenantId?: string,
   ): Promise<NotificationPreferences | null> {
     const cacheKey = `notification:preferences:${userId}:${tenantId || 'global'}`;
-    
+
     try {
       // Try to get from cache first
       const cached = await this.extendedRedis.get(cacheKey);
@@ -43,19 +43,27 @@ export class NotificationPreferenceService {
       }
 
       // Get from database
-      const preferences = await this.extendedPrisma.notificationPreference.findFirst({
-        where: {
-          userId_tenantId: {
-            userId,
-            tenantId: tenantId || null,
+      const preferences =
+        await this.extendedPrisma.notificationPreference.findFirst({
+          where: {
+            userId_tenantId: {
+              userId,
+              tenantId: tenantId || null,
+            },
           },
-        },
-      });
+        });
 
       if (!preferences) {
         // Create default preferences
-        const defaultPreferences = await this.createDefaultPreferences(userId, tenantId);
-        await this.extendedRedis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(defaultPreferences));
+        const defaultPreferences = await this.createDefaultPreferences(
+          userId,
+          tenantId,
+        );
+        await this.extendedRedis.setex(
+          cacheKey,
+          this.CACHE_TTL,
+          JSON.stringify(defaultPreferences),
+        );
         return defaultPreferences;
       }
 
@@ -74,10 +82,17 @@ export class NotificationPreferenceService {
       };
 
       // Cache the result
-      await this.extendedRedis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(result));
+      await this.extendedRedis.setex(
+        cacheKey,
+        this.CACHE_TTL,
+        JSON.stringify(result),
+      );
       return result;
     } catch (error) {
-      this.logger.error(`Failed to get user preferences: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get user preferences: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -142,13 +157,17 @@ export class NotificationPreferenceService {
       this.logger.log(`Updated notification preferences for user ${userId}`);
       return resultPreferences;
     } catch (error) {
-      this.logger.error(`Failed to update user preferences: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update user preferences: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async registerDeviceToken(deviceInfo: DeviceTokenInfo): Promise<DeviceToken> {
-    const { userId, tenantId, deviceId, token, platform, appVersion } = deviceInfo;
+    const { userId, tenantId, deviceId, token, platform, appVersion } =
+      deviceInfo;
 
     try {
       // Deactivate existing tokens for this device
@@ -181,10 +200,15 @@ export class NotificationPreferenceService {
       const cacheKey = `notification:devices:${userId}:${tenantId || 'global'}`;
       await this.extendedRedis.del(cacheKey);
 
-      this.logger.log(`Registered device token for user ${userId}, device ${deviceId}`);
+      this.logger.log(
+        `Registered device token for user ${userId}, device ${deviceId}`,
+      );
       return deviceToken;
     } catch (error) {
-      this.logger.error(`Failed to register device token: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to register device token: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -219,7 +243,10 @@ export class NotificationPreferenceService {
       await this.extendedRedis.setex(cacheKey, 300, JSON.stringify(tokens));
       return tokens;
     } catch (error) {
-      this.logger.error(`Failed to get device tokens: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get device tokens: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -231,7 +258,10 @@ export class NotificationPreferenceService {
         data: { lastUsedAt: new Date() },
       });
     } catch (error) {
-      this.logger.error(`Failed to update device token last used: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update device token last used: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -256,9 +286,14 @@ export class NotificationPreferenceService {
       const cacheKey = `notification:devices:${userId}:${tenantId || 'global'}`;
       await this.extendedRedis.del(cacheKey);
 
-      this.logger.log(`Deactivated device token for user ${userId}, device ${deviceId}`);
+      this.logger.log(
+        `Deactivated device token for user ${userId}, device ${deviceId}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to deactivate device token: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to deactivate device token: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -270,17 +305,17 @@ export class NotificationPreferenceService {
 
       const result = await this.extendedPrisma.deviceToken.deleteMany({
         where: {
-          OR: [
-            { isActive: false },
-            { lastUsedAt: { lt: cutoffDate } },
-          ],
+          OR: [{ isActive: false }, { lastUsedAt: { lt: cutoffDate } }],
         },
       });
 
       this.logger.log(`Cleaned up ${result.count} inactive device tokens`);
       return result.count;
     } catch (error) {
-      this.logger.error(`Failed to cleanup inactive tokens: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to cleanup inactive tokens: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -289,19 +324,21 @@ export class NotificationPreferenceService {
     userId: string,
     tenantId?: string,
   ): Promise<NotificationPreferences> {
-    const preferences = await this.extendedPrisma.notificationPreference.create({
-      data: {
-        userId,
-        tenantId: tenantId || null,
-        pushEnabled: true,
-        emailEnabled: true,
-        mentionNotifications: true,
-        dmNotifications: true,
-        groupNotifications: true,
-        quietHoursEnabled: false,
-        timezone: 'UTC',
+    const preferences = await this.extendedPrisma.notificationPreference.create(
+      {
+        data: {
+          userId,
+          tenantId: tenantId || null,
+          pushEnabled: true,
+          emailEnabled: true,
+          mentionNotifications: true,
+          dmNotifications: true,
+          groupNotifications: true,
+          quietHoursEnabled: false,
+          timezone: 'UTC',
+        },
       },
-    });
+    );
 
     return {
       userId: preferences.userId,

@@ -48,9 +48,9 @@ describe('System Integration Tests', () => {
     // Setup test data
     const tenant = await testData.createTenant();
     const user = await testData.createUser({ tenantId: tenant.id });
-    const conversation = await testData.createConversation({ 
+    const conversation = await testData.createConversation({
       tenantId: tenant.id,
-      createdBy: user.id 
+      createdBy: user.id,
     });
 
     tenantId = tenant.id;
@@ -77,8 +77,9 @@ describe('System Integration Tests', () => {
 
     beforeEach((done) => {
       const serverAddress = app.getHttpServer().address();
-      const port = typeof serverAddress === 'string' ? 3000 : serverAddress?.port || 3000;
-      
+      const port =
+        typeof serverAddress === 'string' ? 3000 : serverAddress?.port || 3000;
+
       clientSocket = io(`http://localhost:${port}`, {
         auth: { token: authToken },
         transports: ['websocket'],
@@ -262,11 +263,13 @@ describe('System Integration Tests', () => {
       expect(conversation).toBeTruthy();
 
       // Verify Redis cache updated
-      const cachedConversation = await redis.get(`conversation:${newConversationId}`);
+      const cachedConversation = await redis.get(
+        `conversation:${newConversationId}`,
+      );
       expect(cachedConversation).toBeTruthy();
 
       // Test search indexing for conversation
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for async indexing
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for async indexing
 
       const searchResponse = await request(app.getHttpServer())
         .get('/search/messages')
@@ -282,7 +285,7 @@ describe('System Integration Tests', () => {
       // Create second tenant
       const tenant2 = await testData.createTenant();
       const user2 = await testData.createUser({ tenantId: tenant2.id });
-      
+
       const token2 = jwtService.sign({
         sub: user2.id,
         tenantId: tenant2.id,
@@ -314,8 +317,9 @@ describe('System Integration Tests', () => {
 
     beforeEach((done) => {
       const serverAddress = app.getHttpServer().address();
-      const port = typeof serverAddress === 'string' ? 3000 : serverAddress?.port || 3000;
-      
+      const port =
+        typeof serverAddress === 'string' ? 3000 : serverAddress?.port || 3000;
+
       let connectionsReady = 0;
       const checkReady = () => {
         connectionsReady++;
@@ -459,7 +463,7 @@ describe('System Integration Tests', () => {
     it('should handle database connection issues', async () => {
       // This test would require more sophisticated setup to simulate DB failures
       // For now, we'll test basic error handling
-      
+
       const response = await request(app.getHttpServer())
         .get('/conversations/invalid-id')
         .set('Authorization', `Bearer ${authToken}`)
@@ -486,7 +490,7 @@ describe('System Integration Tests', () => {
               content: `Concurrent message ${i}`,
               type: 'TEXT',
             })
-            .expect(201)
+            .expect(201),
         );
       }
 
@@ -517,7 +521,7 @@ describe('System Integration Tests', () => {
               conversationId,
               content: `Sequence test message ${i}`,
               type: 'TEXT',
-            })
+            }),
         );
       }
 
@@ -532,7 +536,7 @@ describe('System Integration Tests', () => {
 
       for (let i = 1; i < messages.length; i++) {
         expect(Number(messages[i].sequenceNumber)).toBeGreaterThan(
-          Number(messages[i - 1].sequenceNumber)
+          Number(messages[i - 1].sequenceNumber),
         );
       }
     });

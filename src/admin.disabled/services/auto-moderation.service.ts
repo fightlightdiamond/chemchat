@@ -59,7 +59,14 @@ export class AutoModerationService {
   private readonly SPAM_THRESHOLD = 5;
   private readonly PROFANITY_WORDS = new Set([
     // Basic profanity list - in production, use a comprehensive external service
-    'spam', 'fuck', 'shit', 'damn', 'hell', 'bitch', 'ass', 'bastard'
+    'spam',
+    'fuck',
+    'shit',
+    'damn',
+    'hell',
+    'bitch',
+    'ass',
+    'bastard',
   ]);
 
   constructor(
@@ -68,7 +75,10 @@ export class AutoModerationService {
   ) {}
 
   // Rule Management
-  async createRule(dto: AutoModerationRuleDto, createdBy: string): Promise<any> {
+  async createRule(
+    dto: AutoModerationRuleDto,
+    createdBy: string,
+  ): Promise<any> {
     try {
       const rule = await this.prisma.autoModerationRule.create({
         data: {
@@ -93,25 +103,37 @@ export class AutoModerationService {
         },
       });
 
-      this.logger.log(`Auto-moderation rule created: ${dto.name} (${dto.ruleType})`);
+      this.logger.log(
+        `Auto-moderation rule created: ${dto.name} (${dto.ruleType})`,
+      );
       return rule;
     } catch (error) {
-      this.logger.error(`Failed to create auto-moderation rule: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to create auto-moderation rule: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async updateRule(ruleId: string, updates: Partial<AutoModerationRuleDto>): Promise<any> {
+  async updateRule(
+    ruleId: string,
+    updates: Partial<AutoModerationRuleDto>,
+  ): Promise<any> {
     try {
       const rule = await this.prisma.autoModerationRule.update({
         where: { id: ruleId },
         data: {
           ...(updates.name && { name: updates.name }),
-          ...(updates.description !== undefined && { description: updates.description }),
+          ...(updates.description !== undefined && {
+            description: updates.description,
+          }),
           ...(updates.conditions && { conditions: updates.conditions }),
           ...(updates.actions && { actions: updates.actions }),
           ...(updates.severity && { severity: updates.severity }),
-          ...(updates.isEnabled !== undefined && { isEnabled: updates.isEnabled }),
+          ...(updates.isEnabled !== undefined && {
+            isEnabled: updates.isEnabled,
+          }),
         },
         include: {
           creator: {
@@ -127,7 +149,10 @@ export class AutoModerationService {
       this.logger.log(`Auto-moderation rule updated: ${ruleId}`);
       return rule;
     } catch (error) {
-      this.logger.error(`Failed to update auto-moderation rule: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to update auto-moderation rule: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -140,12 +165,18 @@ export class AutoModerationService {
 
       this.logger.log(`Auto-moderation rule deleted: ${ruleId}`);
     } catch (error) {
-      this.logger.error(`Failed to delete auto-moderation rule: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to delete auto-moderation rule: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
-  async getRules(tenantId?: string, ruleType?: AutoModerationRuleType): Promise<any[]> {
+  async getRules(
+    tenantId?: string,
+    ruleType?: AutoModerationRuleType,
+  ): Promise<any[]> {
     try {
       return await this.prisma.autoModerationRule.findMany({
         where: {
@@ -165,13 +196,18 @@ export class AutoModerationService {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      this.logger.error(`Failed to get auto-moderation rules: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get auto-moderation rules: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   // Content Analysis and Moderation
-  async analyzeContent(context: ModerationContext): Promise<ContentAnalysisResult> {
+  async analyzeContent(
+    context: ModerationContext,
+  ): Promise<ContentAnalysisResult> {
     try {
       const rules = await this.getRules(context.tenantId);
       const violations: ViolationResult[] = [];
@@ -184,9 +220,10 @@ export class AutoModerationService {
       }
 
       // Calculate overall confidence based on violations
-      const confidence = violations.length > 0 
-        ? Math.max(...violations.map(v => v.confidence))
-        : 0;
+      const confidence =
+        violations.length > 0
+          ? Math.max(...violations.map((v) => v.confidence))
+          : 0;
 
       return {
         violations,
@@ -194,13 +231,19 @@ export class AutoModerationService {
         metadata: {
           rulesChecked: rules.length,
           violationsFound: violations.length,
-          highestSeverity: violations.length > 0 
-            ? Math.max(...violations.map(v => this.getSeverityScore(v.severity)))
-            : 0,
+          highestSeverity:
+            violations.length > 0
+              ? Math.max(
+                  ...violations.map((v) => this.getSeverityScore(v.severity)),
+                )
+              : 0,
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to analyze content: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to analyze content: ${error.message}`,
+        error.stack,
+      );
       return {
         violations: [],
         confidence: 0,
@@ -232,21 +275,30 @@ export class AutoModerationService {
         });
 
         // Execute automatic actions based on severity and confidence
-        if (violation.confidence >= 0.8 && violation.severity !== RuleSeverity.LOW) {
+        if (
+          violation.confidence >= 0.8 &&
+          violation.severity !== RuleSeverity.LOW
+        ) {
           await this.executeAutomaticActions(violation, context);
         }
 
         this.logger.log(
-          `Auto-moderation violation recorded: ${violation.ruleName} (${violation.severity}) - Confidence: ${violation.confidence}`
+          `Auto-moderation violation recorded: ${violation.ruleName} (${violation.severity}) - Confidence: ${violation.confidence}`,
         );
       }
     } catch (error) {
-      this.logger.error(`Failed to process violations: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to process violations: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   // Specific Rule Implementations
-  private async checkRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     try {
       switch (rule.ruleType) {
         case AutoModerationRuleType.SPAM_DETECTION:
@@ -268,22 +320,30 @@ export class AutoModerationService {
           return null;
       }
     } catch (error) {
-      this.logger.error(`Failed to check rule ${rule.id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to check rule ${rule.id}: ${error.message}`,
+        error.stack,
+      );
       return null;
     }
   }
 
-  private async checkSpamRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkSpamRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const content = context.content.toLowerCase();
-    
+
     let confidence = 0;
     const triggeredConditions: string[] = [];
-    
+
     // Check for spam keywords
     if (conditions.spamKeywords) {
       const spamWords = conditions.spamKeywords as string[];
-      const foundSpamWords = spamWords.filter(word => content.includes(word.toLowerCase()));
+      const foundSpamWords = spamWords.filter((word) =>
+        content.includes(word.toLowerCase()),
+      );
       if (foundSpamWords.length > 0) {
         confidence += 0.3 * (foundSpamWords.length / spamWords.length);
         triggeredConditions.push(`spam_keywords: ${foundSpamWords.join(', ')}`);
@@ -295,7 +355,9 @@ export class AutoModerationService {
       const repetitionScore = this.calculateRepetitionScore(content);
       if (repetitionScore > conditions.repetitionThreshold) {
         confidence += 0.4;
-        triggeredConditions.push(`excessive_repetition: ${repetitionScore.toFixed(2)}`);
+        triggeredConditions.push(
+          `excessive_repetition: ${repetitionScore.toFixed(2)}`,
+        );
       }
     }
 
@@ -324,10 +386,13 @@ export class AutoModerationService {
     return null;
   }
 
-  private async checkProfanityRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkProfanityRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const content = context.content.toLowerCase();
-    
+
     let confidence = 0;
     const triggeredConditions: string[] = [];
     const foundProfanity: string[] = [];
@@ -351,7 +416,9 @@ export class AutoModerationService {
 
     if (foundProfanity.length > 0) {
       confidence = Math.min(0.9, foundProfanity.length * 0.3);
-      triggeredConditions.push(`profanity_detected: ${foundProfanity.join(', ')}`);
+      triggeredConditions.push(
+        `profanity_detected: ${foundProfanity.join(', ')}`,
+      );
 
       return {
         ruleId: rule.id,
@@ -368,15 +435,18 @@ export class AutoModerationService {
     return null;
   }
 
-  private async checkRateLimitRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkRateLimitRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     if (!context.userId) return null;
 
     const conditions = rule.conditions;
     const windowSeconds = conditions.windowSeconds || this.RATE_LIMIT_WINDOW;
     const maxMessages = conditions.maxMessages || this.SPAM_THRESHOLD;
-    
+
     const cacheKey = `rate_limit:${context.userId}:${context.tenantId || 'global'}`;
-    
+
     try {
       const currentCount = await this.redis.client.incr(cacheKey);
       if (currentCount === 1) {
@@ -384,17 +454,22 @@ export class AutoModerationService {
       }
 
       if (currentCount > maxMessages) {
-        const confidence = Math.min(0.9, (currentCount - maxMessages) / maxMessages);
-        
+        const confidence = Math.min(
+          0.9,
+          (currentCount - maxMessages) / maxMessages,
+        );
+
         return {
           ruleId: rule.id,
           ruleName: rule.name,
           ruleType: rule.ruleType,
           severity: rule.severity,
           confidence,
-          triggeredConditions: [`rate_limit_exceeded: ${currentCount}/${maxMessages} in ${windowSeconds}s`],
+          triggeredConditions: [
+            `rate_limit_exceeded: ${currentCount}/${maxMessages} in ${windowSeconds}s`,
+          ],
           suggestedActions: rule.actions.automatic || [],
-          metadata: { 
+          metadata: {
             messageCount: currentCount,
             maxMessages,
             windowSeconds,
@@ -402,13 +477,19 @@ export class AutoModerationService {
         };
       }
     } catch (error) {
-      this.logger.error(`Failed to check rate limit: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to check rate limit: ${error.message}`,
+        error.stack,
+      );
     }
 
     return null;
   }
 
-  private async checkSimilarityRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkSimilarityRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const similarityThreshold = conditions.similarityThreshold || 0.8;
     const lookbackMinutes = conditions.lookbackMinutes || 60;
@@ -429,12 +510,16 @@ export class AutoModerationService {
       });
 
       for (const message of recentMessages) {
-        const messageContent = typeof message.content === 'string' 
-          ? message.content 
-          : JSON.stringify(message.content);
-        
-        const similarity = this.calculateStringSimilarity(context.content, messageContent);
-        
+        const messageContent =
+          typeof message.content === 'string'
+            ? message.content
+            : JSON.stringify(message.content);
+
+        const similarity = this.calculateStringSimilarity(
+          context.content,
+          messageContent,
+        );
+
         if (similarity >= similarityThreshold) {
           return {
             ruleId: rule.id,
@@ -442,9 +527,11 @@ export class AutoModerationService {
             ruleType: rule.ruleType,
             severity: rule.severity,
             confidence: similarity,
-            triggeredConditions: [`content_similarity: ${(similarity * 100).toFixed(1)}%`],
+            triggeredConditions: [
+              `content_similarity: ${(similarity * 100).toFixed(1)}%`,
+            ],
             suggestedActions: rule.actions.automatic || [],
-            metadata: { 
+            metadata: {
               similarity,
               similarContent: messageContent.substring(0, 100),
             },
@@ -452,19 +539,25 @@ export class AutoModerationService {
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to check content similarity: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to check content similarity: ${error.message}`,
+        error.stack,
+      );
     }
 
     return null;
   }
 
-  private async checkLinkRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkLinkRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const content = context.content;
-    
+
     const linkRegex = /https?:\/\/[^\s]+/g;
     const links = content.match(linkRegex) || [];
-    
+
     if (links.length === 0) return null;
 
     let confidence = 0;
@@ -473,16 +566,20 @@ export class AutoModerationService {
     // Check link count threshold
     if (conditions.maxLinks && links.length > conditions.maxLinks) {
       confidence += 0.4;
-      triggeredConditions.push(`excessive_links: ${links.length}/${conditions.maxLinks}`);
+      triggeredConditions.push(
+        `excessive_links: ${links.length}/${conditions.maxLinks}`,
+      );
     }
 
     // Check for suspicious domains
     if (conditions.blockedDomains) {
       const blockedDomains = conditions.blockedDomains as string[];
-      const suspiciousLinks = links.filter(link => {
+      const suspiciousLinks = links.filter((link) => {
         try {
           const domain = new URL(link).hostname.toLowerCase();
-          return blockedDomains.some(blocked => domain.includes(blocked.toLowerCase()));
+          return blockedDomains.some((blocked) =>
+            domain.includes(blocked.toLowerCase()),
+          );
         } catch {
           return false;
         }
@@ -497,10 +594,10 @@ export class AutoModerationService {
     // Check for URL shorteners
     if (conditions.blockShorteners) {
       const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly'];
-      const shortenerLinks = links.filter(link => {
+      const shortenerLinks = links.filter((link) => {
         try {
           const domain = new URL(link).hostname.toLowerCase();
-          return shorteners.some(shortener => domain.includes(shortener));
+          return shorteners.some((shortener) => domain.includes(shortener));
         } catch {
           return false;
         }
@@ -521,7 +618,7 @@ export class AutoModerationService {
         confidence,
         triggeredConditions,
         suggestedActions: rule.actions.automatic || [],
-        metadata: { 
+        metadata: {
           linkCount: links.length,
           links: links.slice(0, 5), // Limit stored links
         },
@@ -531,22 +628,25 @@ export class AutoModerationService {
     return null;
   }
 
-  private async checkCapsRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkCapsRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const content = context.content;
-    
+
     const capsThreshold = conditions.capsThreshold || 0.7;
     const minLength = conditions.minLength || 10;
-    
+
     if (content.length < minLength) return null;
 
     const uppercaseCount = (content.match(/[A-Z]/g) || []).length;
     const letterCount = (content.match(/[A-Za-z]/g) || []).length;
-    
+
     if (letterCount === 0) return null;
 
     const capsRatio = uppercaseCount / letterCount;
-    
+
     if (capsRatio >= capsThreshold) {
       return {
         ruleId: rule.id,
@@ -554,9 +654,11 @@ export class AutoModerationService {
         ruleType: rule.ruleType,
         severity: rule.severity,
         confidence: Math.min(0.9, capsRatio),
-        triggeredConditions: [`excessive_caps: ${(capsRatio * 100).toFixed(1)}%`],
+        triggeredConditions: [
+          `excessive_caps: ${(capsRatio * 100).toFixed(1)}%`,
+        ],
         suggestedActions: rule.actions.automatic || [],
-        metadata: { 
+        metadata: {
           capsRatio,
           uppercaseCount,
           letterCount,
@@ -567,27 +669,32 @@ export class AutoModerationService {
     return null;
   }
 
-  private async checkMentionSpamRule(rule: any, context: ModerationContext): Promise<ViolationResult | null> {
+  private async checkMentionSpamRule(
+    rule: any,
+    context: ModerationContext,
+  ): Promise<ViolationResult | null> {
     const conditions = rule.conditions;
     const content = context.content;
-    
+
     const mentionRegex = /@\w+/g;
     const mentions = content.match(mentionRegex) || [];
-    
+
     const maxMentions = conditions.maxMentions || 5;
-    
+
     if (mentions.length > maxMentions) {
       const confidence = Math.min(0.9, mentions.length / (maxMentions * 2));
-      
+
       return {
         ruleId: rule.id,
         ruleName: rule.name,
         ruleType: rule.ruleType,
         severity: rule.severity,
         confidence,
-        triggeredConditions: [`excessive_mentions: ${mentions.length}/${maxMentions}`],
+        triggeredConditions: [
+          `excessive_mentions: ${mentions.length}/${maxMentions}`,
+        ],
         suggestedActions: rule.actions.automatic || [],
-        metadata: { 
+        metadata: {
           mentionCount: mentions.length,
           mentions: mentions.slice(0, 10),
         },
@@ -603,7 +710,7 @@ export class AutoModerationService {
     if (words.length < 3) return 0;
 
     const wordCounts = new Map<string, number>();
-    words.forEach(word => {
+    words.forEach((word) => {
       wordCounts.set(word, (wordCounts.get(word) || 0) + 1);
     });
 
@@ -614,40 +721,47 @@ export class AutoModerationService {
   private calculateStringSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
-    
+
     if (longer.length === 0) return 1.0;
-    
+
     const editDistance = this.levenshteinDistance(longer, shorter);
     return (longer.length - editDistance) / longer.length;
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-    
+    const matrix = Array(str2.length + 1)
+      .fill(null)
+      .map(() => Array(str1.length + 1).fill(null));
+
     for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
     for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-    
+
     for (let j = 1; j <= str2.length; j++) {
       for (let i = 1; i <= str1.length; i++) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
         matrix[j][i] = Math.min(
           matrix[j][i - 1] + 1,
           matrix[j - 1][i] + 1,
-          matrix[j - 1][i - 1] + indicator
+          matrix[j - 1][i - 1] + indicator,
         );
       }
     }
-    
+
     return matrix[str2.length][str1.length];
   }
 
   private getSeverityScore(severity: RuleSeverity): number {
     switch (severity) {
-      case RuleSeverity.LOW: return 1;
-      case RuleSeverity.MEDIUM: return 2;
-      case RuleSeverity.HIGH: return 3;
-      case RuleSeverity.CRITICAL: return 4;
-      default: return 1;
+      case RuleSeverity.LOW:
+        return 1;
+      case RuleSeverity.MEDIUM:
+        return 2;
+      case RuleSeverity.HIGH:
+        return 3;
+      case RuleSeverity.CRITICAL:
+        return 4;
+      default:
+        return 1;
     }
   }
 
@@ -681,7 +795,10 @@ export class AutoModerationService {
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to execute automatic actions: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to execute automatic actions: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
@@ -706,12 +823,12 @@ export class AutoModerationService {
         ...(filters.ruleId && { ruleId: filters.ruleId }),
         ...(filters.severity && { severity: filters.severity }),
         ...(filters.reviewStatus && { reviewStatus: filters.reviewStatus }),
-        ...(filters.dateFrom || filters.dateTo) && {
+        ...((filters.dateFrom || filters.dateTo) && {
           createdAt: {
             ...(filters.dateFrom && { gte: filters.dateFrom }),
             ...(filters.dateTo && { lte: filters.dateTo }),
           },
-        },
+        }),
       };
 
       const [violations, total] = await Promise.all([
@@ -758,7 +875,10 @@ export class AutoModerationService {
         hasPrevious: page > 1,
       };
     } catch (error) {
-      this.logger.error(`Failed to get violations: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to get violations: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -795,7 +915,10 @@ export class AutoModerationService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to review violation: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to review violation: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }

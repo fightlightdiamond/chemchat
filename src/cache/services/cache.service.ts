@@ -56,17 +56,13 @@ export class CacheService {
   /**
    * Set value in cache with optional TTL and tags
    */
-  async set<T>(
-    key: string,
-    value: T,
-    options?: CacheOptions,
-  ): Promise<void> {
+  async set<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
     const fullKey = this.buildKey(key, options?.namespace);
     const ttl = options?.ttl || 300; // 5 minutes default
 
     try {
       await this.cacheManager.set(fullKey, value, ttl * 1000);
-      
+
       // Store tags for invalidation if provided
       if (options?.tags && options.tags.length > 0) {
         await this.storeTags(fullKey, options.tags);
@@ -108,7 +104,7 @@ export class CacheService {
     options?: CacheOptions,
   ): Promise<T> {
     const cached = await this.get<T>(key, options);
-    
+
     if (cached !== null) {
       return cached;
     }
@@ -122,12 +118,12 @@ export class CacheService {
    * Get multiple keys at once
    */
   async mget<T>(keys: string[], namespace?: string): Promise<(T | null)[]> {
-    const fullKeys = keys.map(key => this.buildKey(key, namespace));
+    const fullKeys = keys.map((key) => this.buildKey(key, namespace));
     const startTime = Date.now();
 
     try {
       const values = await Promise.all(
-        fullKeys.map(key => this.cacheManager.get<T>(key))
+        fullKeys.map((key) => this.cacheManager.get<T>(key)),
       );
 
       const duration = Date.now() - startTime;
@@ -139,12 +135,15 @@ export class CacheService {
         }
       });
 
-      return values.map(value => value || null);
+      return values.map((value) => value || null);
     } catch (error) {
-      fullKeys.forEach(key => {
+      fullKeys.forEach((key) => {
         this.metricsService.recordCacheError(key, error);
       });
-      this.logger.error(`Cache MGET error for keys ${fullKeys.join(', ')}:`, error);
+      this.logger.error(
+        `Cache MGET error for keys ${fullKeys.join(', ')}:`,
+        error,
+      );
       return keys.map(() => null);
     }
   }
@@ -158,12 +157,12 @@ export class CacheService {
   ): Promise<void> {
     try {
       await Promise.all(
-        items.map(item => 
+        items.map((item) =>
           this.set(item.key, item.value, {
             ...item.options,
             namespace: namespace || item.options?.namespace,
-          })
-        )
+          }),
+        ),
       );
     } catch (error) {
       this.logger.error('Cache MSET error:', error);
@@ -180,8 +179,10 @@ export class CacheService {
 
       for (const tag of tags) {
         const tagKey = this.buildTagKey(tag);
-        const keys = await this.redisService.exec((client) => client.smembers(tagKey));
-        
+        const keys = await this.redisService.exec((client) =>
+          client.smembers(tagKey),
+        );
+
         if (Array.isArray(keys)) {
           keysToDelete.push(...keys);
         }
@@ -189,14 +190,23 @@ export class CacheService {
 
       if (keysToDelete.length > 0) {
         await Promise.all([
-          ...keysToDelete.map(key => this.cacheManager.del(key)),
-          ...tags.map(tag => this.redisService.exec((client) => client.del(this.buildTagKey(tag)))),
+          ...keysToDelete.map((key) => this.cacheManager.del(key)),
+          ...tags.map((tag) =>
+            this.redisService.exec((client) =>
+              client.del(this.buildTagKey(tag)),
+            ),
+          ),
         ]);
 
-        this.logger.debug(`Invalidated ${keysToDelete.length} cache entries for tags: ${tags.join(', ')}`);
+        this.logger.debug(
+          `Invalidated ${keysToDelete.length} cache entries for tags: ${tags.join(', ')}`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Cache invalidation error for tags ${tags.join(', ')}:`, error);
+      this.logger.error(
+        `Cache invalidation error for tags ${tags.join(', ')}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -226,7 +236,12 @@ export class CacheService {
     totalKeys: number;
   }> {
     const stats = this.metricsService.getStats();
-    const defaultStats = stats['default'] || { hits: 0, misses: 0, hitRate: 0, totalKeys: 0 };
+    const defaultStats = stats['default'] || {
+      hits: 0,
+      misses: 0,
+      hitRate: 0,
+      totalKeys: 0,
+    };
     return {
       hits: defaultStats.hits,
       misses: defaultStats.misses,
@@ -238,9 +253,11 @@ export class CacheService {
   /**
    * Warm up cache with predefined data
    */
-  async warmup(items: Array<{ key: string; value: any; options?: CacheOptions }>): Promise<void> {
+  async warmup(
+    items: Array<{ key: string; value: any; options?: CacheOptions }>,
+  ): Promise<void> {
     this.logger.log(`Warming up cache with ${items.length} items`);
-    
+
     try {
       await this.mset(items);
       this.logger.log('Cache warmup completed successfully');
@@ -270,9 +287,11 @@ export class CacheService {
   private async storeTags(key: string, tags: string[]): Promise<void> {
     try {
       await Promise.all(
-        tags.map(tag => 
-          this.redisService.exec((client) => client.sadd(this.buildTagKey(tag), key))
-        )
+        tags.map((tag) =>
+          this.redisService.exec((client) =>
+            client.sadd(this.buildTagKey(tag), key),
+          ),
+        ),
       );
     } catch (error) {
       this.logger.error(`Error storing tags for key ${key}:`, error);
@@ -287,7 +306,7 @@ export class CacheService {
       // Get all cache keys and delete them
       const keys = await this.redisService.exec((client) => client.keys('*'));
       if (Array.isArray(keys) && keys.length > 0) {
-        await Promise.all(keys.map(key => this.cacheManager.del(key)));
+        await Promise.all(keys.map((key) => this.cacheManager.del(key)));
       }
     } catch (error) {
       this.logger.error('Error clearing all cache keys:', error);
@@ -302,13 +321,15 @@ export class CacheService {
     try {
       // Find all tag sets that contain this key and remove it
       const tagPattern = this.buildTagKey('*');
-      const tagKeys = await this.redisService.exec((client) => client.keys(tagPattern));
-      
+      const tagKeys = await this.redisService.exec((client) =>
+        client.keys(tagPattern),
+      );
+
       if (Array.isArray(tagKeys)) {
         await Promise.all(
-          tagKeys.map(tagKey => 
-            this.redisService.exec((client) => client.srem(tagKey, key))
-          )
+          tagKeys.map((tagKey) =>
+            this.redisService.exec((client) => client.srem(tagKey, key)),
+          ),
         );
       }
     } catch (error) {

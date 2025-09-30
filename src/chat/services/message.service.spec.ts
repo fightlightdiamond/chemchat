@@ -58,7 +58,9 @@ describe('MessageService', () => {
 
       const result = await service.createMessage(messageData);
 
-      expect(sequenceService.generateSequenceNumber).toHaveBeenCalledWith(conversation.id);
+      expect(sequenceService.generateSequenceNumber).toHaveBeenCalledWith(
+        conversation.id,
+      );
       expect(prismaService.message.create).toHaveBeenCalledWith({
         data: {
           ...messageData,
@@ -77,9 +79,13 @@ describe('MessageService', () => {
         tenantId: 'tenant-1',
       };
 
-      prismaService.message.create.mockRejectedValue(new Error('Database error'));
+      prismaService.message.create.mockRejectedValue(
+        new Error('Database error'),
+      );
 
-      await expect(service.createMessage(messageData)).rejects.toThrow('Database error');
+      await expect(service.createMessage(messageData)).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 
@@ -87,10 +93,17 @@ describe('MessageService', () => {
     it('should update an existing message', async () => {
       const messageId = 'message-1';
       const updateData = { content: 'Updated content' };
-      const existingMessage = TestDataFactory.createMessage('conv-1', 'user-1', 'tenant-1');
+      const existingMessage = TestDataFactory.createMessage(
+        'conv-1',
+        'user-1',
+        'tenant-1',
+      );
 
       prismaService.message.findUnique.mockResolvedValue(existingMessage);
-      prismaService.message.update.mockResolvedValue({ ...existingMessage, ...updateData });
+      prismaService.message.update.mockResolvedValue({
+        ...existingMessage,
+        ...updateData,
+      });
 
       const result = await service.updateMessage(messageId, updateData);
 
@@ -107,17 +120,26 @@ describe('MessageService', () => {
 
       prismaService.message.findUnique.mockResolvedValue(null);
 
-      await expect(service.updateMessage(messageId, updateData)).rejects.toThrow('Message not found');
+      await expect(
+        service.updateMessage(messageId, updateData),
+      ).rejects.toThrow('Message not found');
     });
   });
 
   describe('deleteMessage', () => {
     it('should soft delete a message', async () => {
       const messageId = 'message-1';
-      const existingMessage = TestDataFactory.createMessage('conv-1', 'user-1', 'tenant-1');
+      const existingMessage = TestDataFactory.createMessage(
+        'conv-1',
+        'user-1',
+        'tenant-1',
+      );
 
       prismaService.message.findUnique.mockResolvedValue(existingMessage);
-      prismaService.message.update.mockResolvedValue({ ...existingMessage, isDeleted: true });
+      prismaService.message.update.mockResolvedValue({
+        ...existingMessage,
+        isDeleted: true,
+      });
 
       const result = await service.deleteMessage(messageId);
 
@@ -132,7 +154,12 @@ describe('MessageService', () => {
   describe('getMessagesByConversation', () => {
     it('should retrieve messages with pagination', async () => {
       const conversationId = 'conv-1';
-      const messages = TestDataFactory.createBulkMessages(conversationId, 'user-1', 'tenant-1', 5);
+      const messages = TestDataFactory.createBulkMessages(
+        conversationId,
+        'user-1',
+        'tenant-1',
+        5,
+      );
 
       prismaService.message.findMany.mockResolvedValue(messages);
 
@@ -152,7 +179,12 @@ describe('MessageService', () => {
     it('should handle cursor-based pagination', async () => {
       const conversationId = 'conv-1';
       const cursor = 'message-cursor';
-      const messages = TestDataFactory.createBulkMessages(conversationId, 'user-1', 'tenant-1', 3);
+      const messages = TestDataFactory.createBulkMessages(
+        conversationId,
+        'user-1',
+        'tenant-1',
+        3,
+      );
 
       prismaService.message.findMany.mockResolvedValue(messages);
 
@@ -175,7 +207,12 @@ describe('MessageService', () => {
     it('should search messages by content', async () => {
       const query = 'test search';
       const tenantId = 'tenant-1';
-      const messages = TestDataFactory.createBulkMessages('conv-1', 'user-1', tenantId, 2);
+      const messages = TestDataFactory.createBulkMessages(
+        'conv-1',
+        'user-1',
+        tenantId,
+        2,
+      );
 
       prismaService.message.findMany.mockResolvedValue(messages);
 
